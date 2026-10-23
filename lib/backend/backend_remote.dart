@@ -84,5 +84,12 @@ class RemoteBackend implements Backend {
   }
 
   @override
+  Future<List<GeoHit>> geocode(String address, {LatLng? near, int limit = 5}) async {
+    final (code, body) = await _post('coordinates', GeoHit.request(address, near, limit));
+    if (code != 200) throw BackendException(code, _message(body));
+    return GeoHit.fromAnswer(body);
+  }
+
+  @override
   Future<void> close() async => _client.close();
 }

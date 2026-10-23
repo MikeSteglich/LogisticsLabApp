@@ -153,6 +153,10 @@ class LocalBackend implements Backend {
   }
 
   @override
+  Future<List<GeoHit>> geocode(String address, {LatLng? near, int limit = 5}) async =>
+      GeoHit.fromAnswer(await _call('coordinates', GeoHit.request(address, near, limit)) as Map<String, dynamic>);
+
+  @override
   Future<void> close() async {
     final p = _process;
     if (p == null) return;

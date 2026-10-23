@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../app_state.dart';
+import '../backend/backend.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
 import 'theme.dart';
@@ -218,10 +219,19 @@ class _NodeMask extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          TextValueField(
-            label: t('ui.node.address'),
-            value: n.address ?? '',
-            onChanged: (v) => s.edit(() => n.address = v),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: TextValueField(
+                  label: t('ui.node.address'),
+                  value: n.address ?? '',
+                  onChanged: (v) => s.edit(() => n.address = v),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _GeocodeButton(state: s, node: n),
+            ],
           ),
           const SizedBox(height: 14),
           FieldGrid(
@@ -372,4 +382,97 @@ class _IdInputState extends State<_IdInput> {
     if (id == widget.value || widget.validate(id) != null) return;
     widget.onCommit(id);
   }
+}
+
+/// looks up the coordinates of the address - one hit is taken, several are offered for choice
+class _GeocodeButton extends StatefulWidget {
+  final AppState state;
+  final Node node;
+  const _GeocodeButton({required this.state, required this.node});
+
+  @override
+  State<_GeocodeButton> createState() => _GeocodeButtonState();
+}
+
+class _GeocodeButtonState extends State<_GeocodeButton> {
+  bool _busy = false;
+
+  void _snack(String text) =>
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), behavior: SnackBarBehavior.floating));
+
+  Future<void> _lookUp() async {
+    final s = widget.state;
+    final t = s.strings;
+    final n = widget.node;
+    final address = (n.address ?? '').trim();
+    if (address.isEmpty) {
+      _snack(t('ui.geo.noAddress'));
+      return;
+    }
+    setState(() => _busy = true);
+    List<GeoHit> hits;
+    try {
+      hits = await s.geocode(address, exceptNode: n.id);
+    } catch (e) {
+      if (mounted) _snack('${t('ui.status.error')}: $e');
+      return;
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (!mounted) return;
+    if (hits.isEmpty) {
+      _snack(t('ui.geo.none', {'address': address}));
+      return;
+    }
+    final hit = hits.length == 1 ? hits.first : await _choose(address, hits);
+    if (hit == null || !mounted) return;
+    s.edit(() => n.position = hit.position);
+    _snack(t('ui.geo.set', {'place': hit.label}));
+  }
+
+  Future<GeoHit?> _choose(String address, List<GeoHit> hits) {
+    final t = widget.state.strings;
+    return showDialog<GeoHit>(
+      context: context,
+      builder: (c) => SimpleDialog(
+        title: Text(t('ui.geo.choose', {'address': address})),
+        children: [
+          for (final h in hits)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(c, h),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(h.label),
+                  Text(
+                    '${t.fixed(h.position.latitude, 5)} / ${t.fixed(h.position.longitude, 5)}',
+                    style: const TextStyle(fontSize: 12, color: Ui.textSecondary, fontFeatures: Ui.tabular),
+                  ),
+                ],
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(onPressed: () => Navigator.pop(c), child: Text(t('ui.cancel'))),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 44,
+    child: OutlinedButton.icon(
+      icon: _busy
+          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+          : const Icon(Icons.travel_explore, size: 16),
+      label: Text(widget.state.strings('ui.node.geocode')),
+      onPressed: _busy ? null : _lookUp,
+    ),
+  );
 }

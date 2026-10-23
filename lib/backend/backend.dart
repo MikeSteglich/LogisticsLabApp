@@ -35,6 +35,43 @@ class ProblemAnswer {
   );
 }
 
+/// Hit of the geocoding: position and the address found.
+class GeoHit {
+  final LatLng position;
+  final Map<String, dynamic> json; // name, street, postcode, city, country ...
+
+  GeoHit(this.position, this.json);
+
+  factory GeoHit.fromJson(Map<String, dynamic> j) {
+    final c = j['coordinates'] as List;
+    return GeoHit(LatLng((c[0] as num).toDouble(), (c[1] as num).toDouble()), j);
+  }
+
+  String _s(String k) => (json[k] as String?)?.trim() ?? '';
+
+  /// e.g. "TH Wildau, Hochschulring 1, 15745 Wildau, Germany"
+  String get label => [
+    _s('name'),
+    _s('street'),
+    '${_s('postcode')} ${_s('city')}'.trim(),
+    _s('country'),
+  ].where((p) => p.isNotEmpty).toSet().join(', ');
+
+  /// request of the geo service coordinates (local and REST)
+  static Map<String, dynamic> request(String address, LatLng? near, int limit) => {
+    'adresses': [address],
+    'limit': limit,
+    if (near != null) 'near': [near.latitude, near.longitude],
+  };
+
+  /// hits of the first address of the answer
+  static List<GeoHit> fromAnswer(Map<String, dynamic> answer) {
+    final hits = answer['hits'] as List?;
+    if (hits == null || hits.isEmpty || hits.first == null) return const [];
+    return [for (final h in hits.first as List) GeoHit.fromJson(h as Map<String, dynamic>)];
+  }
+}
+
 const finishedStatus = ['solution', 'noSolution', 'error', 'cancelled'];
 
 typedef StatusCallback = void Function(ProblemAnswer status);
@@ -48,6 +85,9 @@ abstract class Backend {
 
   /// course of the roads between the points (OSM)
   Future<List<LatLng>> route(List<LatLng> points, String travelmode);
+
+  /// places of an address (OSM geocoding) - hits near [near] first
+  Future<List<GeoHit>> geocode(String address, {LatLng? near, int limit = 5});
 
   Future<void> close();
 }

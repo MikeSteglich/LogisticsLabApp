@@ -181,5 +181,10 @@
   "module.multistagewlp": "Mehrstufiges WLP",
   "module.multistagewlp.short": "WLP mehrst.",
   "ui.split": "Größe von Karte und Datenbereich",
-  "ui.sol.costs": "Kosten"
+  "ui.sol.costs": "Kosten",
+  "ui.node.geocode": "Koordinaten suchen",
+  "ui.geo.noAddress": "Bitte zuerst eine Adresse eingeben",
+  "ui.geo.none": "Keine Treffer für „{address}“",
+  "ui.geo.choose": "Treffer für „{address}“",
+  "ui.geo.set": "Position gesetzt: {place}"
 }

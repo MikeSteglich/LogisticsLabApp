@@ -181,5 +181,10 @@
   "module.multistagewlp": "Multi-stage WLP",
   "module.multistagewlp.short": "Multi-stage WLP",
   "ui.split": "Size of map and data area",
-  "ui.sol.costs": "Cost"
+  "ui.sol.costs": "Cost",
+  "ui.node.geocode": "Look up coordinates",
+  "ui.geo.noAddress": "Please enter an address first",
+  "ui.geo.none": "No hits for \"{address}\"",
+  "ui.geo.choose": "Hits for \"{address}\"",
+  "ui.geo.set": "Position set: {place}"
 }

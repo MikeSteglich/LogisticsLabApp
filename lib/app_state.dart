@@ -290,6 +290,24 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  //*********** geocoding ************
+
+  /// places of the address - hits near the other nodes first
+  Future<List<GeoHit>> geocode(String address, {String? exceptNode}) async {
+    final others = [
+      for (final n in scenario.nodes)
+        if (n.id != exceptNode) n.position,
+    ];
+    final near = others.isEmpty
+        ? null
+        : LatLng(
+            others.map((p) => p.latitude).reduce((a, b) => a + b) / others.length,
+            others.map((p) => p.longitude).reduce((a, b) => a + b) / others.length,
+          );
+    final backend = await _getBackend();
+    return backend.geocode(address, near: near);
+  }
+
   //*********** course of the edges on the map ************
 
   final _routes = <String, List<LatLng>>{};
