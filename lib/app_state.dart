@@ -164,6 +164,15 @@ class AppState extends ChangeNotifier {
     ];
   }
 
+  /// nodes a section of a tour passes on its shortest way through the network - "über A, B", empty without
+  String via(Map<String, dynamic> leg) {
+    final path = (leg['path'] as List?)?.cast<String>() ?? const [];
+    if (path.length < 3) return '';
+    return strings('ui.sol.via', {
+      'nodes': [for (final id in path.sublist(1, path.length - 1)) scenario.node(id)?.name ?? id].join(', '),
+    });
+  }
+
   /// the solution consists of tours (tsp) - its connections are the sections of the tours
   bool get isRoute => solution?.results?['routes'] != null;
 

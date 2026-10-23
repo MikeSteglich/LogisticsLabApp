@@ -377,5 +377,6 @@
   "ui.check.noEdges": "Le réseau n’a pas encore d’arcs – créez-les dans l’onglet réseau",
   "ui.check.twoNodes": "Il faut au moins deux nœuds actifs",
   "ui.check.costRates": "Les coûts comme mesure exigent des coûts par km ou par heure – onglet paramètres, matrice",
-  "ui.check.nodeParam": "{field} : le nœud {node} n’existe pas ou est inactif"
+  "ui.check.nodeParam": "{field} : le nœud {node} n’existe pas ou est inactif",
+  "ui.sol.via": "via {nodes}"
 }

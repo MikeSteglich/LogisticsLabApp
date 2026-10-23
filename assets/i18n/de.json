@@ -377,5 +377,6 @@
   "ui.check.noEdges": "Das Netz hat noch keine Kanten – im Netz-Tab anlegen",
   "ui.check.twoNodes": "Es braucht mindestens zwei aktive Knoten",
   "ui.check.costRates": "Bewertung nach Kosten braucht Kosten je km oder je Stunde – im Parameter-Tab unter Matrix",
-  "ui.check.nodeParam": "{field}: den Knoten {node} gibt es nicht oder er ist inaktiv"
+  "ui.check.nodeParam": "{field}: den Knoten {node} gibt es nicht oder er ist inaktiv",
+  "ui.sol.via": "über {nodes}"
 }

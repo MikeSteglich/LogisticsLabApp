@@ -377,5 +377,6 @@
   "ui.check.noEdges": "La red aún no tiene aristas – créelas en la pestaña de red",
   "ui.check.twoNodes": "Se necesitan al menos dos nodos activos",
   "ui.check.costRates": "Los costes como medida necesitan costes por km o por hora – en la pestaña de parámetros, matriz",
-  "ui.check.nodeParam": "{field}: el nodo {node} no existe o está inactivo"
+  "ui.check.nodeParam": "{field}: el nodo {node} no existe o está inactivo",
+  "ui.sol.via": "por {nodes}"
 }

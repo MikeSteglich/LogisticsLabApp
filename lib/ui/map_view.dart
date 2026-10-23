@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -272,13 +273,25 @@ class _MapViewState extends State<MapView> {
           if (s.scenario.node(a['to'] as String) case final to?)
             (
               index: i,
-              points: s.edgePoints(from.position, to.position),
+              points: _legPoints(a) ?? s.edgePoints(from.position, to.position),
               // quantity - the number of the section of a tour
               label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
               selected: i == s.selectedFlow,
             ),
     ];
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
+  }
+
+  /// a section of a tour over the shortest way in the network: along the nodes of its way - null without one
+  List<LatLng>? _legPoints(Map<String, dynamic> a) {
+    final path = (a['path'] as List?)?.cast<String>();
+    if (path == null || path.length < 3) return null;
+    final nodes = [for (final id in path) s.scenario.node(id)];
+    if (nodes.any((n) => n == null)) return null;
+    return [
+      for (var k = 1; k < nodes.length; k++)
+        ...s.edgePoints(nodes[k - 1]!.position, nodes[k]!.position).skip(k == 1 ? 0 : 1),
+    ];
   }
 
   List<Polyline<int>> _solutionLines() {
@@ -304,7 +317,10 @@ class _MapViewState extends State<MapView> {
     final selected = nodes.where((n) => n.id == s.selectedNode);
     final flows = _showSolution ? _flows() : const <_Flow>[];
     _Label flowLabel(_Flow f) => _Label(
-      f.points[f.points.length ~/ 2],
+      _Label.at(f.points, 0.5),
+      along: [
+        for (final t in const [0.35, 0.65, 0.25, 0.75, 0.15, 0.85]) _Label.at(f.points, t),
+      ],
       f.label,
       const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: Ui.tabular),
       centered: true,
@@ -573,7 +589,7 @@ class _MapViewState extends State<MapView> {
       // section of a tour
       return (
         '$leg. ${_name('${a['from']}')} → ${_name('${a['to']}')}',
-        a['value'] is num ? s.valueText(a['value'] as num) : '',
+        [if (a['value'] is num) s.valueText(a['value'] as num), s.via(a)].where((x) => x.isNotEmpty).join(' · '),
       );
     }
     final flow = a['flow'] as num, rate = a['rate'] as num?;
@@ -860,6 +876,7 @@ class _Label {
   final Color color;
   final Color? border;
   final double borderWidth;
+  final List<LatLng> along; // other points for the label if its point is taken - along a connection
 
   const _Label(
     this.point,
@@ -869,7 +886,30 @@ class _Label {
     required this.color,
     this.border,
     this.borderWidth = 1,
+    this.along = const [],
   });
+
+  /// point at [t] (0 .. 1) of the length of a line - for the labels of the connections
+  static LatLng at(List<LatLng> points, double t) {
+    if (points.length < 2) return points.first;
+    final lengths = [
+      for (var i = 1; i < points.length; i++)
+        math.sqrt(
+          math.pow(points[i].latitude - points[i - 1].latitude, 2) +
+              math.pow(points[i].longitude - points[i - 1].longitude, 2),
+        ),
+    ];
+    var rest = t * lengths.fold<double>(0, (a, b) => a + b);
+    for (var i = 0; i < lengths.length; i++) {
+      if (rest <= lengths[i] || i == lengths.length - 1) {
+        final f = lengths[i] == 0 ? 0.0 : (rest / lengths[i]).clamp(0.0, 1.0);
+        final a = points[i], b = points[i + 1];
+        return LatLng(a.latitude + f * (b.latitude - a.latitude), a.longitude + f * (b.longitude - a.longitude));
+      }
+      rest -= lengths[i];
+    }
+    return points.last;
+  }
 
   static const _padding = EdgeInsets.symmetric(horizontal: 6, vertical: 2);
   static const _gap = 14.0; // between the node and its name
@@ -908,8 +948,8 @@ class _Label {
   };
 
   /// marker for [place] - the alignment of flutter_map puts the whole widget on that side of the point
-  Marker marker(Size size, Alignment place) => Marker(
-    point: point,
+  Marker marker(Size size, Alignment place, [LatLng? at]) => Marker(
+    point: at ?? point,
     width: place.x == 0 ? size.width : size.width + _gap,
     height: place.y == 0 ? size.height : size.height + _gapV,
     alignment: place,
@@ -962,16 +1002,19 @@ class _LabelLayer extends StatelessWidget {
     final shown = <Marker>[];
     for (final l in labels) {
       final size = l.size(base, scaler);
-      final at = camera.latLngToScreenOffset(l.point);
-      // the first free place around the point
-      for (final place in l.places) {
-        final r = l.rect(at, size, place);
-        if (!screen.overlaps(r)) break; // outside - takes no room
-        final area = r.deflate(1);
-        if (placed.any(area.overlaps) || symbols.any(area.overlaps)) continue;
-        placed.add(r);
-        shown.add(l.marker(size, place));
-        break;
+      // the first free place around the point - a connection also tries other points along it
+      search:
+      for (final point in [l.point, ...l.along]) {
+        final at = camera.latLngToScreenOffset(point);
+        for (final place in l.places) {
+          final r = l.rect(at, size, place);
+          if (!screen.overlaps(r)) break; // outside - takes no room
+          final area = r.deflate(1);
+          if (placed.any(area.overlaps) || symbols.any(area.overlaps)) continue;
+          placed.add(r);
+          shown.add(l.marker(size, place, point));
+          break search;
+        }
       }
     }
     return MarkerLayer(markers: shown, rotate: false);

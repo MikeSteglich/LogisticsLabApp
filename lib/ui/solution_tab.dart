@@ -498,7 +498,7 @@ class _Route extends StatelessWidget {
               SolutionTab._row(numericFrom: 3, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
                 '${a['leg']}',
                 name(a['from']),
-                name(a['to']),
+                [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
                 s.valueText(v),
                 s.valueText(sum += v),
               ]),
