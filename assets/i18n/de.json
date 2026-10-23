@@ -228,5 +228,20 @@
   "ui.error.legacy": "{file}: {ext} ist ein Format von LogisticsLab 4 (oder älter) mit ebenen Koordinaten und eigener Matrix. Es lässt sich nicht in ein Szenario umwandeln – nur TPPX, TSPX, CLPX, DLPX, NWFX und VRPX.",
   "ui.solve.cancelled": "Lösen abgebrochen",
   "ui.split.list": "Größe von Liste und Maske",
-  "ui.layer.labels": "Beschriftung"
+  "ui.layer.labels": "Beschriftung",
+  "ui.sol.missing.supplier": "Ungenutztes Angebot",
+  "ui.sol.missing.customer": "Ungedeckter Bedarf",
+  "ui.sol.multipleCount.customer": "Kunden mit mehreren Anbietern",
+  "ui.sol.notFull.supplier": "Angebot nicht ausgeschöpft",
+  "ui.sol.notFull.customer": "Bedarf nicht gedeckt",
+  "ui.sol.multiple.customer": "Mehrere Anbieter",
+  "ui.sol.target": "Soll",
+  "ui.sol.actual": "Ist",
+  "ui.sol.share": "Anteil",
+  "ui.sol.partners": "Partner",
+  "ui.sol.noNodes": "Keine Knoten",
+  "ui.sol.shipped": "geliefert",
+  "ui.sol.received": "erhalten",
+  "ui.sol.toPartners": "an",
+  "ui.sol.fromPartners": "von"
 }

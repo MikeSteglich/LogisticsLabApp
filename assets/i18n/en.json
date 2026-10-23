@@ -228,5 +228,20 @@
   "ui.error.legacy": "{file}: {ext} is a format of LogisticsLab 4 (or older) with planar coordinates and an own matrix. It cannot be converted into a scenario – only TPPX, TSPX, CLPX, DLPX, NWFX and VRPX.",
   "ui.solve.cancelled": "Solving cancelled",
   "ui.split.list": "Size of list and mask",
-  "ui.layer.labels": "Labels"
+  "ui.layer.labels": "Labels",
+  "ui.sol.missing.supplier": "Unused supply",
+  "ui.sol.missing.customer": "Unmet demand",
+  "ui.sol.multipleCount.customer": "Customers with several suppliers",
+  "ui.sol.notFull.supplier": "Supply not used up",
+  "ui.sol.notFull.customer": "Demand not met",
+  "ui.sol.multiple.customer": "Several suppliers",
+  "ui.sol.target": "Target",
+  "ui.sol.actual": "Actual",
+  "ui.sol.share": "Share",
+  "ui.sol.partners": "Partners",
+  "ui.sol.noNodes": "No nodes",
+  "ui.sol.shipped": "shipped",
+  "ui.sol.received": "received",
+  "ui.sol.toPartners": "to",
+  "ui.sol.fromPartners": "from"
 }

@@ -110,6 +110,15 @@ void main() {
     await settle(() => false, seconds: 6);
     await shot('5-network');
 
+    // less supply than demand: Berlin gets only a part, Frankfurt and Cottbus nothing
+    state.chooseNetwork(null);
+    state.selectNode('B');
+    state.edit(() => state.node!['demand'] = 120);
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('6-partial');
+
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait
     await tester.pump();
     state.setTab(DataTab.nodes);

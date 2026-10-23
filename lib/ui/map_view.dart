@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 
 import '../app_state.dart';
 import '../model/scenario.dart';
+import '../model/solution_analysis.dart';
 import '../modules/modules.dart';
 import 'theme.dart';
 
@@ -61,9 +62,12 @@ class _MapViewState extends State<MapView> {
     _fitTimer = Timer(s.dirty ? const Duration(milliseconds: 600) : Duration.zero, _fitAll);
   }
 
+  SolutionAnalysis? _analysis;
+
   @override
   Widget build(BuildContext context) {
     final nodes = s.scenario.nodes;
+    _analysis = _showSolution ? s.analysis : null;
     _scheduleFit();
     return Stack(
       children: [
@@ -267,23 +271,53 @@ class _MapViewState extends State<MapView> {
         if (s.problemRoles.contains(r)) r,
     ];
     final color = s.isRelevant(n) ? Ui.text : Ui.pale;
+    // with a solution: how far the supply is shipped / the demand is met
+    final use = _analysis?.use(n.id);
     final Widget shape;
     if (roles.contains('supplier') || roles.contains('depot')) {
-      shape = Container(
-        width: 16,
-        height: 16,
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
-      );
+      shape = use == null
+          ? Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+            )
+          // level from the bottom - full: everything shipped, empty: not used
+          : Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: Ui.surface,
+                borderRadius: BorderRadius.circular(2),
+                border: Border.all(color: use.unused ? Ui.pale : color, width: 2),
+              ),
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                heightFactor: use.share ?? 1,
+                widthFactor: 1,
+                child: ColoredBox(color: color),
+              ),
+            );
     } else if (roles.contains('customer')) {
-      shape = Container(
-        width: 16,
-        height: 16,
-        decoration: BoxDecoration(
-          color: Ui.surface,
-          shape: BoxShape.circle,
-          border: Border.all(color: color, width: 3),
-        ),
-      );
+      shape = use == null
+          ? Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: Ui.surface,
+                shape: BoxShape.circle,
+                border: Border.all(color: color, width: 3),
+              ),
+            )
+          // pie of the demand met - an orange ring if it is not met completely
+          : CustomPaint(
+              size: const Size(18, 18),
+              painter: _PiePainter(
+                share: use.share ?? 1,
+                fill: color,
+                ring: use.notFull ? Ui.warning : color,
+                ringWidth: use.notFull ? 3 : 2,
+              ),
+            );
     } else {
       shape = Transform.rotate(
         angle: 0.785,
@@ -306,7 +340,7 @@ class _MapViewState extends State<MapView> {
         selected: selected,
         label: n.name,
         child: Tooltip(
-          message: n.name,
+          message: use == null ? n.name : '${n.name}\n${_useInfo(use)}',
           waitDuration: const Duration(milliseconds: 300),
           child: GestureDetector(
             onTap: () => s.tapNode(n.id),
@@ -321,7 +355,16 @@ class _MapViewState extends State<MapView> {
                           borderRadius: BorderRadius.circular(6),
                         )
                       : null,
-                  child: shape,
+                  child: use != null && use.multiple && !use.sends
+                      // served by several suppliers: their number
+                      ? Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            shape,
+                            Positioned(right: -9, top: -9, child: _badge(use.partners.length)),
+                          ],
+                        )
+                      : shape,
                 ),
               ),
             ),
@@ -329,6 +372,31 @@ class _MapViewState extends State<MapView> {
         ),
       ),
     );
+  }
+
+  Widget _badge(int n) => Container(
+    width: 15,
+    height: 15,
+    alignment: Alignment.center,
+    decoration: BoxDecoration(
+      color: Ui.accent,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 1.5),
+    ),
+    child: Text(
+      '$n',
+      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white, height: 1),
+    ),
+  );
+
+  /// e.g. "demand 120 · received 75 (63 %) · from Werk Ludwigsfelde 75"
+  String _useInfo(NodeUse u) {
+    final t = s.strings;
+    final target = u.target == null ? '' : '${t(u.sends ? 'field.supply' : 'field.demand')} ${t.number(u.target!)} · ';
+    final share = u.share == null ? '' : ' (${t.number(u.share! * 100, decimals: 0)} %)';
+    final partners = u.partners.map((p) => '${_name(p.$1)} ${t.number(p.$2)}').join(', ');
+    return '$target${t(u.sends ? 'ui.sol.shipped' : 'ui.sol.received')} ${t.number(u.actual)}$share'
+        '${partners.isEmpty ? '' : ' · ${t(u.sends ? 'ui.sol.toPartners' : 'ui.sol.fromPartners')} $partners'}';
   }
 
   //*********** edges under the mouse ************
@@ -659,3 +727,40 @@ class _LabelLayer extends StatelessWidget {
 }
 
 typedef _Flow = ({int index, List<LatLng> points, num flow, bool selected});
+
+/// pie of a share inside a ring - a customer and the part of its demand that is met
+class _PiePainter extends CustomPainter {
+  final double share;
+  final Color fill;
+  final Color ring;
+  final double ringWidth;
+  _PiePainter({required this.share, required this.fill, required this.ring, required this.ringWidth});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.shortestSide / 2;
+    canvas.drawCircle(c, r, Paint()..color = Ui.surface);
+    if (share > 0) {
+      canvas.drawArc(
+        Rect.fromCircle(center: c, radius: r - ringWidth / 2),
+        -1.5708, // from 12 o'clock
+        share * 6.28319,
+        true,
+        Paint()..color = fill,
+      );
+    }
+    canvas.drawCircle(
+      c,
+      r - ringWidth / 2,
+      Paint()
+        ..color = ring
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = ringWidth,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_PiePainter old) =>
+      old.share != share || old.fill != fill || old.ring != ring || old.ringWidth != ringWidth;
+}

@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'backend/backend.dart';
 import 'i18n/strings.dart';
 import 'model/scenario.dart';
+import 'model/solution_analysis.dart';
 import 'modules/modules.dart';
 
 enum DataTab { nodes, network, parameters, solution }
@@ -130,6 +131,10 @@ class AppState extends ChangeNotifier {
 
   /// active and with a role in the problem - other nodes are pale in the list and on the map
   bool isRelevant(Node n) => n.active && n.roles.any(problemRoles.contains);
+
+  /// how the nodes are served in the solution of the problem (shares, partners) - null without solution
+  SolutionAnalysis? get analysis =>
+      SolutionAnalysis.of(scenario, spec, problem?.parameters ?? const {}, solution?.results);
 
   bool get solutionIsStale => solution != null && solution!.revision != revision;
 
@@ -356,11 +361,12 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  void selectNode(String? id) {
+  /// [keepTab]: chosen in the solution - the solution stays in view
+  void selectNode(String? id, {bool keepTab = false}) {
     selectedNode = id;
     placing = false;
     _keepSelectionVisible(); // e.g. a node chosen on the map
-    if (id != null && tab != DataTab.nodes) tab = DataTab.nodes;
+    if (id != null && !keepTab && tab != DataTab.nodes) tab = DataTab.nodes;
     notifyListeners();
   }
 
