@@ -164,9 +164,9 @@ class _MapViewState extends State<MapView> {
                     // solid - dashes of overlapping edges merge into solid lines; light grey beside the solution
                     points: s.edgePoints(a.position, b.position),
                     color: Ui.network,
-                    strokeWidth: 3,
+                    strokeWidth: 3.5,
                     borderColor: Colors.white,
-                    borderStrokeWidth: 1,
+                    borderStrokeWidth: 1.5,
                     strokeCap: StrokeCap.round,
                     strokeJoin: StrokeJoin.round,
                   ),
