@@ -161,24 +161,30 @@ class _MapViewState extends State<MapView> {
                     strokeJoin: StrokeJoin.round,
                   )
                 : Polyline(
+                    // clearly visible on the tiles, but not to be confused with the solution (blue, solid)
                     points: s.edgePoints(a.position, b.position),
-                    color: Ui.textSecondary.withValues(alpha: 0.7),
-                    strokeWidth: 2,
-                    pattern: const StrokePattern.dotted(),
+                    color: Ui.textMuted,
+                    strokeWidth: 3.5,
+                    borderColor: Colors.white,
+                    borderStrokeWidth: 1.5,
+                    strokeCap: StrokeCap.round,
+                    pattern: StrokePattern.dashed(segments: const [10, 6]),
                   ),
     ];
   }
 
-  List<({List<LatLng> points, num flow})> _flows() {
+  /// connections of the solution - the selected one last, so that it is drawn on top
+  List<({List<LatLng> points, num flow, bool selected})> _flows() {
     final res = s.solution?.results;
     final list = res?['assignments'] as List?;
     if (list == null) return const [];
-    return [
-      for (final a in list.cast<Map<String, dynamic>>())
+    final flows = [
+      for (final (i, a) in list.cast<Map<String, dynamic>>().indexed)
         if (s.scenario.node(a['from'] as String) case final from?)
           if (s.scenario.node(a['to'] as String) case final to?)
-            (points: s.edgePoints(from.position, to.position), flow: a['flow'] as num),
+            (points: s.edgePoints(from.position, to.position), flow: a['flow'] as num, selected: i == s.selectedFlow),
     ];
+    return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
   }
 
   List<Polyline> _solutionLines() {
@@ -187,8 +193,9 @@ class _MapViewState extends State<MapView> {
       for (final f in _flows())
         Polyline(
           points: f.points,
-          color: stale ? Ui.textSecondary : Ui.accent,
-          strokeWidth: 3.5,
+          // a stale solution pale blue - the network is dark grey dashed
+          color: f.selected ? Ui.highlight : (stale ? Ui.accent.withValues(alpha: 0.4) : Ui.accent),
+          strokeWidth: f.selected ? 6 : 3.5,
           strokeCap: StrokeCap.round,
           strokeJoin: StrokeJoin.round,
           pattern: stale ? StrokePattern.dashed(segments: const [8, 6]) : const StrokePattern.solid(),
@@ -208,14 +215,17 @@ class _MapViewState extends State<MapView> {
             decoration: BoxDecoration(
               color: Ui.surface,
               borderRadius: BorderRadius.circular(9),
-              border: Border.all(color: s.solutionIsStale ? Ui.textSecondary : Ui.accent),
+              border: Border.all(
+                color: f.selected ? Ui.highlight : (s.solutionIsStale ? Ui.textSecondary : Ui.accent),
+                width: f.selected ? 2 : 1,
+              ),
             ),
             child: Text(
               s.strings.number(f.flow),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Ui.accentDark,
+                color: f.selected ? Ui.highlight : Ui.accentDark,
                 fontFeatures: Ui.tabular,
               ),
             ),

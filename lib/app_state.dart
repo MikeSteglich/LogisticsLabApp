@@ -140,6 +140,7 @@ class AppState extends ChangeNotifier {
     selectedEdge = null;
     drawingEdge = false;
     edgeStart = null;
+    selectedFlow = null;
     tab = DataTab.nodes;
     placing = false;
     message = null;
@@ -168,10 +169,20 @@ class AppState extends ChangeNotifier {
 
   void chooseProblem(String name) {
     problemName = name;
+    selectedFlow = null;
     selectedEdge = null;
     drawingEdge = false;
     if (nodeFilter != null && nodeFilter!.isNotEmpty && !problemRoles.contains(nodeFilter)) nodeFilter = null;
     _keepSelectionVisible();
+    notifyListeners();
+  }
+
+  //*********** solution ************
+
+  int? selectedFlow; // index in the connections (assignments) of the solution - highlighted on the map
+
+  void selectFlow(int? i) {
+    selectedFlow = i == selectedFlow ? null : i; // a second tap removes the highlight
     notifyListeners();
   }
 
@@ -434,6 +445,7 @@ class AppState extends ChangeNotifier {
       );
       if (answer.solution != null) {
         solutions[name] = SolutionState(answer.solution!, rev);
+        selectedFlow = null;
         if (problemName == name) tab = DataTab.solution;
       }
       message = answer.status == 'solution' ? null : '${strings('ui.status.${answer.status}')}: ${answer.message}';

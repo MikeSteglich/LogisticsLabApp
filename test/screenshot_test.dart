@@ -95,6 +95,9 @@ void main() {
     // roads of the solution edges
     await settle(() => false, seconds: 8);
     await shot('2-solution');
+    state.selectFlow(2); // Frankfurt (Oder) - orange on the map
+    await shot('2b-solution-selected');
+    state.selectFlow(null);
 
     state.setTab(DataTab.parameters);
     await shot('3-parameters');

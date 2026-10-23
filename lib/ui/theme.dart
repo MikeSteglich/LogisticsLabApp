@@ -20,6 +20,8 @@ abstract final class Ui {
   static const error = Color(0xFFC0362C);
   static const mapBackground = Color(0xFFE9EDF1);
   static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
+  static const highlight = Color(0xFFC25A0E); // connection of the solution selected in the table
+  static const highlightLight = Color(0xFFFBEEE4);
 
   static const minTarget = 44.0; // touch targets (tablet)
   static const radius = 6.0;

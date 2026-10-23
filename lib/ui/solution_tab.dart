@@ -124,8 +124,8 @@ class SolutionTab extends StatelessWidget {
                   t('result.rate'),
                   t('ui.sol.costs'),
                 ], header: true),
-                for (final a in assignments)
-                  _row([
+                for (final (i, a) in assignments.indexed)
+                  _row(selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
                     name(a['from']),
                     name(a['to']),
                     t.number(a['flow'] as num),
@@ -152,26 +152,36 @@ class SolutionTab extends StatelessWidget {
     );
   }
 
-  static TableRow _row(List<String> cells, {bool header = false}) => TableRow(
-    decoration: BoxDecoration(
-      color: header ? Ui.surfaceAlt : null,
-      border: header ? null : const Border(top: BorderSide(color: Color(0xFFEEF0F3))),
-    ),
-    children: [
-      for (final (i, c) in cells.indexed)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-          child: Text(
-            c,
-            textAlign: i >= 2 ? TextAlign.right : TextAlign.left,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: header ? FontWeight.w600 : FontWeight.w400,
-              color: header ? Ui.textSecondary : Ui.text,
-              fontFeatures: Ui.tabular,
-            ),
-          ),
+  /// row of the connections - a tap highlights the connection on the map (orange)
+  static TableRow _row(List<String> cells, {bool header = false, bool selected = false, VoidCallback? onTap}) =>
+      TableRow(
+        decoration: BoxDecoration(
+          color: header ? Ui.surfaceAlt : (selected ? Ui.highlightLight : null),
+          border: header
+              ? null
+              : Border(
+                  top: const BorderSide(color: Color(0xFFEEF0F3)),
+                  left: BorderSide(color: selected ? Ui.highlight : Colors.transparent, width: 3),
+                ),
         ),
-    ],
-  );
+        children: [
+          for (final (i, c) in cells.indexed)
+            TableRowInkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                child: Text(
+                  c,
+                  textAlign: i >= 2 ? TextAlign.right : TextAlign.left,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: header || selected ? FontWeight.w600 : FontWeight.w400,
+                    color: header ? Ui.textSecondary : (selected ? Ui.highlight : Ui.text),
+                    fontFeatures: Ui.tabular,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      );
 }
