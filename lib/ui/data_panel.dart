@@ -173,14 +173,11 @@ class _ParametersTab extends StatelessWidget {
           const SizedBox(height: Ui.gap),
           for (final e in errors) Text(t.message(e), style: const TextStyle(color: Ui.error, fontSize: 13)),
         ],
-        const SizedBox(height: 20),
-        Text(t('ui.par.matrix'), style: Ui.title),
-        const SizedBox(height: Ui.gap),
-        FieldGrid(children: [for (final f in _matrixFields) field(f, s.scenario.matrix)]),
         // commodities of a multi-commodity flow, modes of a multimodal flow - records of the scenario
         if (spec.usesCommodities) ...[
           const SizedBox(height: 20),
           _Records(
+            kind: 'commodities',
             state: s,
             title: 'ui.commodities',
             add: 'ui.commodities.add',
@@ -192,6 +189,7 @@ class _ParametersTab extends StatelessWidget {
         if (spec.usesModes) ...[
           const SizedBox(height: 20),
           _Records(
+            kind: 'modes',
             state: s,
             title: 'ui.modes',
             add: 'ui.modes.add',
@@ -200,6 +198,10 @@ class _ParametersTab extends StatelessWidget {
             fields: _modeFields,
           ),
         ],
+        const SizedBox(height: 20),
+        Text(t('ui.par.matrix'), style: Ui.title),
+        const SizedBox(height: Ui.gap),
+        FieldGrid(children: [for (final f in _matrixFields) field(f, s.scenario.matrix)]),
       ],
     );
   }
@@ -229,7 +231,9 @@ class _Records extends StatelessWidget {
   final String prefix;
   final List<Map<String, dynamic>> records;
   final List<FieldSpec> fields;
+  final String kind; // commodities or modes
   const _Records({
+    required this.kind,
     required this.state,
     required this.title,
     required this.add,
@@ -277,7 +281,7 @@ class _Records extends StatelessWidget {
                       IconButton(
                         tooltip: t('ui.records.delete'),
                         icon: const Icon(Icons.delete_outline, size: 18),
-                        onPressed: () => s.edit(() => records.remove(r)),
+                        onPressed: () => s.deleteRecord(kind, r),
                       ),
                     ],
                   ),

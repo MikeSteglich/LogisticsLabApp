@@ -184,7 +184,23 @@ class AppState extends ChangeNotifier {
       ? (strings('result.contributionRate'), strings('ui.sol.contribution'))
       : (strings('result.rate'), strings('ui.sol.costs'));
 
-  List<Map<String, dynamic>> get connections => SolutionAnalysis.connectionsOf(solution?.results);
+  List<Map<String, dynamic>> get connections => SolutionAnalysis.connectionsOf(solution?.results, solutionPart);
+
+  /// commodity (multicommodity) or mode (multimodal) the solution shows - null: all together
+  String? solutionPart;
+
+  /// commodities or modes of the problem the solution can show one by one
+  List<Map<String, dynamic>> get solutionParts => spec?.usesCommodities == true
+      ? scenario.commodities
+      : spec?.usesModes == true
+      ? scenario.modes
+      : const [];
+
+  void setSolutionPart(String? part) {
+    solutionPart = part;
+    selectedFlow = null; // the indexes of the connections change
+    notifyListeners();
+  }
 
   /// how the nodes are served in the solution of the problem (shares, partners) - null without solution
   SolutionAnalysis? get analysis => SolutionAnalysis.of(
@@ -193,7 +209,40 @@ class AppState extends ChangeNotifier {
     problem?.parameters ?? const {},
     solution?.results,
     networkNodes: spec?.network == NetworkUse.required ? networkNodeIds : const [],
+    part: spec?.usesCommodities == true ? solutionPart : null, // modes: the nodes have no values per mode
   );
+
+  /// deletes a commodity or mode of the scenario and its values at the nodes and edges
+  void deleteRecord(String kind, Map<String, dynamic> record) => edit(() {
+    final id = record['id'];
+    (kind == 'commodities' ? scenario.commodities : scenario.modes).remove(record);
+    final edges = [for (final net in scenario.networks.values) ...net.edges];
+    if (kind == 'commodities') {
+      for (final n in scenario.nodes) {
+        for (final key in const ['supplies', 'demands', 'capacityFactors']) {
+          if (n[key] case final Map m) {
+            m.remove(id);
+            if (m.isEmpty) n.json.remove(key);
+          }
+        }
+      }
+      for (final e in edges) {
+        if (e.json['commodities'] case final Map m) {
+          m.remove(id);
+          if (m.isEmpty) e.json.remove('commodities');
+        }
+      }
+      for (final p in scenario.problems) {
+        (p.parameters['commodities'] as List?)?.remove(id);
+      }
+    } else {
+      // an edge keeps its other modes - without one it is closed, as before
+      for (final e in edges) {
+        (e.json['modes'] as Map?)?.remove(id);
+      }
+    }
+    if (solutionPart == id) solutionPart = null;
+  });
 
   /// nodes of the network of the problem in the order of the scenario
   List<String> get networkNodeIds => [
@@ -249,6 +298,7 @@ class AppState extends ChangeNotifier {
   void chooseProblem(String name) {
     problemName = name;
     selectedFlow = null;
+    solutionPart = null;
     selectedEdge = null;
     drawingEdge = false;
     if (nodeFilter != null &&
@@ -308,39 +358,99 @@ class AppState extends ChangeNotifier {
   });
 
   /// false if the edge exists already or both ends are the same node
+  /// null if the edge from -> to is allowed, else the message key why not
+  String? edgeProblem(String from, String to) {
+    final net = network;
+    if (net == null) return 'ui.net.required';
+    if (from == to || net.hasEdge(from, to)) return 'ui.edge.exists';
+    if (!edgeAllowed(from, to)) return 'ui.edge.direction';
+    return null;
+  }
+
+  /// new edge - in a transport problem against its direction it is turned round; false if not allowed (see
+  /// edgeProblem)
   bool addEdge(String from, String to) {
     final net = network;
-    if (net == null || from == to || net.hasEdge(from, to)) return false;
+    if (net == null) return false;
+    if (!edgeAllowed(from, to) && edgeAllowed(to, from)) (from, to) = (to, from);
+    if (edgeProblem(from, to) != null) return false;
     edit(() {
-      net.addEdge(from, to);
+      _directed(net.addEdge(from, to), net);
       selectedEdge = net.edges.length - 1;
       tab = DataTab.network;
     });
     return true;
   }
 
-  /// the missing edges from every node of the first role of the problem to every node of the second
-  /// (tpp: suppliers -> customers) - returns the number of new edges
+  /// edges of a transport problem lead one way - in an undirected network the edge itself is directed
+  void _directed(Edge e, Network net) {
+    if (isTransport && !net.directed) e['directed'] = true;
+  }
+
+  //*********** direction of the edges of transport problems ************
+
+  /// transport problems (tpp, network flows): the edges lead from the suppliers over the transshipment nodes to the
+  /// customers
+  bool get isTransport => spec != null && (spec!.type == 'tpp' || spec!.group == ModuleGroup.network);
+
+  /// stage of a node in a transport problem: 0 sends (supplier, source), 1 passes through (transshipment node,
+  /// warehouse), 2 receives (customer, sink) - null: sends and receives
+  int? stageOf(String id) {
+    final n = scenario.node(id);
+    final s = spec;
+    if (n == null || s == null) return null;
+    final p = problem?.parameters ?? const <String, dynamic>{};
+    final roles = s.activeRoles(p);
+    if (roles.length < 2) {
+      // max flow with one source and one sink
+      return id == p['source'] ? 0 : (id == p['sink'] ? 2 : 1);
+    }
+    final sends = n.roles.contains(s.nodeRole(roles.first, p));
+    final receives = n.roles.contains(s.nodeRole(roles.last, p));
+    if (sends && receives) return null;
+    return sends ? 0 : (receives ? 2 : 1);
+  }
+
+  /// direction of an edge in a transport problem: not into a sender and not out of a receiver - tpp: only from a
+  /// supplier to a customer; other problems: every edge
+  bool edgeAllowed(String from, String to) {
+    if (!isTransport) return true;
+    final a = stageOf(from), b = stageOf(to);
+    if (spec!.type == 'tpp') return (a == 0 || a == null) && (b == 2 || b == null);
+    if (a == null || b == null) return true;
+    return a != 2 && b != 0;
+  }
+
+  /// transshipment nodes for new edges of a network flow: nodes with the role transit or candidate (warehouse)
+  /// that neither send nor receive
+  List<String> get transitCandidates => [
+    if (spec?.group == ModuleGroup.network)
+      for (final n in scenario.nodes)
+        if (n.active && (n.roles.contains('transit') || n.roles.contains('candidate')) && stageOf(n.id) == 1) n.id,
+  ];
+
+  /// the missing edges of a transport problem: senders -> transshipment nodes -> receivers, without transshipment
+  /// nodes senders -> receivers (tpp: suppliers -> customers) - returns the number of new edges
   int addAllEdges() {
     final net = network;
     final params = problem?.parameters ?? const <String, dynamic>{};
     final roles = spec?.activeRoles(params) ?? const <RoleSpec>[];
     if (net == null || roles.length < 2) return 0;
-    final from = [
+    List<String> stage(int k) => [
       for (final n in scenario.nodes)
-        if (n.roles.contains(spec!.nodeRole(roles[0], params))) n.id,
+        if (n.active && stageOf(n.id) == k) n.id,
     ];
-    final to = [
-      for (final n in scenario.nodes)
-        if (n.roles.contains(spec!.nodeRole(roles[1], params))) n.id,
-    ];
+    final senders = stage(0), receivers = stage(2), middle = transitCandidates;
+    final steps = middle.isEmpty ? [(senders, receivers)] : [(senders, middle), (middle, receivers)];
     var count = 0;
     edit(() {
-      for (final a in from) {
-        for (final b in to) {
-          if (a != b && !net.hasEdge(a, b)) {
-            net.addEdge(a, b);
-            count++;
+      for (final (from, to) in steps) {
+        for (final a in from) {
+          for (final b in to) {
+            if (a != b && !net.hasEdge(a, b)) {
+              _directed(net.addEdge(a, b), net);
+              count++;
+            }
           }
         }
       }
@@ -374,18 +484,24 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// a node tapped on the map: selection, or an end of the edge being drawn
-  void tapNode(String id) {
-    if (!drawingEdge) return selectNode(id);
+  /// a node tapped on the map: selection, or an end of the edge being drawn - returns the message key if the edge
+  /// is not allowed
+  String? tapNode(String id) {
+    if (!drawingEdge) {
+      selectNode(id);
+      return null;
+    }
     if (edgeStart == null) {
       edgeStart = id;
       notifyListeners();
-      return;
+      return null;
     }
     final start = edgeStart!;
     drawingEdge = false;
     edgeStart = null;
-    if (!addEdge(start, id)) notifyListeners();
+    if (addEdge(start, id)) return null;
+    notifyListeners();
+    return edgeProblem(start, id) ?? edgeProblem(id, start);
   }
 
   //*********** filter of the node list ************

@@ -153,6 +153,11 @@ void main() {
     state.chooseProblem('Zwei Güter');
     state.selectNode('B');
     await shot('9-commodities');
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    state.setSolutionPart('parcels');
+    await settle(() => false, seconds: 4);
+    await shot('9b-commodity-parcels');
     state.chooseProblem('Transport direkt vom Werk');
 
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait

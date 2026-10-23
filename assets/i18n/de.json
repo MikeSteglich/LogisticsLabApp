@@ -325,5 +325,11 @@
   "field.endpoints": "Fluss",
   "choice.endpoints.nodes": "von einer Quelle zu einer Senke",
   "choice.endpoints.roles": "von allen Anbietern zu allen Nachfragern",
-  "field.endpoints.help": "Mit allen Anbietern und Nachfragern führt der Kern eine künstliche Quelle und Senke ein – Angebot und Nachfrage begrenzen die Menge, leer: unbegrenzt."
+  "field.endpoints.help": "Mit allen Anbietern und Nachfragern führt der Kern eine künstliche Quelle und Senke ein – Angebot und Nachfrage begrenzen die Menge, leer: unbegrenzt.",
+  "ui.sol.perCommodity": "Gut:",
+  "ui.sol.perMode": "Verkehrsträger:",
+  "ui.records.edit": "bearbeiten",
+  "ui.edge.direction": "Diese Richtung passt nicht zum Problem – Kanten führen von Anbietern über Umladeknoten zu Nachfragern",
+  "ui.edge.allHintTransit": "Legt die fehlenden gerichteten Kanten von jedem {from} zu jedem Umladeknoten und von dort zu jedem {to} an",
+  "ui.map.fitProblem": "Problem zentrieren"
 }

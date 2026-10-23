@@ -38,7 +38,7 @@ void main() {
       },
     }, state.revision);
     state.newNetwork('Direkt');
-    state.addEdge('W', 'D2'); // edge without flow
+    state.addEdge('W', 'C'); // edge without flow
     state.selectEdge(null);
     state.setTab(DataTab.nodes);
     await tester.pumpWidget(LogisticsLabApp(state: state));
@@ -72,11 +72,11 @@ void main() {
     expect(state.tab, DataTab.solution);
 
     // edge of the network without flow
-    await mouse.moveTo(on('W', 'D2'));
+    await mouse.moveTo(on('W', 'C'));
     await tester.pump();
-    expect(find.text('Werk Ludwigsfelde → Lager Brandenburg'), findsOneWidget);
+    expect(find.text('Werk Ludwigsfelde → Cottbus'), findsOneWidget);
     expect(find.textContaining('Kapazität –'), findsOneWidget);
-    await tester.tapAt(on('W', 'D2'), kind: PointerDeviceKind.mouse);
+    await tester.tapAt(on('W', 'C'), kind: PointerDeviceKind.mouse);
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump();
     expect(state.selectedEdge, 0);

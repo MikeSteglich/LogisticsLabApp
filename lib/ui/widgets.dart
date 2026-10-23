@@ -267,6 +267,7 @@ class SpecField extends StatelessWidget {
   final ValueChanged<Object?> onChanged;
   final Strings strings;
   final Scenario? scenario; // nodes, commodities and modes for the fields that refer to them
+  final VoidCallback? onEditRecords; // commodities, modes: opens their list (parameters tab)
 
   const SpecField({
     super.key,
@@ -275,7 +276,26 @@ class SpecField extends StatelessWidget {
     required this.onChanged,
     required this.strings,
     this.scenario,
+    this.onEditRecords,
   });
+
+  /// label of a field with commodities or modes - with a link to their list
+  Widget _recordsLabel(String label) => Row(
+    children: [
+      Expanded(child: FieldLabel(label)),
+      if (onEditRecords != null)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: InkWell(
+            onTap: onEditRecords,
+            child: Text(
+              '${strings(spec.kind == FieldKind.modes ? 'ui.modes' : 'ui.commodities')} ${strings('ui.records.edit')}',
+              style: const TextStyle(fontSize: 12, color: Ui.accent),
+            ),
+          ),
+        ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -349,7 +369,7 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel(label),
+            _recordsLabel(label),
             if (commodities.isEmpty) Text(s('ui.commodities.none'), style: Ui.small),
             Wrap(
               spacing: Ui.gap,
@@ -386,7 +406,7 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel(label),
+            _recordsLabel(label),
             if (modes.isEmpty) Text(s('ui.modes.none'), style: Ui.small),
             Wrap(
               spacing: 6,

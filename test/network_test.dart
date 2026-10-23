@@ -67,18 +67,25 @@ void main() {
     expect(find.textContaining('Wird erst genutzt'), findsNothing);
 
     // drawing on the map: start node, end node
+    state.selectEdge(3); // W -> C, drawn again
+    state.deleteEdge();
     state.setDrawingEdge(true);
-    state.tapNode('D1');
-    expect(state.edgeStart, 'D1');
-    state.tapNode('B');
+    state.tapNode('C');
+    expect(state.edgeStart, 'C');
+    state.tapNode('W');
     await tester.pump();
     expect(state.drawingEdge, isFalse);
-    expect(state.edge!.from, 'D1');
-    expect(state.edge!.to, 'B');
+    // drawn against the direction of the tpp: turned round
+    expect(state.edge!.from, 'W');
+    expect(state.edge!.to, 'C');
+    // a tpp has no edges to warehouses
+    state.setDrawingEdge(true);
+    state.tapNode('W');
+    expect(state.tapNode('D1'), 'ui.edge.direction');
     expect(state.addEdge('W', 'B'), isFalse); // exists
 
     // deleting a node removes its edges - the scenario stays valid
-    expect(state.network!.edges.length, 5);
+    expect(state.network!.edges.length, 4);
     // D1 is also the depot of the vehicle and the start of the tsp - these references are removed too
     expect(state.scenario.usages('D1').map((u) => u.$1), containsAll(['ui.use.edges', 'ui.use.depot', 'ui.use.param']));
     state.selectNode('D1');

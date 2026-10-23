@@ -85,7 +85,7 @@ void main() {
     expect(find.descendant(of: find.byType(MarkerLayer), matching: find.text('2')), findsOneWidget);
     final tip = tester
         .widgetList<Tooltip>(find.byType(Tooltip))
-        .map((t) => t.message ?? '')
+        .map((t) => t.message ?? t.richMessage?.toPlainText() ?? '')
         .firstWhere((m) => m.startsWith('Berlin'));
     expect(tip, contains('Nachfrage 120'));
     expect(tip, contains('erhalten 95'));

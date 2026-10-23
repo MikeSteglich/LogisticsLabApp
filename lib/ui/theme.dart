@@ -21,6 +21,7 @@ abstract final class Ui {
   static const mapBackground = Color(0xFFE9EDF1);
   static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
   static const network = Color(0xFF808A97); // edges of the network on the map
+  static const networkSelected = Color(0xFF3F454D); // selected edge of the network - blue is for used edges
   // colours of the roles on the map: suppliers blue (not the blue of the solution lines), customers green
   static const supplier = Color(0xFF2F6DB5);
   static const supplierDark = Color(0xFF1F4E87);
@@ -110,6 +111,17 @@ ThemeData buildTheme() {
     menuTheme: const MenuThemeData(
       style: MenuStyle(backgroundColor: WidgetStatePropertyAll(Ui.surface), elevation: WidgetStatePropertyAll(4)),
     ),
-    tooltipTheme: const TooltipThemeData(waitDuration: Duration(milliseconds: 600)),
+    // dark text on a light card - like the hover card of the edges on the map
+    tooltipTheme: TooltipThemeData(
+      waitDuration: const Duration(milliseconds: 600),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      textStyle: const TextStyle(fontSize: 12, color: Ui.text, fontFeatures: Ui.tabular),
+      decoration: BoxDecoration(
+        color: Ui.surface,
+        borderRadius: BorderRadius.circular(Ui.radius),
+        border: Border.all(color: Ui.border),
+        boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 8, offset: Offset(0, 2))],
+      ),
+    ),
   );
 }

@@ -325,5 +325,11 @@
   "field.endpoints": "Flujo",
   "choice.endpoints.nodes": "de una fuente a un sumidero",
   "choice.endpoints.roles": "de todos los proveedores a todos los clientes",
-  "field.endpoints.help": "Con todos los proveedores y clientes el núcleo añade una fuente y un sumidero artificiales – la oferta y la demanda limitan la cantidad, vacío: ilimitado."
+  "field.endpoints.help": "Con todos los proveedores y clientes el núcleo añade una fuente y un sumidero artificiales – la oferta y la demanda limitan la cantidad, vacío: ilimitado.",
+  "ui.sol.perCommodity": "Producto:",
+  "ui.sol.perMode": "Medio:",
+  "ui.records.edit": "editar",
+  "ui.edge.direction": "Esta dirección no encaja con el problema – las aristas van de proveedores, por nodos de transbordo, a clientes",
+  "ui.edge.allHintTransit": "Crea las aristas dirigidas que faltan de cada {from} a cada nodo de transbordo y de ahí a cada {to}",
+  "ui.map.fitProblem": "Centrar el problema"
 }

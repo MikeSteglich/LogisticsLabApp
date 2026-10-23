@@ -62,11 +62,22 @@ void main() {
     // multi-commodity: split per commodity
     await solve('Zwei Güter');
     expect(state.split(state.connections.first), allOf(contains('Lebensmittel'), contains('Pakete')));
+    // one commodity: its quantities, its share of the capacity, the demand of it
+    state.setSolutionPart('parcels');
+    final parcels = state.connections.firstWhere((c) => c['from'] == 'W' && c['to'] == 'D1');
+    expect(parcels['flows'], isNull);
+    expect(parcels['utilization'], closeTo((parcels['flow'] as num) * 0.5 / (parcels['capacity'] as num), 1e-9));
+    final berlin = state.analysis!.use('B')!;
+    expect(berlin.target, (state.scenario.node('B')!['demands'] as Map)['parcels']);
+    state.setSolutionPart(null);
 
     // multimodal: split per mode - the train between the plant and Wildau
     await solve('Lkw oder Bahn');
     final wd1 = state.connections.firstWhere((c) => c['from'] == 'W' && c['to'] == 'D1');
     expect(state.split(wd1), contains('Bahn'));
+    state.setSolutionPart('train');
+    expect(state.connections.map((c) => '${c['from']}-${c['to']}'), ['W-D1']);
+    state.setSolutionPart(null);
 
     // multi-stage WLP: open warehouses
     await solve('Lager mehrstufig');

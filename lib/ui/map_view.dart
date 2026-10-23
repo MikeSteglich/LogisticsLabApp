@@ -11,6 +11,7 @@ import '../app_state.dart';
 import '../model/scenario.dart';
 import '../model/solution_analysis.dart';
 import '../modules/modules.dart';
+import 'messages.dart';
 import 'theme.dart';
 
 class MapView extends StatefulWidget {
@@ -46,6 +47,17 @@ class _MapViewState extends State<MapView> {
     _flowHit.dispose();
     _fitTimer?.cancel();
     super.dispose();
+  }
+
+  /// shows the nodes of the problem (all nodes without problem or relevant nodes)
+  void _fitProblem() {
+    final relevant = [
+      for (final n in s.scenario.nodes)
+        if (s.problem == null || s.isRelevant(n)) n.position,
+    ];
+    final points = relevant.isNotEmpty ? relevant : [for (final n in s.scenario.nodes) n.position];
+    if (!_ready || points.isEmpty) return;
+    _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: 14));
   }
 
   /// shows all nodes - after opening a file and whenever nodes or their coordinates change
@@ -198,8 +210,10 @@ class _MapViewState extends State<MapView> {
                 ? Polyline(
                     hitValue: i,
                     points: s.edgePoints(a.position, b.position),
-                    color: Ui.accent,
+                    color: Ui.networkSelected,
                     strokeWidth: 5,
+                    borderColor: Colors.white,
+                    borderStrokeWidth: 1,
                     strokeCap: StrokeCap.round,
                     strokeJoin: StrokeJoin.round,
                   )
@@ -379,10 +393,25 @@ class _MapViewState extends State<MapView> {
         selected: selected,
         label: n.name,
         child: Tooltip(
-          message: use == null ? n.name : '${n.name}\n${_useInfo(use)}',
+          // as the hover card of the edges: name bold, values below
+          richMessage: TextSpan(
+            children: [
+              TextSpan(
+                text: n.name,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Ui.text),
+              ),
+              if (use != null)
+                TextSpan(
+                  text: '\n${_useInfo(use)}',
+                  style: const TextStyle(fontSize: 12, color: Ui.textMuted),
+                ),
+            ],
+          ),
           waitDuration: const Duration(milliseconds: 300),
           child: GestureDetector(
-            onTap: () => s.tapNode(n.id),
+            onTap: () {
+              if (s.tapNode(n.id) case final String problem) showNote(context, s.strings(problem));
+            },
             child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Center(
@@ -703,6 +732,12 @@ class _MapViewState extends State<MapView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          IconButton(
+            icon: const Icon(Icons.center_focus_strong_outlined),
+            tooltip: s.strings('ui.map.fitProblem'),
+            onPressed: _fitProblem,
+          ),
+          const SizedBox(width: Ui.minTarget, child: Divider()),
           IconButton(icon: const Icon(Icons.add), onPressed: () => zoom(1)),
           const SizedBox(width: Ui.minTarget, child: Divider()),
           IconButton(icon: const Icon(Icons.remove), onPressed: () => zoom(-1)),

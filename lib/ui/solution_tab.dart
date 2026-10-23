@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../model/scenario.dart';
 import '../model/solution_analysis.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -32,6 +33,7 @@ class SolutionTab extends StatelessWidget {
     final withRates = assignments.any((a) => a['rate'] != null);
     final withSplit = assignments.any((a) => a['flows'] != null || a['modes'] != null);
     final withUtilization = assignments.any((a) => a['utilization'] != null);
+    final parts = s.solutionParts;
     String percent(Object? v) => v is num ? '${t.number(v * 100, decimals: 0)} %' : '';
     final open = s.openNodes;
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
@@ -163,6 +165,32 @@ class SolutionTab extends StatelessWidget {
             },
           ),
           const SizedBox(height: 16),
+          // one commodity or mode: quantities and utilization of it - the map follows
+          if (parts.isNotEmpty) ...[
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(t(spec.usesModes ? 'ui.sol.perMode' : 'ui.sol.perCommodity'), style: Ui.small),
+                for (final (id, label) in [
+                  (null, t('ui.filter.all')),
+                  for (final p in parts) (p['id'] as String?, Scenario.recordName(p)),
+                ])
+                  ChoiceChip(
+                    label: Text(label),
+                    selected: s.solutionPart == id,
+                    labelStyle: TextStyle(
+                      color: s.solutionPart == id ? Ui.accentDark : Ui.textMuted,
+                      fontWeight: s.solutionPart == id ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                    side: BorderSide(color: s.solutionPart == id ? Ui.accent : Ui.inputBorder),
+                    onSelected: (_) => s.setSolutionPart(id),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
           Section(
             padding: EdgeInsets.zero,
             child: Table(

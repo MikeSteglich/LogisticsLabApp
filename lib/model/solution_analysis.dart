@@ -72,13 +72,19 @@ class SolutionAnalysis {
     Map<String, dynamic> parameters,
     Map<String, dynamic>? results, {
     Iterable<String> networkNodes = const [],
+    String? part,
   }) {
+    // one commodity or mode (part) or all: values per commodity are maps - absent in a map: 0
+    num? pick(Object? v) => part == null ? total(v) : (v is Map ? (v[part] as num? ?? 0) : (v is num ? v : null));
+    num? used(Map<String, dynamic> res) => part == null
+        ? res['utilization'] as num?
+        : (res['utilizations'] as Map?)?[part] as num? ?? (res['utilization'] != null ? 0 : null);
     if (spec == null || results == null) return null;
     final nodeResults = (results['nodes'] as Map?)?.cast<String, dynamic>() ?? const {};
     if (results['nodes'] == null && networkNodes.isEmpty) return null;
     final specRoles = spec.activeRoles(parameters);
     if (specRoles.length < 2 && networkNodes.isEmpty) return null;
-    final connections = connectionsOf(results);
+    final connections = connectionsOf(results, part);
     final rated = specRoles.length < 2 ? const <RoleSpec>[] : [specRoles.first, specRoles.last];
     final roles = [for (final r in rated) spec.nodeRole(r, parameters)];
     final uses = <NodeUse>[];
@@ -87,26 +93,21 @@ class SolutionAnalysis {
       final sends = i == 0;
       for (final n in scenario.nodes) {
         if (!n.active || !n.roles.contains(role)) continue;
-        final target = r.mainField == null ? null : total(n[r.mainField!.key]);
+        final target = r.mainField == null ? null : pick(n[r.mainField!.key]);
         final res = (nodeResults[n.id] as Map?)?.cast<String, dynamic>() ?? const {};
-        // the core gives unused supply and unmet demand of network flows - else the quantity through the node
-        final missing = total(res[sends ? 'unusedSupply' : 'unmetDemand']);
-        final actual = target != null && missing != null ? target - missing : (total(res['flow']) ?? 0);
+        // the core gives unused supply and unmet demand of network flows (none: all served) - else the quantity
+        // through the node
+        final missing = pick(res[sends ? 'unusedSupply' : 'unmetDemand']);
+        final flow = pick(res['flow']);
+        final actual = target != null && (missing != null || (flow == null && networkNodes.isNotEmpty))
+            ? target - (missing ?? 0)
+            : (flow ?? 0);
         final partners = [
           for (final a in connections)
             if ((sends ? a['from'] : a['to']) == n.id) ('${sends ? a['to'] : a['from']}', a['flow'] as num),
         ];
         uses.add(
-          NodeUse(
-            n,
-            role,
-            sends,
-            target,
-            actual,
-            partners,
-            capacity: res['capacity'] as num?,
-            utilization: res['utilization'] as num?,
-          ),
+          NodeUse(n, role, sends, target, actual, partners, capacity: res['capacity'] as num?, utilization: used(res)),
         );
       }
     }
@@ -125,14 +126,14 @@ class SolutionAnalysis {
           role,
           false,
           null,
-          total(res['flow']) ?? inflow,
+          pick(res['flow']) ?? inflow,
           [
             for (final a in connections)
               if (a['from'] == id || a['to'] == id) ('${a['from'] == id ? a['to'] : a['from']}', a['flow'] as num),
           ],
           through: true,
           capacity: res['capacity'] as num?,
-          utilization: res['utilization'] as num?,
+          utilization: used(res),
         ),
       );
     }
@@ -146,9 +147,22 @@ class SolutionAnalysis {
       ? v.values.whereType<num>().fold<num>(0, (a, b) => a + b)
       : null;
 
-  /// connections of a solution: from -> to with quantity (tpp: assignments, network flows: edges)
-  static List<Map<String, dynamic>> connectionsOf(Map<String, dynamic>? results) =>
-      ((results?['assignments'] ?? results?['edges']) as List? ?? const []).cast<Map<String, dynamic>>();
+  /// connections of a solution: from -> to with quantity (tpp: assignments, network flows: edges) - part: only the
+  /// quantity and utilization of one commodity or mode, connections without it are left out
+  static List<Map<String, dynamic>> connectionsOf(Map<String, dynamic>? results, [String? part]) {
+    final all = ((results?['assignments'] ?? results?['edges']) as List? ?? const []).cast<Map<String, dynamic>>();
+    if (part == null) return all;
+    return [
+      for (final a in all)
+        if (((a['flows'] ?? a['modes']) as Map?)?[part] case final num f when f > 1e-9)
+          {
+            for (final MapEntry(:key, :value) in a.entries)
+              if (key != 'flows' && key != 'modes') key: value, // the results stay unchanged
+            'flow': f,
+            'utilization': (a['utilizations'] as Map?)?[part],
+          },
+    ];
+  }
 
   NodeUse? use(String id) => uses.where((u) => u.node.id == id).firstOrNull;
 

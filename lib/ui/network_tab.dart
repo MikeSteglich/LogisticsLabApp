@@ -154,10 +154,15 @@ class NetworkTab extends StatelessWidget {
             ),
             if (roles.length >= 2)
               Tooltip(
-                message: t('ui.edge.allHint', {
-                  'from': 'role.${spec!.nodeRole(roles[0], p.parameters)}',
-                  'to': 'role.${spec.nodeRole(roles[1], p.parameters)}',
-                }),
+                message: s.transitCandidates.isEmpty
+                    ? t('ui.edge.allHint', {
+                        'from': 'role.${spec!.nodeRole(roles.first, p.parameters)}',
+                        'to': 'role.${spec.nodeRole(roles.last, p.parameters)}',
+                      })
+                    : t('ui.edge.allHintTransit', {
+                        'from': 'role.${spec!.nodeRole(roles.first, p.parameters)}',
+                        'to': 'role.${spec.nodeRole(roles.last, p.parameters)}',
+                      }),
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.device_hub, size: 16),
                   label: Text(t('ui.edge.all')),
@@ -329,10 +334,13 @@ class _EdgeMask extends StatelessWidget {
             if (v == null) return;
             final (from, to) = isFrom ? (v, e.to) : (e.from, v);
             if (from == e.from && to == e.to) return;
-            if (from == to || net.hasEdge(from, to)) {
+            final problem = from == to || net.hasEdge(from, to)
+                ? 'ui.edge.exists'
+                : (s.edgeAllowed(from, to) ? null : 'ui.edge.direction');
+            if (problem != null) {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(SnackBar(content: Text(t('ui.edge.exists')), behavior: SnackBarBehavior.floating));
+              ).showSnackBar(SnackBar(content: Text(t(problem)), behavior: SnackBarBehavior.floating));
               return;
             }
             s.edit(() => isFrom ? e.from = v : e.to = v);
@@ -365,6 +373,7 @@ class _EdgeMask extends StatelessWidget {
                     children: [
                       SpecField(
                         scenario: s.scenario,
+                        onEditRecords: () => s.setTab(DataTab.parameters),
                         spec: f,
                         value: e[f.key],
                         strings: t,

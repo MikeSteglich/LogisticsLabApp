@@ -325,5 +325,11 @@
   "field.endpoints": "Flot",
   "choice.endpoints.nodes": "d’une source vers un puits",
   "choice.endpoints.roles": "de tous les fournisseurs vers tous les clients",
-  "field.endpoints.help": "Avec tous les fournisseurs et clients, le noyau ajoute une source et un puits artificiels – l’offre et la demande limitent la quantité, vide : illimité."
+  "field.endpoints.help": "Avec tous les fournisseurs et clients, le noyau ajoute une source et un puits artificiels – l’offre et la demande limitent la quantité, vide : illimité.",
+  "ui.sol.perCommodity": "Produit :",
+  "ui.sol.perMode": "Mode :",
+  "ui.records.edit": "modifier",
+  "ui.edge.direction": "Ce sens ne convient pas au problème – les arcs vont des fournisseurs aux clients via les nœuds de transbordement",
+  "ui.edge.allHintTransit": "Crée les arcs orientés manquants de chaque {from} vers chaque nœud de transbordement et de là vers chaque {to}",
+  "ui.map.fitProblem": "Centrer le problème"
 }

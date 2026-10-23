@@ -325,5 +325,11 @@
   "field.endpoints": "Flow",
   "choice.endpoints.nodes": "from one source to one sink",
   "choice.endpoints.roles": "from all suppliers to all customers",
-  "field.endpoints.help": "With all suppliers and customers the core adds an artificial source and sink – supply and demand limit the quantity, empty: unlimited."
+  "field.endpoints.help": "With all suppliers and customers the core adds an artificial source and sink – supply and demand limit the quantity, empty: unlimited.",
+  "ui.sol.perCommodity": "Commodity:",
+  "ui.sol.perMode": "Mode:",
+  "ui.records.edit": "edit",
+  "ui.edge.direction": "This direction does not fit the problem – edges lead from suppliers over transshipment nodes to customers",
+  "ui.edge.allHintTransit": "Adds the missing directed edges from every {from} to every transshipment node and from there to every {to}",
+  "ui.map.fitProblem": "Centre the problem"
 }
