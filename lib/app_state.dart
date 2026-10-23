@@ -183,6 +183,7 @@ class AppState extends ChangeNotifier {
 
   void selectFlow(int? i) {
     selectedFlow = i == selectedFlow ? null : i; // a second tap removes the highlight
+    if (selectedFlow != null) selectedEdge = null; // only one highlight on the map
     notifyListeners();
   }
 
@@ -274,6 +275,7 @@ class AppState extends ChangeNotifier {
 
   void selectEdge(int? i) {
     selectedEdge = i;
+    if (i != null) selectedFlow = null; // only one highlight on the map
     notifyListeners();
   }
 

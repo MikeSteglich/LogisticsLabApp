@@ -52,11 +52,19 @@ void main() {
     ];
     expect(orange(), isEmpty);
 
+    // an edge of the network selected before - its highlight goes when a connection of the solution is selected
+    state.newNetwork('Direkt');
+    state.addAllEdges();
+    state.selectEdge(0);
+    state.setTab(DataTab.solution);
+    await tester.pump();
+
     // the name is in the table and on the map
     final inTable = find.descendant(of: find.byType(Table), matching: find.text('Frankfurt (Oder)'));
     await tester.tap(inTable);
     await tester.pump();
     expect(state.selectedFlow, 1);
+    expect(state.selectedEdge, isNull);
     expect(orange().length, 1);
     expect(orange().single.points.last, state.scenario.node('F')!.position);
 
@@ -64,5 +72,10 @@ void main() {
     await tester.pump();
     expect(state.selectedFlow, isNull);
     expect(orange(), isEmpty);
+
+    // and the other way round
+    state.selectFlow(0);
+    state.selectEdge(1);
+    expect(state.selectedFlow, isNull);
   });
 }
