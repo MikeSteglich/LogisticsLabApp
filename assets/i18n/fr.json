@@ -336,7 +336,7 @@
   "field.tourType": "Type de tournée",
   "choice.tourType.round": "Tournée – retour au départ",
   "choice.tourType.path": "Traversée – du départ à l’arrivée",
-  "choice.tourType.open": "Fin ouverte",
+  "choice.tourType.open": "Fin ouverte – seul le départ est fixe",
   "field.startNode": "Départ",
   "field.endNode": "Arrivée",
   "result.tourLength": "Longueur de la tournée",
@@ -356,5 +356,7 @@
   "module.shortestpath.description": "Plus court chemin d’un départ à une arrivée dans le réseau",
   "result.pathLength": "Longueur du chemin",
   "result.nrOfLegs": "Tronçons",
-  "ui.tsp.end": "Arrivée"
+  "ui.tsp.end": "Arrivée",
+  "choice.tourType.openStart": "Départ ouvert – seule l’arrivée est fixe",
+  "choice.tourType.free": "Entièrement ouvert – départ et arrivée libres"
 }

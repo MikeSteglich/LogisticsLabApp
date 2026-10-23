@@ -145,7 +145,12 @@ class AppState extends ChangeNotifier {
   /// roles of a node for its symbol on the map - those of the problem; a tsp: the start like a supplier (square),
   /// the other stops like customers (circle)
   List<String> symbolRoles(Node n) {
-    if (spec?.allNodes == true) return [n.id == problem?.parameters['startNode'] ? 'supplier' : 'customer'];
+    if (spec?.allNodes == true) {
+      // the start only if the tour has a fixed one
+      final p = problem?.parameters ?? const <String, dynamic>{};
+      final start = const ['openStart', 'free'].contains(p['tourType']) ? null : p['startNode'];
+      return [n.id == start ? 'supplier' : 'customer'];
+    }
     // shortest way: start like a supplier, end like a customer, the other nodes of the network are transit
     if (spec?.type == 'shortestpath') {
       final p = problem!.parameters;

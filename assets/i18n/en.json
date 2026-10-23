@@ -336,7 +336,7 @@
   "field.tourType": "Kind of tour",
   "choice.tourType.round": "Round trip – back to the start",
   "choice.tourType.path": "Passage – from the start to the end",
-  "choice.tourType.open": "Open end",
+  "choice.tourType.open": "Open end – only the start is fixed",
   "field.startNode": "Start",
   "field.endNode": "End",
   "result.tourLength": "Length of the tour",
@@ -356,5 +356,7 @@
   "module.shortestpath.description": "Shortest path from a start to an end in the network",
   "result.pathLength": "Length of the path",
   "result.nrOfLegs": "Sections",
-  "ui.tsp.end": "End"
+  "ui.tsp.end": "End",
+  "choice.tourType.openStart": "Open start – only the end is fixed",
+  "choice.tourType.free": "Completely open – start and end free"
 }

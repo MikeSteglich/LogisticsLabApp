@@ -1,10 +1,14 @@
 /// Routing: travelling salesman problem - round trip (back to the start), passage from a start to an end node
-/// ("Durchfahrt") or with an open end. The tour visits all active nodes of the scenario.
+/// ("Durchfahrt"), open end, open start or completely open. The tour visits all active nodes of the scenario.
 library;
 
 import 'module_spec.dart';
 
-bool _isPath(Map<String, dynamic> p) => p['tourType'] == 'path';
+/// the start is given - not with an open start or completely open
+bool _withStart(Map<String, dynamic> p) => !const ['openStart', 'free'].contains(p['tourType']);
+
+/// the end is given: passage or open start
+bool _withEnd(Map<String, dynamic> p) => const ['path', 'openStart'].contains(p['tourType']);
 
 final tspSpec = ModuleSpec(
   type: 'tsp',
@@ -14,9 +18,14 @@ final tspSpec = ModuleSpec(
   edgeDirections: true,
   network: NetworkUse.optional,
   parameters: [
-    const FieldSpec('tourType', FieldKind.choice, defaultValue: 'round', choices: ['round', 'path', 'open']),
-    const FieldSpec('startNode', FieldKind.node, required: true),
-    FieldSpec('endNode', FieldKind.node, required: true, visibleIf: _isPath),
+    const FieldSpec(
+      'tourType',
+      FieldKind.choice,
+      defaultValue: 'round',
+      choices: ['round', 'path', 'open', 'openStart', 'free'],
+    ),
+    FieldSpec('startNode', FieldKind.node, required: true, visibleIf: _withStart),
+    FieldSpec('endNode', FieldKind.node, required: true, visibleIf: _withEnd),
     const FieldSpec(
       'matrixMode',
       FieldKind.choice,

@@ -34,6 +34,13 @@ void main() {
     expect(end.isVisible(state.problem!.parameters), isFalse);
     state.edit(() => state.problem!.parameters['tourType'] = 'path');
     expect(end.isVisible(state.problem!.parameters), isTrue);
+    final start = state.spec!.parameters.firstWhere((f) => f.key == 'startNode');
+    state.edit(() => state.problem!.parameters['tourType'] = 'openStart');
+    expect(start.isVisible(state.problem!.parameters), isFalse);
+    expect(end.isVisible(state.problem!.parameters), isTrue);
+    state.edit(() => state.problem!.parameters['tourType'] = 'free');
+    expect(start.isVisible(state.problem!.parameters), isFalse);
+    expect(end.isVisible(state.problem!.parameters), isFalse);
   });
 
   testWidgets('round trip, passage and open end', skip: Platform.environment['LOGLAB_STDIO'] == null, (tester) async {
@@ -68,6 +75,17 @@ void main() {
     legs = await solve({'tourType': 'open', 'startNode': 'W'});
     expect(legs.length, nodes - 1);
     expect(legs.last['to'], isNot('W'));
+
+    // open start: only the end is fixed
+    legs = await solve({'tourType': 'openStart', 'endNode': 'C'});
+    expect(legs.length, nodes - 1);
+    expect(legs.last['to'], 'C');
+
+    // completely open: the shortest path through all nodes - not longer than with a fixed end
+    final openStart = state.solution!.results!['summary']['tourLength'] as num;
+    legs = await solve({'tourType': 'free'});
+    expect(legs.length, nodes - 1);
+    expect(state.solution!.results!['summary']['tourLength'], lessThanOrEqualTo(openStart + 1e-6));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
   });
 

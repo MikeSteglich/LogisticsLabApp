@@ -336,7 +336,7 @@
   "field.tourType": "Art der Tour",
   "choice.tourType.round": "Rundreise – zurück zum Start",
   "choice.tourType.path": "Durchfahrt – vom Start zum Ziel",
-  "choice.tourType.open": "Offenes Ende",
+  "choice.tourType.open": "Offenes Ende – nur der Start ist fest",
   "field.startNode": "Start",
   "field.endNode": "Ziel",
   "result.tourLength": "Länge der Tour",
@@ -356,5 +356,7 @@
   "module.shortestpath.description": "Kürzester Weg von einem Start zu einem Ziel im Netz",
   "result.pathLength": "Länge des Wegs",
   "result.nrOfLegs": "Abschnitte",
-  "ui.tsp.end": "Ziel"
+  "ui.tsp.end": "Ziel",
+  "choice.tourType.openStart": "Offener Anfang – nur das Ziel ist fest",
+  "choice.tourType.free": "Komplett offen – Start und Ziel frei"
 }

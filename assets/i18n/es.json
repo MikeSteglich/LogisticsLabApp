@@ -336,7 +336,7 @@
   "field.tourType": "Tipo de ruta",
   "choice.tourType.round": "Ruta circular – de vuelta al inicio",
   "choice.tourType.path": "Paso – del inicio al destino",
-  "choice.tourType.open": "Final abierto",
+  "choice.tourType.open": "Final abierto – solo el inicio es fijo",
   "field.startNode": "Inicio",
   "field.endNode": "Destino",
   "result.tourLength": "Longitud de la ruta",
@@ -356,5 +356,7 @@
   "module.shortestpath.description": "Camino más corto de un inicio a un destino en la red",
   "result.pathLength": "Longitud del camino",
   "result.nrOfLegs": "Tramos",
-  "ui.tsp.end": "Destino"
+  "ui.tsp.end": "Destino",
+  "choice.tourType.openStart": "Inicio abierto – solo el destino es fijo",
+  "choice.tourType.free": "Totalmente abierto – inicio y destino libres"
 }
