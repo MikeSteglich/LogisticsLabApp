@@ -181,18 +181,10 @@ class _MapViewState extends State<MapView> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              icon: const Icon(Icons.add_location_alt_outlined),
-              tooltip: t('ui.node.addOnMap'),
-              onPressed: () => s.setAddingNodes(true),
-            ),
+            _mapButton(Icons.add_location_alt_outlined, t('ui.node.addOnMap'), () => s.setAddingNodes(true)),
             if (s.network != null) ...[
-              const SizedBox(height: Ui.minTarget, child: VerticalDivider(width: 1)),
-              IconButton(
-                icon: const Icon(Icons.timeline),
-                tooltip: t('ui.edge.draw'),
-                onPressed: () => s.setDrawingEdge(true),
-              ),
+              const SizedBox(height: _buttonSize, child: VerticalDivider(width: 1)),
+              _mapButton(Icons.timeline, t('ui.edge.draw'), () => s.setDrawingEdge(true)),
             ],
           ],
         ),
@@ -635,20 +627,13 @@ class _MapViewState extends State<MapView> {
   Widget _layers() {
     final t = s.strings;
     if (!_layersOpen) {
-      return Tooltip(
-        message: t('ui.layers'),
-        child: Material(
+      return Container(
+        decoration: BoxDecoration(
           color: Ui.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Ui.radius),
-            side: const BorderSide(color: Ui.border),
-          ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(Ui.radius),
-            onTap: () => setState(() => _layersOpen = true),
-            child: const SizedBox(width: 40, height: 40, child: Icon(Icons.layers_outlined, size: 20)),
-          ),
+          border: Border.all(color: Ui.border),
+          borderRadius: BorderRadius.circular(Ui.radius),
         ),
+        child: _mapButton(Icons.layers_outlined, t('ui.layers'), () => setState(() => _layersOpen = true)),
       );
     }
     Widget check(String label, bool v, ValueChanged<bool> on) => InkWell(
@@ -791,6 +776,25 @@ class _MapViewState extends State<MapView> {
     );
   }
 
+  /// all buttons on the map have one size - in their groups with a frame (tools, layers, zoom)
+  static const _buttonSize = 40.0;
+
+  Widget _mapButton(IconData icon, String tooltip, VoidCallback onPressed) => Tooltip(
+    message: tooltip,
+    child: Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(Ui.radius),
+        onTap: onPressed,
+        child: SizedBox(
+          width: _buttonSize,
+          height: _buttonSize,
+          child: Icon(icon, size: 20, color: Ui.text),
+        ),
+      ),
+    ),
+  );
+
   Widget _zoom() {
     void zoom(double d) => _map.move(_map.camera.center, _map.camera.zoom + d);
     return Container(
@@ -802,15 +806,11 @@ class _MapViewState extends State<MapView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            icon: const Icon(Icons.center_focus_strong_outlined),
-            tooltip: s.strings('ui.map.fitProblem'),
-            onPressed: _fitProblem,
-          ),
-          const SizedBox(width: Ui.minTarget, child: Divider()),
-          IconButton(icon: const Icon(Icons.add), onPressed: () => zoom(1)),
-          const SizedBox(width: Ui.minTarget, child: Divider()),
-          IconButton(icon: const Icon(Icons.remove), onPressed: () => zoom(-1)),
+          _mapButton(Icons.center_focus_strong_outlined, s.strings('ui.map.fitProblem'), _fitProblem),
+          const SizedBox(width: _buttonSize, child: Divider(height: 1)),
+          _mapButton(Icons.add, s.strings('ui.map.zoomIn'), () => zoom(1)),
+          const SizedBox(width: _buttonSize, child: Divider(height: 1)),
+          _mapButton(Icons.remove, s.strings('ui.map.zoomOut'), () => zoom(-1)),
         ],
       ),
     );

@@ -366,5 +366,7 @@
   "ui.quit.title": "Save the changes to “{file}”?",
   "ui.quit.text": "The scenario is not saved. Without saving the changes are lost.",
   "ui.quit.discard": "Don’t save",
-  "ui.quit.save": "Save"
+  "ui.quit.save": "Save",
+  "ui.map.zoomIn": "Zoom in",
+  "ui.map.zoomOut": "Zoom out"
 }

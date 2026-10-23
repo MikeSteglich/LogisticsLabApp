@@ -366,5 +366,7 @@
   "ui.quit.title": "¿Guardar los cambios de «{file}»?",
   "ui.quit.text": "El escenario no está guardado. Sin guardar se pierden los cambios.",
   "ui.quit.discard": "No guardar",
-  "ui.quit.save": "Guardar"
+  "ui.quit.save": "Guardar",
+  "ui.map.zoomIn": "Acercar",
+  "ui.map.zoomOut": "Alejar"
 }

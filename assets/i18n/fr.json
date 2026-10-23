@@ -366,5 +366,7 @@
   "ui.quit.title": "Enregistrer les modifications de « {file} » ?",
   "ui.quit.text": "Le scénario n’est pas enregistré. Sans enregistrement, les modifications sont perdues.",
   "ui.quit.discard": "Ne pas enregistrer",
-  "ui.quit.save": "Enregistrer"
+  "ui.quit.save": "Enregistrer",
+  "ui.map.zoomIn": "Zoom avant",
+  "ui.map.zoomOut": "Zoom arrière"
 }

@@ -366,5 +366,7 @@
   "ui.quit.title": "Änderungen an „{file}“ speichern?",
   "ui.quit.text": "Das Szenario ist nicht gespeichert. Ohne Speichern gehen die Änderungen verloren.",
   "ui.quit.discard": "Nicht speichern",
-  "ui.quit.save": "Speichern"
+  "ui.quit.save": "Speichern",
+  "ui.map.zoomIn": "Vergrößern",
+  "ui.map.zoomOut": "Verkleinern"
 }
