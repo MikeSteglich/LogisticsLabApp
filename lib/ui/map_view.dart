@@ -1,6 +1,8 @@
 /// OSM map with the nodes, the edges of the network and the solution.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' hide Path;
@@ -24,26 +26,49 @@ class _MapViewState extends State<MapView> {
   final _map = MapController();
   bool _showSolution = true;
   bool _showNetwork = true;
+  bool _ready = false;
+  int _fitted = -1; // AppState.geometry of the last fit
+  Timer? _fitTimer;
 
   AppState get s => widget.state;
 
   @override
+  void dispose() {
+    _fitTimer?.cancel();
+    super.dispose();
+  }
+
+  /// shows all nodes - after opening a file and whenever nodes or their coordinates change
+  void _fitAll() {
+    _fitted = s.geometry;
+    final points = [for (final n in s.scenario.nodes) n.position];
+    if (!_ready || points.isEmpty || !mounted) return;
+    _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: 14));
+  }
+
+  void _scheduleFit() {
+    if (s.geometry == _fitted) return;
+    _fitTimer?.cancel();
+    // a new file at once, typed coordinates only after a short pause - the map does not jump with every key
+    _fitTimer = Timer(s.dirty ? const Duration(milliseconds: 600) : Duration.zero, _fitAll);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final nodes = s.scenario.nodes;
-    final points = [for (final n in nodes) n.position];
     final t = s.strings;
+    _scheduleFit();
     return Stack(
       children: [
         FlutterMap(
-          // a new scenario gets a new map that shows all its nodes
-          key: ValueKey(s.opened),
           mapController: _map,
           options: MapOptions(
             initialCenter: const LatLng(52.4, 13.4),
             initialZoom: 8,
-            initialCameraFit: points.length >= 2
-                ? CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: 14)
-                : null,
+            onMapReady: () {
+              _ready = true;
+              _fitAll();
+            },
             backgroundColor: Ui.mapBackground,
             onTap: (_, p) => s.tapMap(p),
             interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),

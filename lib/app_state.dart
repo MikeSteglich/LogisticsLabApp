@@ -97,7 +97,8 @@ class AppState extends ChangeNotifier {
   //*********** scenario ************
 
   Scenario scenario = Scenario.empty();
-  int opened = 0; // counts the opened scenarios - the map shows all nodes of a new one
+  int opened = 0; // counts the opened scenarios
+  int geometry = 0; // changes with the nodes or their coordinates - the map then shows all nodes
   String? fileName; // shown in the header
   String? filePath; // desktop: Save writes there
   bool dirty = false;
@@ -118,6 +119,7 @@ class AppState extends ChangeNotifier {
   void openScenario(Scenario s, {String? name, String? path}) {
     scenario = s;
     opened++;
+    geometry++;
     fileName = name;
     filePath = path;
     dirty = false;
@@ -142,11 +144,15 @@ class AppState extends ChangeNotifier {
 
   /// every change of the data goes through here
   void edit(void Function() change) {
+    final before = _coordinates();
     change();
+    if (_coordinates() != before) geometry++;
     dirty = true;
     revision++;
     notifyListeners();
   }
+
+  String _coordinates() => [for (final n in scenario.nodes) n.json['coordinates']].join(';');
 
   void chooseProblem(String name) {
     problemName = name;
