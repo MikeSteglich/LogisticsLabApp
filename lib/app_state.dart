@@ -63,12 +63,14 @@ class AppState extends ChangeNotifier {
 
   BackendSettings _loadBackendSettings() {
     final d = defaultBackendSettings();
+    // no program saved: the default (environment or the solver bundled with the app) - it follows the app
+    final exe = _prefs.getString('backend.executable') ?? '';
     final args = _prefs.getString('backend.arguments');
     return BackendSettings(
       remote: !localBackendSupported || (_prefs.getBool('backend.remote') ?? d.remote),
-      executable: _prefs.getString('backend.executable') ?? d.executable,
-      arguments: args == null ? d.arguments : (jsonDecode(args) as List).cast<String>(),
-      workingDirectory: _prefs.getString('backend.workingDirectory') ?? d.workingDirectory,
+      executable: exe.isEmpty ? d.executable : exe,
+      arguments: exe.isEmpty || args == null ? d.arguments : (jsonDecode(args) as List).cast<String>(),
+      workingDirectory: exe.isEmpty ? d.workingDirectory : _prefs.getString('backend.workingDirectory') ?? '',
       url: _prefs.getString('backend.url') ?? d.url,
       apiKey: _prefs.getString('backend.apiKey') ?? d.apiKey,
     );
@@ -76,10 +78,15 @@ class AppState extends ChangeNotifier {
 
   Future<void> setBackendSettings(BackendSettings s) async {
     _backendSettings = s;
+    final d = defaultBackendSettings();
+    final isDefault =
+        s.executable == d.executable &&
+        s.workingDirectory == d.workingDirectory &&
+        listEquals(s.arguments, d.arguments);
     await _prefs.setBool('backend.remote', s.remote);
-    await _prefs.setString('backend.executable', s.executable);
-    await _prefs.setString('backend.arguments', jsonEncode(s.arguments));
-    await _prefs.setString('backend.workingDirectory', s.workingDirectory);
+    await _prefs.setString('backend.executable', isDefault ? '' : s.executable);
+    await _prefs.setString('backend.arguments', jsonEncode(isDefault ? const <String>[] : s.arguments));
+    await _prefs.setString('backend.workingDirectory', isDefault ? '' : s.workingDirectory);
     await _prefs.setString('backend.url', s.url);
     await _prefs.setString('backend.apiKey', s.apiKey);
     await _closeBackend();

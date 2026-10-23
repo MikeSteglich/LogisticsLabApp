@@ -45,6 +45,14 @@ LOGLAB_STDIO=python LOGLAB_STDIO_ARGS="-m logisticsLabCore.stdio" LOGLAB_STDIO_D
 
 *Open example* (menu `…` in the header) loads a scenario with problems around Berlin.
 
+## Distribution
+
+`dist/buildDist.py` builds the desktop app for the own system with the local core `logisticsLabStdio` inside (no Python, with CMPL and HiGHS): `LogisticsLab.app` (macOS, signed ad hoc or with a Developer ID, `.dmg`, notarisation), a folder `LogisticsLab/` on Windows and Linux. The app finds the core there by itself. See [dist/README.md](dist/README.md).
+
+```sh
+python3 dist/buildDist.py --build-stdio --stdio-python /opt/anaconda3/envs/nuitka/bin/python --dmg
+```
+
 ## Tests
 
 `test/screenshot_test.dart` opens the example, solves the TPP with the local core and writes pictures of the app (without map tiles):
@@ -58,4 +66,4 @@ LOGLAB_SHOTS=/tmp/shots flutter test test/screenshot_test.dart
 
 - The map uses the public OpenStreetMap tile server, which is fine for a prototype. A release needs its own tile server or a provider, following the [OSM Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles).
 - On macOS the app runs without sandbox, because it starts the local core as child process.
-- Not done yet: the other problem types, editing edges, geocoding of addresses, bundling the core with the desktop app, signing.
+- Not done yet: the other problem types, editing edges, geocoding of addresses.
