@@ -110,6 +110,7 @@ class AppState extends ChangeNotifier {
   Scenario scenario = Scenario.empty();
   int opened = 0; // counts the opened scenarios
   int geometry = 0; // changes with the nodes or their coordinates - the map then shows all nodes
+  int clickedGeometry = -1; // geometry after a click into the map - in view already, the map keeps its section
   String? fileName; // shown in the header
   String? filePath; // desktop: Save writes there
   bool dirty = false;
@@ -119,6 +120,7 @@ class AppState extends ChangeNotifier {
   String? selectedNode;
   DataTab tab = DataTab.nodes;
   bool placing = false; // next tap into the map sets the position of the selected node
+  bool addingNodes = false; // every tap into the map adds a node - until it is switched off
   final solutions = <String, SolutionState>{};
 
   Problem? get problem => problemName == null ? null : scenario.problem(problemName!);
@@ -537,6 +539,7 @@ class AppState extends ChangeNotifier {
     drawingEdge = v && network != null;
     edgeStart = null;
     placing = false;
+    if (drawingEdge) addingNodes = false;
     notifyListeners();
   }
 
@@ -627,18 +630,33 @@ class AppState extends ChangeNotifier {
 
   void setPlacing(bool v) {
     placing = v;
+    if (v) addingNodes = false;
+    notifyListeners();
+  }
+
+  /// nodes by clicks into the map - one mode at a time: no edge drawn, no position set
+  void setAddingNodes(bool v) {
+    addingNodes = v;
+    if (v) {
+      placing = false;
+      drawingEdge = false;
+      edgeStart = null;
+    }
     notifyListeners();
   }
 
   void addNode(LatLng position) {
     edit(() {
-      // the role of the list shown, else the last role of the problem (tpp: customer)
-      final role = nodeFilter != null && nodeFilter!.isNotEmpty
+      // the role of the list shown, else the last role of the problem (tpp: customer) - none for a problem
+      // without roles (tsp, shortest path) and for the transshipment nodes
+      final role = nodeFilter == AppState.transitFilter
+          ? 'transit'
+          : nodeFilter != null && nodeFilter!.isNotEmpty
           ? nodeFilter!
-          : problemRoles.length < nodeRoles.length
-          ? problemRoles.last
+          : spec != null
+          ? problemRoles.lastOrNull
           : 'customer';
-      selectedNode = scenario.addNode(position, roles: [role]).id;
+      selectedNode = scenario.addNode(position, roles: [?role]).id;
       tab = DataTab.nodes;
     });
   }
@@ -656,11 +674,17 @@ class AppState extends ChangeNotifier {
   }
 
   void tapMap(LatLng p) {
-    if (!placing || node == null) return;
-    edit(() {
-      node!.position = p;
-      placing = false;
-    });
+    if (addingNodes) {
+      addNode(p);
+    } else if (placing && node != null) {
+      edit(() {
+        node!.position = p;
+        placing = false;
+      });
+    } else {
+      return;
+    }
+    clickedGeometry = geometry;
   }
 
   //*********** computing ************

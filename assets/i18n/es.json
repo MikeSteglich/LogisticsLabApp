@@ -360,5 +360,7 @@
   "choice.tourType.openStart": "Inicio abierto – solo el destino es fijo",
   "choice.tourType.free": "Totalmente abierto – inicio y destino libres",
   "ui.legend.networkNodes": "Nodos de la red",
-  "ui.edge.allNodesHint": "Conecta todos los nodos activos entre sí – en ambos sentidos en una red dirigida"
+  "ui.edge.allNodesHint": "Conecta todos los nodos activos entre sí – en ambos sentidos en una red dirigida",
+  "ui.node.addOnMap": "Añadir nodos",
+  "ui.node.addHint": "Haga clic en el mapa – cada clic añade un nodo"
 }

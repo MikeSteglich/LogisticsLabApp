@@ -360,5 +360,7 @@
   "choice.tourType.openStart": "Offener Anfang – nur das Ziel ist fest",
   "choice.tourType.free": "Komplett offen – Start und Ziel frei",
   "ui.legend.networkNodes": "Knoten des Netzes",
-  "ui.edge.allNodesHint": "Verbindet alle aktiven Knoten miteinander – im gerichteten Netz in beide Richtungen"
+  "ui.edge.allNodesHint": "Verbindet alle aktiven Knoten miteinander – im gerichteten Netz in beide Richtungen",
+  "ui.node.addOnMap": "Knoten setzen",
+  "ui.node.addHint": "In die Karte klicken – jeder Klick legt einen Knoten an"
 }

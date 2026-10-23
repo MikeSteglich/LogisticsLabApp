@@ -70,6 +70,11 @@ class _MapViewState extends State<MapView> {
 
   void _scheduleFit() {
     if (s.geometry == _fitted) return;
+    // set by a click into the map: the node is in view, the map keeps its section
+    if (s.geometry == s.clickedGeometry) {
+      _fitted = s.geometry;
+      return;
+    }
     _fitTimer?.cancel();
     // a new file at once, typed coordinates only after a short pause - the map does not jump with every key
     _fitTimer = Timer(s.dirty ? const Duration(milliseconds: 600) : Duration.zero, _fitAll);
@@ -160,30 +165,57 @@ class _MapViewState extends State<MapView> {
     final t = s.strings;
     final hint = s.placing
         ? t('ui.node.placeHint')
+        : s.addingNodes
+        ? t('ui.node.addHint')
         : s.drawingEdge
         ? t(s.edgeStart == null ? 'ui.edge.drawStart' : 'ui.edge.drawEnd')
         : null;
     if (hint == null) {
-      if (s.network == null) return const SizedBox.shrink();
-      return OutlinedButton.icon(
-        style: OutlinedButton.styleFrom(backgroundColor: Ui.surface),
-        icon: const Icon(Icons.timeline, size: 16),
-        label: Text(t('ui.edge.draw')),
-        onPressed: () => s.setDrawingEdge(true),
+      final style = OutlinedButton.styleFrom(backgroundColor: Ui.surface);
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          OutlinedButton.icon(
+            style: style,
+            icon: const Icon(Icons.add_location_alt_outlined, size: 16),
+            label: Text(t('ui.node.addOnMap')),
+            onPressed: () => s.setAddingNodes(true),
+          ),
+          if (s.network != null)
+            OutlinedButton.icon(
+              style: style,
+              icon: const Icon(Icons.timeline, size: 16),
+              label: Text(t('ui.edge.draw')),
+              onPressed: () => s.setDrawingEdge(true),
+            ),
+        ],
       );
     }
     return _panel(
       Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(s.placing ? Icons.ads_click : Icons.timeline, size: 18, color: Ui.accent),
+          Icon(
+            s.placing
+                ? Icons.ads_click
+                : s.addingNodes
+                ? Icons.add_location_alt_outlined
+                : Icons.timeline,
+            size: 18,
+            color: Ui.accent,
+          ),
           const SizedBox(width: 8),
           Flexible(child: Text(hint, style: const TextStyle(fontSize: 13))),
           const SizedBox(width: 4),
           IconButton(
             tooltip: t('ui.cancel'),
             icon: const Icon(Icons.close, size: 18),
-            onPressed: () => s.placing ? s.setPlacing(false) : s.setDrawingEdge(false),
+            onPressed: () => s.placing
+                ? s.setPlacing(false)
+                : s.addingNodes
+                ? s.setAddingNodes(false)
+                : s.setDrawingEdge(false),
           ),
         ],
       ),
