@@ -114,6 +114,13 @@ class AppState extends ChangeNotifier {
   ModuleSpec? get spec => modules[problem?.type];
   Node? get node => selectedNode == null ? null : scenario.node(selectedNode!);
   SolutionState? get solution => problemName == null ? null : solutions[problemName];
+
+  /// roles of the nodes used by the problem - all roles without a problem (type)
+  List<String> get problemRoles => spec?.problemRoles(problem?.parameters ?? const {}) ?? nodeRoles;
+
+  /// active and with a role in the problem - other nodes are pale in the list and on the map
+  bool isRelevant(Node n) => n.active && n.roles.any(problemRoles.contains);
+
   bool get solutionIsStale => solution != null && solution!.revision != revision;
 
   void openScenario(Scenario s, {String? name, String? path}) {

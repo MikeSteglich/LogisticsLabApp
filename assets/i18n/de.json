@@ -186,5 +186,8 @@
   "ui.geo.noAddress": "Bitte zuerst eine Adresse eingeben",
   "ui.geo.none": "Keine Treffer für „{address}“",
   "ui.geo.choose": "Treffer für „{address}“",
-  "ui.geo.set": "Position gesetzt: {place}"
+  "ui.geo.set": "Position gesetzt: {place}",
+  "ui.roles.all": "Alle Rollen",
+  "ui.roles.problem": "Nur Rollen dieses Problems",
+  "ui.roles.others": "Auch: {roles} – für andere Probleme"
 }

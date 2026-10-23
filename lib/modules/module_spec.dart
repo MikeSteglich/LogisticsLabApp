@@ -101,6 +101,9 @@ class RoleSpec {
   const RoleSpec(this.key, this.defaultRole, this.nodeFields);
 
   String get label => 'role.$defaultRole';
+
+  /// main value of the role, shown in the node list - e.g. supply of the sources of a tpp
+  FieldSpec? get mainField => nodeFields.where((f) => f.required).firstOrNull;
 }
 
 enum NetworkUse { none, optional, required }
@@ -152,6 +155,10 @@ class ModuleSpec {
   /// Node role of a role of the problem, e.g. sources -> supplier.
   String nodeRole(RoleSpec role, Map<String, dynamic> parameters) =>
       (parameters['roles'] as Map?)?[role.key] as String? ?? role.defaultRole;
+
+  /// Node roles used by the problem, e.g. supplier and customer for a tpp.
+  List<String> problemRoles(Map<String, dynamic> parameters) =>
+      {for (final r in roles) nodeRole(r, parameters)}.toList();
 
   /// Fields of the node mask for a node with the given roles - each field only once.
   List<FieldSpec> nodeFieldsFor(Iterable<String> nodeRoles, Map<String, dynamic> parameters) {

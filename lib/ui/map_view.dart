@@ -196,8 +196,12 @@ class _MapViewState extends State<MapView> {
 
   Marker _symbol(Node n) {
     final selected = n.id == s.selectedNode;
-    final roles = n.roles;
-    final color = n.active ? Ui.text : Ui.textSecondary;
+    // shape by the roles in the problem - a depot is no supplier of a tpp
+    final roles = [
+      for (final r in n.roles)
+        if (s.problemRoles.contains(r)) r,
+    ];
+    final color = s.isRelevant(n) ? Ui.text : Ui.pale;
     final Widget shape;
     if (roles.contains('supplier') || roles.contains('depot')) {
       shape = Container(
@@ -273,7 +277,11 @@ class _MapViewState extends State<MapView> {
           child: Text(
             n.name,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: n.active ? Ui.text : Ui.textSecondary),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: s.isRelevant(n) ? Ui.text : Ui.textSecondary,
+            ),
           ),
         ),
       ),

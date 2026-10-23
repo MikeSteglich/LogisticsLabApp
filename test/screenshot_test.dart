@@ -80,6 +80,9 @@ void main() {
     }
 
     await shot('1-nodes');
+    state.selectNode('D1'); // roles only for other problems of the scenario
+    await shot('1b-node-other-roles');
+    state.selectNode('W');
 
     await tester.runAsync(state.solve);
     await tester.pump();

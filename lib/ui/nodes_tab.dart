@@ -82,13 +82,17 @@ class _NodeTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = state;
     final t = s.strings;
-    String qty(Node n) {
-      final v = n.roles.contains('supplier')
-          ? n['supply']
-          : n.roles.contains('customer')
-          ? n['demand']
-          : null;
-      return v is num ? t.number(v) : '';
+    final spec = s.spec;
+    final params = s.problem?.parameters ?? const <String, dynamic>{};
+    // one column per role of the problem with its main value (tpp: supply, demand); without problem all roles
+    final roleColumns = [
+      for (final r in spec?.roles ?? const <RoleSpec>[])
+        (role: spec!.nodeRole(r, params), field: r.mainField, label: t(r.mainField?.label ?? r.label)),
+    ];
+    String roleValue(Node n, ({String role, FieldSpec? field, String label}) c) {
+      if (!n.roles.contains(c.role)) return '';
+      final v = c.field == null ? null : n[c.field!.key];
+      return v is num ? t.number(v) : '✓';
     }
 
     Widget cell(String text, {int flex = 2, bool right = false, bool bold = false, Color? color}) => Expanded(
@@ -132,31 +136,33 @@ class _NodeTable extends StatelessWidget {
         row([
           cell(t('ui.col.id'), flex: 1, bold: true, color: head),
           cell(t('ui.col.name'), flex: 3, bold: true, color: head),
-          cell(t('ui.col.roles'), bold: true, color: head),
-          cell(t('ui.col.qty'), right: true, bold: true, color: head),
+          if (roleColumns.isEmpty) cell(t('ui.col.roles'), bold: true, color: head),
+          for (final c in roleColumns) cell(c.label, right: true, bold: true, color: head),
           cell(t('ui.col.coords'), flex: 3, bold: true, color: head),
         ], background: Ui.surfaceAlt),
         for (final n in s.scenario.nodes)
-          Semantics(
-            button: true,
-            selected: n.id == s.selectedNode,
-            child: row(
-              [
-                cell(n.id, flex: 1, bold: true, color: n.active ? Ui.text : Ui.textSecondary),
-                cell(n.name, flex: 3, color: n.active ? Ui.text : Ui.textSecondary),
-                cell(n.roles.map((r) => t('role.$r')).join(', '), color: Ui.textMuted),
-                cell(qty(n), right: true),
-                cell(
-                  '${t.fixed(n.position.latitude, 4)} / ${t.fixed(n.position.longitude, 4)}',
-                  flex: 3,
-                  color: Ui.textSecondary,
-                ),
-              ],
+          // nodes without a role in the problem are pale - their roles are for other problems of the scenario
+          if (s.isRelevant(n) case final relevant)
+            Semantics(
+              button: true,
               selected: n.id == s.selectedNode,
-              background: n.id == s.selectedNode ? Ui.accentLight : null,
-              onTap: () => s.selectNode(n.id),
+              child: row(
+                [
+                  cell(n.id, flex: 1, bold: true, color: relevant ? Ui.text : Ui.textSecondary),
+                  cell(n.name, flex: 3, color: relevant ? Ui.text : Ui.textSecondary),
+                  if (roleColumns.isEmpty) cell(n.roles.map((r) => t('role.$r')).join(', '), color: Ui.textMuted),
+                  for (final c in roleColumns) cell(roleValue(n, c), right: true),
+                  cell(
+                    '${t.fixed(n.position.latitude, 4)} / ${t.fixed(n.position.longitude, 4)}',
+                    flex: 3,
+                    color: Ui.textSecondary,
+                  ),
+                ],
+                selected: n.id == s.selectedNode,
+                background: n.id == s.selectedNode ? Ui.accentLight : null,
+                onTap: () => s.selectNode(n.id),
+              ),
             ),
-          ),
       ],
     );
   }
@@ -200,24 +206,7 @@ class _NodeMask extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          FieldLabel(t('ui.col.roles')),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              for (final r in nodeRoles)
-                FilterChip(
-                  label: Text(t('role.$r')),
-                  selected: n.roles.contains(r),
-                  labelStyle: TextStyle(
-                    color: n.roles.contains(r) ? Ui.accentDark : Ui.textMuted,
-                    fontWeight: n.roles.contains(r) ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                  side: BorderSide(color: n.roles.contains(r) ? Ui.accent : Ui.inputBorder),
-                  onSelected: (on) => s.edit(() => n.roles = on ? [...n.roles, r] : (n.roles..remove(r))),
-                ),
-            ],
-          ),
+          _RoleChips(state: s, node: n),
           const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -475,4 +464,71 @@ class _GeocodeButtonState extends State<_GeocodeButton> {
       onPressed: _busy ? null : _lookUp,
     ),
   );
+}
+
+/// Roles of the node: those of the problem as chips, the others (for other problems of the scenario) on demand.
+class _RoleChips extends StatefulWidget {
+  final AppState state;
+  final Node node;
+  const _RoleChips({required this.state, required this.node});
+
+  @override
+  State<_RoleChips> createState() => _RoleChipsState();
+}
+
+class _RoleChipsState extends State<_RoleChips> {
+  bool _all = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.state;
+    final t = s.strings;
+    final n = widget.node;
+    final problemRoles = s.problemRoles;
+    final shown = _all ? nodeRoles : problemRoles;
+    final others = [
+      for (final r in nodeRoles)
+        if (n.roles.contains(r) && !problemRoles.contains(r)) r,
+    ];
+    final hidden = problemRoles.length < nodeRoles.length;
+
+    Widget chip(String r) {
+      final on = n.roles.contains(r);
+      return FilterChip(
+        label: Text(t('role.$r')),
+        selected: on,
+        labelStyle: TextStyle(
+          color: on ? Ui.accentDark : Ui.textMuted,
+          fontWeight: on ? FontWeight.w600 : FontWeight.w400,
+        ),
+        side: BorderSide(color: on ? Ui.accent : Ui.inputBorder),
+        onSelected: (v) => s.edit(() => n.roles = v ? [...n.roles, r] : (n.roles..remove(r))),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        FieldLabel(t('ui.col.roles')),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            for (final r in shown) chip(r),
+            if (hidden)
+              TextButton(
+                onPressed: () => setState(() => _all = !_all),
+                child: Text(t(_all ? 'ui.roles.problem' : 'ui.roles.all')),
+              ),
+          ],
+        ),
+        if (!_all && others.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(t('ui.roles.others', {'roles': others.map((r) => t('role.$r')).join(', ')}), style: Ui.small),
+          ),
+      ],
+    );
+  }
 }

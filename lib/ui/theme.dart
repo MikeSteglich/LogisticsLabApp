@@ -19,6 +19,7 @@ abstract final class Ui {
   static const warning = Color(0xFFB4690E);
   static const error = Color(0xFFC0362C);
   static const mapBackground = Color(0xFFE9EDF1);
+  static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
 
   static const minTarget = 44.0; // touch targets (tablet)
   static const radius = 6.0;
