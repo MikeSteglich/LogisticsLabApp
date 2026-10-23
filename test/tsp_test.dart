@@ -6,12 +6,15 @@ library;
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/backend/backend.dart';
+import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
+import 'package:logisticslab_app/ui/map_view.dart';
 
 Future<AppState> _state(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({'language': 'de'});
@@ -66,5 +69,35 @@ void main() {
     expect(legs.length, nodes - 1);
     expect(legs.last['to'], isNot('W'));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
+  });
+
+  testWidgets('tsp: each edge directed or undirected', (tester) async {
+    MapView.showTiles = false;
+    tester.view.physicalSize = const Size(1440, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = await _state(tester);
+    state.newProblem('tsp');
+    state.newNetwork('Straßen', directed: false);
+    expect(state.addEdge('W', 'B'), isTrue);
+    final net = state.network!;
+    final e = net.edges.single;
+    expect(e.directedIn(net), isFalse);
+    expect(net.hasEdge('B', 'W'), isTrue); // both ways
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    expect(find.text('Werk Ludwigsfelde ↔ Berlin'), findsWidgets);
+
+    // the edge one way only: kept at the edge, the network stays undirected
+    await tester.tap(find.text('gerichtet  von → nach'));
+    await tester.pump();
+    expect(e['directed'], isTrue);
+    expect(net.directed, isFalse);
+    expect(net.hasEdge('B', 'W'), isFalse);
+    expect(find.text('Werk Ludwigsfelde → Berlin'), findsWidgets);
+    // back to the direction of the network: nothing at the edge
+    await tester.tap(find.text('ungerichtet  ↔'));
+    await tester.pump();
+    expect(e.json.containsKey('directed'), isFalse);
   });
 }

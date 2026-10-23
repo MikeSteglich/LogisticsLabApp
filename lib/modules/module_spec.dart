@@ -146,6 +146,7 @@ class ModuleSpec {
   final bool usesCommodities; // the scenario needs commodities (multicommodity)
   final bool usesModes; // the scenario needs modes of transport (multimodal)
   final bool allNodes; // the problem uses all active nodes, e.g. the tsp
+  final bool edgeDirections; // each edge directed or not (tsp, cpp) - else the direction of the network
 
   /// key of the summary value the objective function uses - depends on the parameters (e.g. objSense)
   final String? Function(Map<String, dynamic> parameters)? objective;
@@ -165,6 +166,7 @@ class ModuleSpec {
     this.usesCommodities = false,
     this.usesModes = false,
     this.allNodes = false,
+    this.edgeDirections = false,
     this.objective,
   });
 

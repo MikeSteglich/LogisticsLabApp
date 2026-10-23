@@ -346,5 +346,9 @@
   "ui.sol.legValue": "Abschnitt",
   "ui.sol.cumulated": "Bis hier",
   "ui.tsp.start": "Start",
-  "ui.tsp.stops": "Stationen"
+  "ui.tsp.stops": "Stationen",
+  "ui.net.directedDefault": "Kanten ohne eigene Richtung gerichtet (von → nach)",
+  "ui.edge.direction.label": "Richtung",
+  "ui.edge.directed": "gerichtet  von → nach",
+  "ui.edge.undirected": "ungerichtet  ↔"
 }

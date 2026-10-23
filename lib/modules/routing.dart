@@ -11,6 +11,7 @@ final tspSpec = ModuleSpec(
   group: ModuleGroup.routing,
   roles: const [],
   allNodes: true,
+  edgeDirections: true,
   network: NetworkUse.optional,
   parameters: [
     const FieldSpec('tourType', FieldKind.choice, defaultValue: 'round', choices: ['round', 'path', 'open']),

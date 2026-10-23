@@ -346,5 +346,9 @@
   "ui.sol.legValue": "Tramo",
   "ui.sol.cumulated": "Acumulado",
   "ui.tsp.start": "Inicio",
-  "ui.tsp.stops": "Paradas"
+  "ui.tsp.stops": "Paradas",
+  "ui.net.directedDefault": "Aristas sin dirección propia dirigidas (de → a)",
+  "ui.edge.direction.label": "Dirección",
+  "ui.edge.directed": "dirigida  de → a",
+  "ui.edge.undirected": "no dirigida  ↔"
 }

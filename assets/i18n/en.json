@@ -346,5 +346,9 @@
   "ui.sol.legValue": "Section",
   "ui.sol.cumulated": "So far",
   "ui.tsp.start": "Start",
-  "ui.tsp.stops": "Stops"
+  "ui.tsp.stops": "Stops",
+  "ui.net.directedDefault": "Edges without their own direction are directed (from → to)",
+  "ui.edge.direction.label": "Direction",
+  "ui.edge.directed": "directed  from → to",
+  "ui.edge.undirected": "undirected  ↔"
 }

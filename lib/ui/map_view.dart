@@ -569,10 +569,10 @@ class _MapViewState extends State<MapView> {
     String value(Object? v) => s.fieldText(v) ?? '–';
     final flows = s.connections;
     final used = flows.where(
-      (a) => (a['from'] == e.from && a['to'] == e.to) || (!net.directed && a['from'] == e.to && a['to'] == e.from),
+      (a) => (a['from'] == e.from && a['to'] == e.to) || (!e.directedIn(net) && a['from'] == e.to && a['to'] == e.from),
     );
     return (
-      '${_name(e.from)} ${net.directed ? '→' : '↔'} ${_name(e.to)}',
+      '${_name(e.from)} ${e.arrowIn(net)} ${_name(e.to)}',
       [
         for (final f in s.spec?.edgeFields ?? const <FieldSpec>[]) '${t(f.label)} ${value(e[f.key])}',
         if (used.isNotEmpty && used.first['flow'] is num) '${t('result.flow')} ${t.number(used.first['flow'] as num)}',

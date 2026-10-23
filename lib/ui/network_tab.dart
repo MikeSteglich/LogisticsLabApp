@@ -127,7 +127,12 @@ class NetworkTab extends StatelessWidget {
           child: Row(
             children: [
               Checkbox(value: net.directed, onChanged: (v) => s.edit(() => net.directed = v ?? true)),
-              Flexible(child: Text(t('ui.net.directed'), style: const TextStyle(fontSize: 13))),
+              Flexible(
+                child: Text(
+                  t(spec?.edgeDirections == true ? 'ui.net.directedDefault' : 'ui.net.directed'),
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
             ],
           ),
         ),
@@ -274,7 +279,9 @@ class _EdgeTable extends StatelessWidget {
       ),
     );
     final edges = net.edges;
-    final arrow = net.directed ? '→' : '↔';
+    // the direction of each edge - head: that of the network, mixed: a dash
+    final arrows = {for (final e in net.edges) e.arrowIn(net)};
+    final arrow = arrows.length == 1 ? arrows.single : (net.directed ? '→' : '↔');
     return Column(
       children: [
         row([
@@ -293,7 +300,7 @@ class _EdgeTable extends StatelessWidget {
             selected: i == s.selectedEdge,
             child: row(
               [
-                cell('${name(e.from)} $arrow ${name(e.to)}', flex: 5, bold: i == s.selectedEdge),
+                cell('${name(e.from)} ${e.arrowIn(net)} ${name(e.to)}', flex: 5, bold: i == s.selectedEdge),
                 for (final f in fields) cell(value(e[f.key], f), right: true),
               ],
               selected: i == s.selectedEdge,
@@ -357,12 +364,30 @@ class _EdgeMask extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.end,
             spacing: 8,
             children: [
-              Text('${name(e.from)} ${net.directed ? '→' : '↔'} ${name(e.to)}', style: Ui.title),
+              Text('${name(e.from)} ${e.arrowIn(net)} ${name(e.to)}', style: Ui.title),
               Text(t('ui.node.detail'), style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
             ],
           ),
           const SizedBox(height: 14),
           FieldGrid(children: [end(true), end(false)]),
+          // tsp, cpp: one way or both ways - the network gives the default
+          if (s.spec?.edgeDirections == true) ...[
+            const SizedBox(height: 14),
+            FieldLabel(t('ui.edge.direction.label')),
+            SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(value: true, label: Text(t('ui.edge.directed'))),
+                ButtonSegment(value: false, label: Text(t('ui.edge.undirected'))),
+              ],
+              selected: {e.directedIn(net)},
+              onSelectionChanged: (v) => s.edit(() {
+                final directed = v.single;
+                // only the difference to the network is kept in the file
+                e['directed'] = directed == net.directed ? null : directed;
+              }),
+            ),
+          ],
           if ((s.spec?.edgeFields ?? const <FieldSpec>[]).isNotEmpty) ...[
             const SizedBox(height: 14),
             FieldGrid(

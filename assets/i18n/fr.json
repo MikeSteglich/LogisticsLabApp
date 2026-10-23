@@ -346,5 +346,9 @@
   "ui.sol.legValue": "Tronçon",
   "ui.sol.cumulated": "Cumulé",
   "ui.tsp.start": "Départ",
-  "ui.tsp.stops": "Arrêts"
+  "ui.tsp.stops": "Arrêts",
+  "ui.net.directedDefault": "Arcs sans sens propre orientés (de → à)",
+  "ui.edge.direction.label": "Sens",
+  "ui.edge.directed": "orienté  de → à",
+  "ui.edge.undirected": "non orienté  ↔"
 }

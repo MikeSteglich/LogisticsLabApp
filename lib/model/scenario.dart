@@ -50,6 +50,12 @@ class Edge {
   String get to => json['to'] as String;
   set to(String v) => json['to'] = v;
 
+  /// direction of the edge - its own (directed) or that of its network
+  bool directedIn(Network net) => json['directed'] as bool? ?? net.directed;
+
+  /// arrow of the edge: one way or both ways
+  String arrowIn(Network net) => directedIn(net) ? '→' : '↔';
+
   /// attribute of a problem type, e.g. capacity - null removes it from the file
   Object? operator [](String key) => json[key];
   void operator []=(String key, Object? v) => v == null ? json.remove(key) : json[key] = v;
@@ -65,9 +71,9 @@ class Network {
   List<Edge> get edges => [for (final e in (json['edges'] as List? ?? const [])) Edge(e as Map<String, dynamic>)];
   List<dynamic> get _edges => (json['edges'] ??= <dynamic>[]) as List<dynamic>;
 
-  /// the connection from - to exists already (both directions for an undirected network)
+  /// the connection from - to exists already (both directions for an undirected edge)
   bool hasEdge(String from, String to) =>
-      edges.any((e) => (e.from == from && e.to == to) || (!directed && e.from == to && e.to == from));
+      edges.any((e) => (e.from == from && e.to == to) || (!e.directedIn(this) && e.from == to && e.to == from));
 
   Edge addEdge(String from, String to) {
     final e = Edge({'from': from, 'to': to});
