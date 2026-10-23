@@ -12,8 +12,8 @@
 #        macOS    LogisticsLab.app/Contents/Resources/logisticsLabStdio/
 #        Windows  LogisticsLab/logisticsLabStdio/      (neben LogisticsLab.exe)
 #        Linux    LogisticsLab/logisticsLabStdio/      (neben dem Programm LogisticsLab)
-#   4. testen: der Rechenkern in der App loest ein Szenario ueber JSON-RPC (solveScenario),
-#      mit --app-test zusaetzlich die App selbst mit diesem Rechenkern (test/screenshot_test.dart)
+#   4. testen: der Rechenkern in der App loest ein Szenario ueber JSON-RPC (solveScenario), die fertige App
+#      startet (kurz ein Fenster), mit --app-test loest die App selbst mit diesem Rechenkern (Flutter-Test)
 #   5. (macOS) signieren - ohne --sign ad hoc, damit die geaenderte App startet -, .dmg, notarisieren
 #   6. packen: dist/out/LogisticsLabApp-<version>-<os>-<arch>.zip (.dmg, .tar.gz)
 #
@@ -186,6 +186,29 @@ def stdio_test(exe, tdir):
     print("    ok")
 
 
+def launch_test(t, app, seconds=8):
+    """Startet die fertige App und prueft, dass sie nach einigen Sekunden noch laeuft - findet Fehler beim Laden
+    (Signatur, fehlende Bibliotheken), die die Flutter-Tests nicht sehen. Oeffnet kurz ein Fenster."""
+    log("Test: die fertige App startet")
+    if t.is_mac:
+        exe = app / "Contents" / "MacOS" / APP_NAME
+    else:
+        exe = app / (APP_NAME + (".exe" if t.is_win else ""))
+    proc = subprocess.Popen([str(exe)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    try:
+        code = proc.wait(timeout=seconds)
+    except subprocess.TimeoutExpired:
+        proc.terminate()
+        try:
+            proc.wait(timeout=10)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        print(f"    laeuft nach {seconds} s - ok")
+        return
+    err = (proc.stderr.read() or "").strip().splitlines()[-10:]
+    raise BuildError(f"die App ist beim Start beendet worden ({code}):\n    " + "\n    ".join(err))
+
+
 def app_test(flutter, exe, tdir):
     """Die App (Flutter-Test, ohne Fenster) loest mit dem Rechenkern aus der App - braucht Netz (OSM)."""
     log("Test: App mit dem Rechenkern aus der App (test/screenshot_test.dart)")
@@ -222,11 +245,13 @@ def codesign_app(app, identity):
     """Signiert von innen nach aussen: die Binaries des Rechenkerns (Resources), die Frameworks, dann die App.
 
     identity "-" signiert ad hoc - noetig, weil das Hinzufuegen des Rechenkerns die Signatur von flutter build
-    ungueltig macht. Mit einer Developer ID: Hardened Runtime und Zeitstempel (Voraussetzung fuers Notarisieren).
+    ungueltig macht. Ad hoc ohne Hardened Runtime: deren Library Validation verlangt dieselbe Team ID fuer die App
+    und ihre Frameworks, Ad-hoc-Signaturen haben keine - dyld laedt FlutterMacOS.framework dann nicht.
+    Mit einer Developer ID: Hardened Runtime und Zeitstempel (Voraussetzung fuers Notarisieren).
     """
     adhoc = identity == "-"
     log("Signieren " + ("(ad hoc - nur fuer diesen Rechner)" if adhoc else f"(Identitaet: {identity})"))
-    base = ["--force", "--options", "runtime", "--sign", identity] + ([] if adhoc else ["--timestamp"])
+    base = ["--force", "--sign", identity] + ([] if adhoc else ["--options", "runtime", "--timestamp"])
 
     # Rechenkern: Python-Erweiterungen laden andere Bibliotheken (disable-library-validation)
     stdio = stdio_place(Target(), app)
@@ -349,6 +374,8 @@ def main():
                     help="macOS: .dmg notarisieren und das Ticket anheften (braucht --sign, setzt --dmg)")
     ap.add_argument("--app-test", action="store_true",
                     help="zusaetzlich die App mit dem Rechenkern aus der App testen (Flutter-Test, braucht Netz)")
+    ap.add_argument("--no-launch-test", action="store_true",
+                    help="die fertige App nicht starten (z.B. ohne Bildschirm, in einer CI)")
     ap.add_argument("--no-test", action="store_true", help="keine Tests")
     ap.add_argument("--no-archive", action="store_true", help="kein Archiv in dist/out")
     args = ap.parse_args()
@@ -406,6 +433,8 @@ def main():
             shutil.rmtree(tdir)
         tdir.mkdir(parents=True)
         stdio_test(exe, tdir)
+        if not args.no_launch_test:
+            launch_test(t, app)
         if args.app_test:
             app_test(flutter, exe, tdir)
 

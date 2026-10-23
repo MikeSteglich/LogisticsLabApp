@@ -17,9 +17,10 @@ Die App findet den Rechenkern dort selbst (`lib/backend/backend_local_io.dart`).
 1. **Rechenkern bereitstellen:** Standard ist die fertige Distribution aus `pyLogisticsLab/dist/build/<os>-<arch>/logisticsLabStdio`. Mit `--build-stdio` wird sie vorher mit `pyLogisticsLab/dist/buildStdio.py` (Nuitka) neu gebaut, mit `--stdio DIR` kommt sie von woanders.
 2. **App bauen:** `flutter build <os> --release`, die Version kommt aus `pubspec.yaml`.
 3. **Zusammenstellen:** App kopieren, Rechenkern hineinlegen.
-4. **Signieren (macOS):** Der Rechenkern, die Frameworks und die App werden von innen nach außen signiert. Ohne `--sign` geschieht das ad hoc, denn das Hineinlegen macht die Signatur von `flutter build` ungültig. Die App startet dann auf dem eigenen Rechner. Für andere Rechner braucht es `--sign` mit einer Developer ID und `--notarize`.
+4. **Signieren (macOS):** Der Rechenkern, die Frameworks und die App werden von innen nach außen signiert. Ohne `--sign` geschieht das ad hoc, denn das Hineinlegen macht die Signatur von `flutter build` ungültig. Die App startet dann auf dem eigenen Rechner. Ad hoc bleibt die Hardened Runtime aus: Deren Library Validation verlangt dieselbe Team ID für App und Frameworks, und Ad-hoc-Signaturen haben keine. Die App würde sonst beim Start abstürzen. Für andere Rechner braucht es `--sign` mit einer Developer ID und `--notarize`.
 5. **Testen:**
    - Der Rechenkern in der App löst über JSON-RPC (`solveScenario`) das TPP des Beispiels mit Luftlinie, also ohne Netz, ohne Python und ohne conda.
+   - Die fertige App wird gestartet und muss nach 8 Sekunden noch laufen. Das findet Fehler beim Laden (Signatur, Bibliotheken). Dabei geht kurz ein Fenster auf, ohne Bildschirm hilft `--no-launch-test`.
    - Mit `--app-test` löst zusätzlich die App selbst mit diesem Rechenkern. Das läuft als Flutter-Test ohne Fenster (`test/screenshot_test.dart`) und braucht Netz für die OSM-Matrix.
 6. **Packen:** nach `dist/out/`.
 
@@ -48,6 +49,7 @@ python3 dist/buildDist.py --sign "Developer ID Application: ..." --notarize <key
 | `--dmg` | macOS: zusätzlich ein `.dmg` mit Verweis auf `/Applications` |
 | `--notarize PROFILE` | macOS: `.dmg` notarisieren und Ticket anheften (braucht `--sign`) |
 | `--app-test` | zusätzlich die App mit dem Rechenkern aus der App testen |
+| `--no-launch-test` | die fertige App nicht starten (ohne Bildschirm, CI) |
 | `--no-test`, `--no-archive` | ohne Tests bzw. ohne Archiv |
 
 ## Hinweise
