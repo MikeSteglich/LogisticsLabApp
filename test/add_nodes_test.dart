@@ -30,7 +30,7 @@ void main() {
     final before = state.scenario.nodes.length;
 
     // tpp: the new nodes are customers
-    await tester.tap(find.text('Knoten setzen'));
+    await tester.tap(find.byTooltip('Knoten setzen'));
     await tester.pump();
     expect(state.addingNodes, isTrue);
     expect(find.text('In die Karte klicken – jeder Klick legt einen Knoten an'), findsOneWidget);

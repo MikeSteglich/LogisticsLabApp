@@ -171,25 +171,31 @@ class _MapViewState extends State<MapView> {
         ? t(s.edgeStart == null ? 'ui.edge.drawStart' : 'ui.edge.drawEnd')
         : null;
     if (hint == null) {
-      final style = OutlinedButton.styleFrom(backgroundColor: Ui.surface);
-      return Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          OutlinedButton.icon(
-            style: style,
-            icon: const Icon(Icons.add_location_alt_outlined, size: 16),
-            label: Text(t('ui.node.addOnMap')),
-            onPressed: () => s.setAddingNodes(true),
-          ),
-          if (s.network != null)
-            OutlinedButton.icon(
-              style: style,
-              icon: const Icon(Icons.timeline, size: 16),
-              label: Text(t('ui.edge.draw')),
-              onPressed: () => s.setDrawingEdge(true),
+      // small buttons with a tooltip - like the layers and the zoom
+      return Container(
+        decoration: BoxDecoration(
+          color: Ui.surface,
+          border: Border.all(color: Ui.border),
+          borderRadius: BorderRadius.circular(Ui.radius),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.add_location_alt_outlined),
+              tooltip: t('ui.node.addOnMap'),
+              onPressed: () => s.setAddingNodes(true),
             ),
-        ],
+            if (s.network != null) ...[
+              const SizedBox(height: Ui.minTarget, child: VerticalDivider(width: 1)),
+              IconButton(
+                icon: const Icon(Icons.timeline),
+                tooltip: t('ui.edge.draw'),
+                onPressed: () => s.setDrawingEdge(true),
+              ),
+            ],
+          ],
+        ),
       );
     }
     return _panel(
