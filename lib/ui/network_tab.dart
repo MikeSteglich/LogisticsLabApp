@@ -79,7 +79,7 @@ class NetworkTab extends StatelessWidget {
     final nets = s.scenario.networks;
     final net = s.network;
     final spec = s.spec;
-    final roles = spec?.roles ?? const <RoleSpec>[];
+    final roles = spec?.activeRoles(p.parameters) ?? const <RoleSpec>[];
 
     final chooser = Row(
       children: [
@@ -201,7 +201,7 @@ class NetworkTab extends StatelessWidget {
     final s = state;
     final params = s.problem!.parameters;
     final roleNodes = [
-      for (final r in s.spec?.roles ?? const <RoleSpec>[])
+      for (final r in s.spec?.activeRoles(params) ?? const <RoleSpec>[])
         [
           for (final n in s.scenario.nodes)
             if (n.roles.contains(s.spec!.nodeRole(r, params))) n.id,

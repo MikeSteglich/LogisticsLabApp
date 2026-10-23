@@ -132,7 +132,7 @@ class _NodeTable extends StatelessWidget {
     // all nodes: the main value of every role; one role: the fields of that role
     final filter = s.nodeFilter;
     final roleColumns = [
-      for (final r in spec?.roles ?? const <RoleSpec>[])
+      for (final r in spec?.activeRoles(params) ?? const <RoleSpec>[])
         if (filter == null)
           (role: spec!.nodeRole(r, params), field: r.mainField, label: t(r.mainField?.label ?? r.label))
         else if (spec!.nodeRole(r, params) == filter)

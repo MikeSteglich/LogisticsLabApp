@@ -320,5 +320,10 @@
   "ui.sol.ofCapacity": "sur {capacity}",
   "ui.sol.throughput": "Débit",
   "ui.sol.full": "Pleinement utilisés",
-  "ui.sol.shareOrUtilization": "Part / utilisation"
+  "ui.sol.shareOrUtilization": "Part / utilisation",
+  "choice.objSense.maxflow": "Maximiser la quantité",
+  "field.endpoints": "Flot",
+  "choice.endpoints.nodes": "d’une source vers un puits",
+  "choice.endpoints.roles": "de tous les fournisseurs vers tous les clients",
+  "field.endpoints.help": "Avec tous les fournisseurs et clients, le noyau ajoute une source et un puits artificiels – l’offre et la demande limitent la quantité, vide : illimité."
 }

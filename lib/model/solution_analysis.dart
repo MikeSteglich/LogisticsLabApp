@@ -76,9 +76,10 @@ class SolutionAnalysis {
     if (spec == null || results == null) return null;
     final nodeResults = (results['nodes'] as Map?)?.cast<String, dynamic>() ?? const {};
     if (results['nodes'] == null && networkNodes.isEmpty) return null;
-    if (spec.roles.length < 2 && networkNodes.isEmpty) return null;
+    final specRoles = spec.activeRoles(parameters);
+    if (specRoles.length < 2 && networkNodes.isEmpty) return null;
     final connections = connectionsOf(results);
-    final rated = spec.roles.length < 2 ? const <RoleSpec>[] : [spec.roles.first, spec.roles.last];
+    final rated = specRoles.length < 2 ? const <RoleSpec>[] : [specRoles.first, specRoles.last];
     final roles = [for (final r in rated) spec.nodeRole(r, parameters)];
     final uses = <NodeUse>[];
     for (final (i, r) in rated.indexed) {
@@ -110,7 +111,7 @@ class SolutionAnalysis {
       }
     }
     // the other nodes of the network: throughput (the core gives it with node capacities, else the inflow)
-    final rolesOfSpec = {for (final r in spec.roles) spec.nodeRole(r, parameters)};
+    final rolesOfSpec = {for (final r in specRoles) spec.nodeRole(r, parameters)};
     for (final id in networkNodes) {
       if (uses.any((u) => u.node.id == id)) continue;
       final n = scenario.node(id);

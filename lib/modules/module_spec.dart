@@ -105,13 +105,18 @@ class RoleSpec {
   final String key; // key in parameters.roles, e.g. sources
   final String defaultRole; // node role, e.g. supplier - label role.<defaultRole>
   final List<FieldSpec> nodeFields; // shown in the node mask if the node has this role
+  final FieldCondition? visibleIf; // the role is used only with these parameters - e.g. max flow from the suppliers
+  final String? main; // key of the main field if it is not required (e.g. an upper bound)
 
-  const RoleSpec(this.key, this.defaultRole, this.nodeFields);
+  const RoleSpec(this.key, this.defaultRole, this.nodeFields, {this.visibleIf, this.main});
 
   String get label => 'role.$defaultRole';
 
+  bool isUsed(Map<String, dynamic> parameters) => visibleIf?.call(parameters) ?? true;
+
   /// main value of the role, shown in the node list - e.g. supply of the sources of a tpp
-  FieldSpec? get mainField => nodeFields.where((f) => f.required).firstOrNull;
+  FieldSpec? get mainField =>
+      main != null ? nodeFields.firstWhere((f) => f.key == main) : nodeFields.where((f) => f.required).firstOrNull;
 }
 
 enum NetworkUse { none, optional, required }
@@ -171,19 +176,25 @@ class ModuleSpec {
       if (f.defaultValue != null) f.key: f.defaultValue,
   };
 
+  /// Roles used with the parameters - e.g. max flow: suppliers and customers only without source and sink.
+  List<RoleSpec> activeRoles(Map<String, dynamic> parameters) => [
+    for (final r in roles)
+      if (r.isUsed(parameters)) r,
+  ];
+
   /// Node role of a role of the problem, e.g. sources -> supplier.
   String nodeRole(RoleSpec role, Map<String, dynamic> parameters) =>
       (parameters['roles'] as Map?)?[role.key] as String? ?? role.defaultRole;
 
   /// Node roles used by the problem, e.g. supplier and customer for a tpp.
   List<String> problemRoles(Map<String, dynamic> parameters) =>
-      {for (final r in roles) nodeRole(r, parameters)}.toList();
+      {for (final r in activeRoles(parameters)) nodeRole(r, parameters)}.toList();
 
   /// Fields of the node mask for a node with the given roles - each field only once.
   List<FieldSpec> nodeFieldsFor(Iterable<String> nodeRoles, Map<String, dynamic> parameters) {
     final seen = <String>{};
     return [
-      for (final r in roles)
+      for (final r in activeRoles(parameters))
         if (nodeRoles.contains(nodeRole(r, parameters)))
           for (final f in r.nodeFields)
             if (f.isVisible(parameters) && seen.add(f.key)) f,
@@ -223,7 +234,12 @@ const errorKeys = [
   'error.text',
 ];
 
-const objSenseField = FieldSpec('objSense', FieldKind.choice, defaultValue: 'min', choices: ['min', 'max', 'minimax']);
+const objSenseField = FieldSpec(
+  'objSense',
+  FieldKind.choice,
+  defaultValue: 'min',
+  choices: ['min', 'max', 'maxflow', 'minimax'],
+);
 
 const matrixModeField = FieldSpec('matrixMode', FieldKind.choice, choices: ['distances', 'times', 'costs']);
 

@@ -33,18 +33,26 @@ final tppSpec = ModuleSpec(
     const FieldSpec('useSupplyRanges', FieldKind.boolean, defaultValue: false),
     const FieldSpec('useDemandRanges', FieldKind.boolean, defaultValue: false),
     const FieldSpec('useCapacities', FieldKind.boolean, defaultValue: false),
-    const FieldSpec('useFixedCosts', FieldKind.boolean, defaultValue: false),
+    FieldSpec('useFixedCosts', FieldKind.boolean, defaultValue: false, visibleIf: (p) => p['objSense'] != 'maxflow'),
     ...solverFields,
   ],
   network: NetworkUse.optional,
   edgeFields: [
     FieldSpec('capacity', FieldKind.unlimited, min: 0, requires: 'useCapacities'),
-    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, requires: 'useFixedCosts'),
+    FieldSpec(
+      'fixedCost',
+      FieldKind.number,
+      unit: '€',
+      min: 0,
+      requires: 'useFixedCosts',
+      visibleIf: (p) => p['objSense'] != 'maxflow',
+    ),
   ],
   // costs (or value) in total - the largest cost rate of the used connections with minimax (bottleneck) - max: the
   // contribution after the fixed costs
   objective: (p) => switch (p['objSense']) {
     'minimax' => 'maxCostRate',
+    'maxflow' => 'totalFlow',
     'max' => 'netContribution',
     _ => 'totalCosts',
   },

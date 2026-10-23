@@ -320,5 +320,10 @@
   "ui.sol.ofCapacity": "de {capacity}",
   "ui.sol.throughput": "Caudal",
   "ui.sol.full": "Plenamente utilizados",
-  "ui.sol.shareOrUtilization": "Proporción / utilización"
+  "ui.sol.shareOrUtilization": "Proporción / utilización",
+  "choice.objSense.maxflow": "Maximizar la cantidad",
+  "field.endpoints": "Flujo",
+  "choice.endpoints.nodes": "de una fuente a un sumidero",
+  "choice.endpoints.roles": "de todos los proveedores a todos los clientes",
+  "field.endpoints.help": "Con todos los proveedores y clientes el núcleo añade una fuente y un sumidero artificiales – la oferta y la demanda limitan la cantidad, vacío: ilimitado."
 }

@@ -320,5 +320,10 @@
   "ui.sol.ofCapacity": "of {capacity}",
   "ui.sol.throughput": "Throughput",
   "ui.sol.full": "Fully used",
-  "ui.sol.shareOrUtilization": "Share / utilisation"
+  "ui.sol.shareOrUtilization": "Share / utilisation",
+  "choice.objSense.maxflow": "Maximise quantity",
+  "field.endpoints": "Flow",
+  "choice.endpoints.nodes": "from one source to one sink",
+  "choice.endpoints.roles": "from all suppliers to all customers",
+  "field.endpoints.help": "With all suppliers and customers the core adds an artificial source and sink – supply and demand limit the quantity, empty: unlimited."
 }

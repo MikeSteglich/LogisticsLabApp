@@ -86,6 +86,16 @@ void main() {
     expect(state.message, isNull);
     expect(state.solution!.results!['objVal'], 140);
 
+    // max flow from all suppliers to all customers: artificial source and sink, limited by the supply of the plant
+    state.edit(() => state.problem!.parameters['endpoints'] = 'roles');
+    expect(state.problemRoles, ['supplier', 'customer']);
+    await tester.runAsync(state.solve);
+    expect(state.message, isNull);
+    expect(state.solution!.results!['objVal'], 100);
+    expect(state.analysis!.use('W')!.actual, 100);
+    expect(state.analysis!.missing('customer'), 0);
+    expect(state.connections.where((c) => c['from'] == 'W').map((c) => c['flow'] as num).reduce((a, b) => a + b), 100);
+
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
   });
 }

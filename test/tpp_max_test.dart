@@ -67,6 +67,22 @@ void main() {
     expect(state.rateLabels.$1, 'Deckungsbeitrag je Einheit');
     expect(state.connections.every((c) => (c['rate'] as num) > 0), isTrue);
     expect(state.connections.map((c) => c['to']), isNot(contains('C')));
+
+    // largest quantity: supply and demand are upper bounds, cost rates above 40 blocked
+    state.edit(() {
+      state.problem!.parameters
+        ..['objSense'] = 'maxflow'
+        ..['useDemandRanges'] = false
+        ..['maxBlock'] = 40;
+    });
+    expect(tppSpec.objective!(state.problem!.parameters), 'totalFlow');
+    await tester.runAsync(state.solve);
+    expect(state.message, isNull);
+    final flow = state.solution!.results!['summary'] as Map;
+    expect(flow['totalFlow'], state.solution!.results!['objVal']);
+    expect(flow['totalFlow'], lessThan(100));
+    expect(state.connections.every((c) => (c['rate'] as num) <= 40), isTrue);
+    expect(state.ratesAreContributions, isFalse);
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
   });
 }

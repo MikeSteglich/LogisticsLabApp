@@ -320,5 +320,10 @@
   "ui.sol.ofCapacity": "von {capacity}",
   "ui.sol.throughput": "Durchsatz",
   "ui.sol.full": "Voll ausgelastet",
-  "ui.sol.shareOrUtilization": "Anteil / Auslastung"
+  "ui.sol.shareOrUtilization": "Anteil / Auslastung",
+  "choice.objSense.maxflow": "Menge maximieren",
+  "field.endpoints": "Fluss",
+  "choice.endpoints.nodes": "von einer Quelle zu einer Senke",
+  "choice.endpoints.roles": "von allen Anbietern zu allen Nachfragern",
+  "field.endpoints.help": "Mit allen Anbietern und Nachfragern führt der Kern eine künstliche Quelle und Senke ein – Angebot und Nachfrage begrenzen die Menge, leer: unbegrenzt."
 }

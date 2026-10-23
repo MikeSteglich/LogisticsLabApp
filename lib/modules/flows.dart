@@ -17,6 +17,9 @@ const _flowSummary = [
 ];
 String? _objVal(Map<String, dynamic> _) => 'objVal';
 
+/// max flow from all suppliers to all customers instead of one source and one sink
+bool _fromRoles(Map<String, dynamic> p) => p['endpoints'] == 'roles';
+
 final minCostFlowSpec = ModuleSpec(
   type: 'mincostflow',
   group: ModuleGroup.network,
@@ -46,12 +49,29 @@ final maxFlowSpec = ModuleSpec(
   group: ModuleGroup.network,
   network: NetworkUse.required,
   usesMatrix: false,
-  roles: const [],
+  // all suppliers -> all customers: supply and demand limit the quantity (empty: unlimited)
+  roles: [
+    RoleSpec(
+      'sources',
+      'supplier',
+      [FieldSpec('supply', FieldKind.unlimited, min: 0, labelKey: 'field.maxSupply')],
+      visibleIf: _fromRoles,
+      main: 'supply',
+    ),
+    RoleSpec(
+      'destinations',
+      'customer',
+      [FieldSpec('demand', FieldKind.unlimited, min: 0, labelKey: 'field.maxDemand')],
+      visibleIf: _fromRoles,
+      main: 'demand',
+    ),
+  ],
   nodeFields: _nodeCaps,
-  parameters: const [
-    FieldSpec('source', FieldKind.node, required: true),
-    FieldSpec('sink', FieldKind.node, required: true),
-    FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
+  parameters: [
+    const FieldSpec('endpoints', FieldKind.choice, defaultValue: 'nodes', choices: ['nodes', 'roles']),
+    FieldSpec('source', FieldKind.node, required: true, visibleIf: (p) => !_fromRoles(p)),
+    FieldSpec('sink', FieldKind.node, required: true, visibleIf: (p) => !_fromRoles(p)),
+    const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
   ],
   edgeFields: const [
     FieldSpec('capacity', FieldKind.unlimited, min: 0),

@@ -323,9 +323,9 @@ class AppState extends ChangeNotifier {
   /// (tpp: suppliers -> customers) - returns the number of new edges
   int addAllEdges() {
     final net = network;
-    final roles = spec?.roles ?? const <RoleSpec>[];
+    final params = problem?.parameters ?? const <String, dynamic>{};
+    final roles = spec?.activeRoles(params) ?? const <RoleSpec>[];
     if (net == null || roles.length < 2) return 0;
-    final params = problem!.parameters;
     final from = [
       for (final n in scenario.nodes)
         if (n.roles.contains(spec!.nodeRole(roles[0], params))) n.id,
