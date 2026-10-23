@@ -80,6 +80,13 @@ void main() {
     }
 
     await shot('1-nodes');
+    await tester.tap(find.byIcon(Icons.more_horiz));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Über LogisticsLab'));
+    await tester.pumpAndSettle();
+    await shot('0-about');
+    await tester.tap(find.text('Schließen'));
+    await tester.pumpAndSettle();
     state.selectNode('D1'); // roles only for other problems of the scenario
     await shot('1b-node-other-roles');
     state.selectNode('W');

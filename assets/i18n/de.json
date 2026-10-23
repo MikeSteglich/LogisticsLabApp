@@ -246,5 +246,20 @@
   "ui.sol.fromPartners": "von",
   "ui.routes.loading": "Straßenverlauf wird geladen … ({n})",
   "ui.routes.missing": "{n} Kanten ohne Straßenverlauf",
-  "ui.routes.retry": "Erneut laden"
+  "ui.routes.retry": "Erneut laden",
+  "ui.about.menu": "Über LogisticsLab",
+  "ui.about.version": "Version {version}",
+  "ui.about.tagline": "Optimierung logistischer Probleme auf Karten von OpenStreetMap",
+  "ui.about.credits": "Daten und Software",
+  "ui.about.mapData": "Kartendaten",
+  "ui.about.tiles": "Kartenkacheln",
+  "ui.about.routing": "Routen, Distanzen",
+  "ui.about.geocoding": "Adresssuche",
+  "ui.about.optimisation": "Optimierung",
+  "ui.about.software": "Oberfläche, Kern",
+  "ui.about.thanksTitle": "Dank",
+  "ui.about.thanks": "Herzlichen Dank an Katrin Kampe für wertvolle Hinweise und das Testen.",
+  "ui.about.successor": "Neuentwicklung als Nachfolger von LogisticsLab 5 – dessen X-Dateien (TPPX, CLPX, …) lassen sich importieren.",
+  "ui.osm.contributors": "OpenStreetMap-Mitwirkende",
+  "ui.about.thServers": "Server der TH Wildau"
 }

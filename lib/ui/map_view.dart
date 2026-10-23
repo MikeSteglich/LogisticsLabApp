@@ -108,9 +108,18 @@ class _MapViewState extends State<MapView> {
               ),
             if (_showLabels) _LabelLayer(labels: _labels(), obstacles: [for (final n in nodes) n.position]),
             MarkerLayer(markers: [for (final n in nodes) _symbol(n)], rotate: false),
-            RichAttributionWidget(
-              alignment: AttributionAlignment.bottomLeft,
-              attributions: [TextSourceAttribution('OpenStreetMap contributors')],
+            // required by the licence of OpenStreetMap (ODbL) and the tile policy - the other credits are in the about
+            // dialog
+            Align(
+              alignment: Alignment.bottomLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                color: const Color(0xD9FFFFFF),
+                child: Text(
+                  '© ${s.strings('ui.osm.contributors')}',
+                  style: const TextStyle(fontSize: 11, color: Ui.textMuted),
+                ),
+              ),
             ),
           ],
         ),
@@ -126,7 +135,7 @@ class _MapViewState extends State<MapView> {
         Positioned(
           left: 12,
           right: 72,
-          bottom: 44,
+          bottom: 30,
           child: Align(alignment: Alignment.bottomLeft, child: _legend()),
         ),
         Positioned(bottom: 36, right: 12, child: _zoom()),

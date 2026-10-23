@@ -8,6 +8,8 @@ import '../app_state.dart';
 import '../modules/modules.dart';
 import 'data_panel.dart';
 import 'file_ops.dart';
+import 'about_dialog.dart';
+import 'logo.dart';
 import 'map_view.dart';
 import 'messages.dart';
 import 'settings_dialog.dart';
@@ -123,6 +125,8 @@ class _Header extends StatelessWidget {
                   MenuItemButton(onPressed: () => files.save(saveAs: true), child: Text(t('ui.saveAs'))),
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
+                  const Divider(),
+                  MenuItemButton(onPressed: () => showAbout(context, s), child: Text(t('ui.about.menu'))),
                 ],
               ),
               sep,
@@ -168,12 +172,7 @@ class _Logo extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(color: Ui.accent, borderRadius: BorderRadius.circular(6)),
-            child: const Icon(Icons.hub_outlined, size: 16, color: Colors.white),
-          ),
+          const Logo(size: 28),
           if (!compact) ...[
             const SizedBox(width: 10),
             Column(

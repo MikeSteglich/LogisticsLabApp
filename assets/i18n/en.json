@@ -246,5 +246,20 @@
   "ui.sol.fromPartners": "from",
   "ui.routes.loading": "Loading the roads … ({n})",
   "ui.routes.missing": "{n} edges without roads",
-  "ui.routes.retry": "Load again"
+  "ui.routes.retry": "Load again",
+  "ui.about.menu": "About LogisticsLab",
+  "ui.about.version": "Version {version}",
+  "ui.about.tagline": "Optimisation of logistics problems on maps of OpenStreetMap",
+  "ui.about.credits": "Data and software",
+  "ui.about.mapData": "Map data",
+  "ui.about.tiles": "Map tiles",
+  "ui.about.routing": "Routes, distances",
+  "ui.about.geocoding": "Address search",
+  "ui.about.optimisation": "Optimisation",
+  "ui.about.software": "Interface, core",
+  "ui.about.thanksTitle": "Thanks",
+  "ui.about.thanks": "Many thanks to Katrin Kampe for valuable suggestions and testing.",
+  "ui.about.successor": "New development succeeding LogisticsLab 5 – its X files (TPPX, CLPX, …) can be imported.",
+  "ui.osm.contributors": "OpenStreetMap contributors",
+  "ui.about.thServers": "servers of TH Wildau"
 }
