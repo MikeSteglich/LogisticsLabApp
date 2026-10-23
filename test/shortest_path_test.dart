@@ -29,6 +29,14 @@ void main() {
     expect(keys, containsAll(['startNode', 'endNode']));
     expect(state.isTransport, isFalse); // the edges keep their direction
     expect(state.spec!.edgeDirections, isTrue);
+
+    // all nodes with each other: one edge per pair (undirected), both directions (directed)
+    final n = state.scenario.nodes.where((n) => n.active).length;
+    state.newNetwork('alle', directed: false);
+    expect(state.addAllEdges(), n * (n - 1) ~/ 2);
+    expect(state.addAllEdges(), 0); // nothing new
+    state.newNetwork('alle gerichtet');
+    expect(state.addAllEdges(), n * (n - 1));
   });
 
   testWidgets('shortest path Basdorf -> Zehlendorf and back', skip: Platform.environment['LOGLAB_STDIO'] == null, (

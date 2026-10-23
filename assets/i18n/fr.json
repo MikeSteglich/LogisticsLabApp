@@ -359,5 +359,6 @@
   "ui.tsp.end": "Arrivée",
   "choice.tourType.openStart": "Départ ouvert – seule l’arrivée est fixe",
   "choice.tourType.free": "Entièrement ouvert – départ et arrivée libres",
-  "ui.legend.networkNodes": "Nœuds du réseau"
+  "ui.legend.networkNodes": "Nœuds du réseau",
+  "ui.edge.allNodesHint": "Relie tous les nœuds actifs entre eux – dans les deux sens dans un réseau orienté"
 }

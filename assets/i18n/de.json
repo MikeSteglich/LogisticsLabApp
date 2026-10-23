@@ -359,5 +359,6 @@
   "ui.tsp.end": "Ziel",
   "choice.tourType.openStart": "Offener Anfang – nur das Ziel ist fest",
   "choice.tourType.free": "Komplett offen – Start und Ziel frei",
-  "ui.legend.networkNodes": "Knoten des Netzes"
+  "ui.legend.networkNodes": "Knoten des Netzes",
+  "ui.edge.allNodesHint": "Verbindet alle aktiven Knoten miteinander – im gerichteten Netz in beide Richtungen"
 }

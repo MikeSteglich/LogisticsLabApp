@@ -359,5 +359,6 @@
   "ui.tsp.end": "Destino",
   "choice.tourType.openStart": "Inicio abierto – solo el destino es fijo",
   "choice.tourType.free": "Totalmente abierto – inicio y destino libres",
-  "ui.legend.networkNodes": "Nodos de la red"
+  "ui.legend.networkNodes": "Nodos de la red",
+  "ui.edge.allNodesHint": "Conecta todos los nodos activos entre sí – en ambos sentidos en una red dirigida"
 }

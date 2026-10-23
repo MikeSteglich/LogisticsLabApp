@@ -454,6 +454,28 @@ class AppState extends ChangeNotifier {
     return a != 2 && b != 0;
   }
 
+  /// tsp, shortest path: every active node with every other - one edge per pair in an undirected network, both
+  /// directions in a directed one
+  int _connectAll(Network net) {
+    final ids = [
+      for (final n in scenario.nodes)
+        if (n.active) n.id,
+    ];
+    var count = 0;
+    edit(() {
+      for (var i = 0; i < ids.length; i++) {
+        for (var j = 0; j < ids.length; j++) {
+          if (i == j || (!net.directed && j < i)) continue;
+          if (!net.hasEdge(ids[i], ids[j])) {
+            net.addEdge(ids[i], ids[j]);
+            count++;
+          }
+        }
+      }
+    });
+    return count;
+  }
+
   /// transshipment nodes for new edges of a network flow: nodes with the role transit or candidate (warehouse)
   /// that neither send nor receive
   List<String> get transitCandidates => [
@@ -468,6 +490,7 @@ class AppState extends ChangeNotifier {
     final net = network;
     final params = problem?.parameters ?? const <String, dynamic>{};
     final roles = spec?.activeRoles(params) ?? const <RoleSpec>[];
+    if (net != null && spec?.edgeDirections == true) return _connectAll(net);
     if (net == null || roles.length < 2) return 0;
     List<String> stage(int k) => [
       for (final n in scenario.nodes)

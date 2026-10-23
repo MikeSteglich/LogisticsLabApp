@@ -359,5 +359,6 @@
   "ui.tsp.end": "End",
   "choice.tourType.openStart": "Open start – only the end is fixed",
   "choice.tourType.free": "Completely open – start and end free",
-  "ui.legend.networkNodes": "Nodes of the network"
+  "ui.legend.networkNodes": "Nodes of the network",
+  "ui.edge.allNodesHint": "Connects all active nodes with each other – both directions in a directed network"
 }

@@ -157,9 +157,11 @@ class NetworkTab extends StatelessWidget {
               label: Text(t('ui.edge.draw')),
               onPressed: () => s.setDrawingEdge(!s.drawingEdge),
             ),
-            if (roles.length >= 2)
+            if (roles.length >= 2 || spec?.edgeDirections == true)
               Tooltip(
-                message: s.transitCandidates.isEmpty
+                message: spec?.edgeDirections == true
+                    ? t('ui.edge.allNodesHint')
+                    : s.transitCandidates.isEmpty
                     ? t('ui.edge.allHint', {
                         'from': 'role.${spec!.nodeRole(roles.first, p.parameters)}',
                         'to': 'role.${spec.nodeRole(roles.last, p.parameters)}',
