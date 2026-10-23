@@ -109,6 +109,7 @@ class _Header extends StatelessWidget {
                 ),
                 menuChildren: [
                   MenuItemButton(onPressed: () => files.save(saveAs: true), child: Text(t('ui.saveAs'))),
+                  MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
                 ],
               ),

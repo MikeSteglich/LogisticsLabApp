@@ -219,5 +219,8 @@
   "ui.use.assigned": "feste Zuordnung von {node}",
   "ui.use.param": "Parameter {param} des Problems {problem}",
   "ui.node.deleteUsed": "{node} wird noch verwendet",
-  "ui.node.deleteRefs": "Beim Löschen werden diese Verweise entfernt."
+  "ui.node.deleteRefs": "Beim Löschen werden diese Verweise entfernt.",
+  "ui.import": "Alte LogisticsLab-Datei importieren …",
+  "ui.imported": "Importiert: {file} – noch nicht gespeichert",
+  "ui.error.import": "{file} kann nicht importiert werden: {msg}"
 }

@@ -1,0 +1,28 @@
+TPP 5.4.0	09.02.2025	15:00:23
+
+OPTIONS
+ObjectiveSense	MIN
+KeyFigure	VarCosts
+Type	Standard
+Map	OSM
+DistFunc	OSM/DistancesKm
+TravelMode	Car
+DistFactor	 1.00
+SOURCES
+3
+Nr	Name	x	y	City	PostCode	Street	Country	Supply	MinSupply	MaxSupply
+1   	"W1"	  13.56550	  52.75978		"Lanke"	"16348"	""	""	             40	             35	              M
+2   	"W2"	  13.61817	  51.38768		"Hirschfeld"	"04932"	""	""	             30	             25	              M
+3   	"W3"	   8.61831	  52.30272		"Lübbecke"	"32312"	""	""	             50	             40	              M
+DESTINATIONS
+4
+Nr	Name	x	y	City	PostCode	Street	Country		Demand	MinDemand	MaxDemand
+1   	"B1"	  13.24456	  53.55655		"Neubrandenburg"	"17033"	""	""	             25	             25	              M
+2   	"B2"	   9.91014	  52.67962		"Winsen (Aller)"	"29308"	""	""	             20	             20	              M
+3   	"B3"	  12.11750	  51.62911		"Zörbig"	"06780"	""	""	             40	             40	              M
+4   	"B4"	  10.61280	  51.45452		"Bleicherode"	"99752"	""	""	             15	             15	              M
+COSTS
+         146.13	         372.16	         216.33	         384.73
+         349.12	         444.95	         196.73	         304.00
+         556.51	         151.36	         335.60	         278.08
+EEE

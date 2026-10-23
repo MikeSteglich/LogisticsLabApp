@@ -89,6 +89,10 @@ abstract class Backend {
   /// places of an address (OSM geocoding) - hits near [near] first
   Future<List<GeoHit>> geocode(String address, {LatLng? near, int limit = 5});
 
+  /// scenario (llab) of an old LogisticsLab file (TPPX, TSPX, CLPX, DLPX, NWFX, VRPX) - the extension of
+  /// [fileName] is the format; returns the scenario and its file name (e.g. drogma.clpx.llab)
+  Future<(Map<String, dynamic>, String)> convert(String fileName, String content);
+
   Future<void> close();
 }
 

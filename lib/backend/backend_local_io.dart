@@ -157,6 +157,12 @@ class LocalBackend implements Backend {
       GeoHit.fromAnswer(await _call('coordinates', GeoHit.request(address, near, limit)) as Map<String, dynamic>);
 
   @override
+  Future<(Map<String, dynamic>, String)> convert(String fileName, String content) async {
+    final r = await _call('convert', {'fileName': fileName, 'content': content}) as Map<String, dynamic>;
+    return (r['scenario'] as Map<String, dynamic>, r['fileName'] as String);
+  }
+
+  @override
   Future<void> close() async {
     final p = _process;
     if (p == null) return;

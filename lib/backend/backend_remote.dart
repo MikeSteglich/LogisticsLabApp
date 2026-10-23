@@ -91,5 +91,12 @@ class RemoteBackend implements Backend {
   }
 
   @override
+  Future<(Map<String, dynamic>, String)> convert(String fileName, String content) async {
+    final (code, body) = await _post('convert', {'fileName': fileName, 'content': content});
+    if (code != 200) throw BackendException(code, _message(body));
+    return (body['scenario'] as Map<String, dynamic>, body['fileName'] as String);
+  }
+
+  @override
   Future<void> close() async => _client.close();
 }

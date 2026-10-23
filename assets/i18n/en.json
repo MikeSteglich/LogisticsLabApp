@@ -219,5 +219,8 @@
   "ui.use.assigned": "fixed assignment of {node}",
   "ui.use.param": "parameter {param} of the problem {problem}",
   "ui.node.deleteUsed": "{node} is still used",
-  "ui.node.deleteRefs": "Deleting the node removes these references."
+  "ui.node.deleteRefs": "Deleting the node removes these references.",
+  "ui.import": "Import old LogisticsLab file …",
+  "ui.imported": "Imported: {file} – not saved yet",
+  "ui.error.import": "{file} cannot be imported: {msg}"
 }

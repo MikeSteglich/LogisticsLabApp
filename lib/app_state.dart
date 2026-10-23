@@ -471,6 +471,22 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  //*********** old LogisticsLab files ************
+
+  /// extensions of the old files - converted by the core (convertX.py)
+  static const oldFormats = ['tppx', 'tspx', 'clpx', 'dlpx', 'nwfx', 'vrpx'];
+
+  static bool isOldFile(String name) => oldFormats.contains(name.split('.').last.toLowerCase());
+
+  /// converts an old file and opens the scenario - not saved yet (Save asks for the place)
+  Future<void> importOld(String fileName, String content) async {
+    final backend = await _getBackend();
+    final (json, name) = await backend.convert(fileName, content);
+    openScenario(Scenario(json), name: name);
+    dirty = true;
+    notifyListeners();
+  }
+
   //*********** geocoding ************
 
   /// places of the address - hits near the other nodes first

@@ -18,6 +18,11 @@ const _llab = XTypeGroup(
   extensions: ['llab'],
   uniformTypeIdentifiers: ['public.json', 'public.data'],
 );
+const _old = XTypeGroup(
+  label: 'LogisticsLab (alt)',
+  extensions: [...AppState.oldFormats, 'TPPX', 'TSPX', 'CLPX', 'DLPX', 'NWFX', 'VRPX'],
+  uniformTypeIdentifiers: ['public.data', 'public.plain-text'],
+);
 const _llsol = XTypeGroup(label: 'LogisticsLab-Lösung', extensions: ['llsol']);
 
 class FileOps {
@@ -57,16 +62,49 @@ class FileOps {
     if (!await _discardChanges()) return;
     final XFile? file;
     try {
-      file = await openFile(acceptedTypeGroups: [_llab]);
+      file = await openFile(acceptedTypeGroups: [_llab, _old]);
     } catch (e) {
       _snack('$e');
       return;
     }
     if (file == null) return;
+    // an old file is imported
+    if (AppState.isOldFile(file.name)) return _import(file);
     try {
       state.openScenario(Scenario.parse(await file.readAsString()), name: file.name, path: kIsWeb ? null : file.path);
     } on Exception catch (e) {
       _snack(state.strings('ui.error.open', {'msg': '$e'}));
+    }
+  }
+
+  /// old LogisticsLab file (TPPX, CLPX, ...) - converted by the core into a scenario
+  Future<void> importOld() async {
+    if (!await _discardChanges()) return;
+    final XFile? file;
+    try {
+      file = await openFile(acceptedTypeGroups: [_old]);
+    } catch (e) {
+      _snack('$e');
+      return;
+    }
+    if (file != null) await _import(file);
+  }
+
+  Future<void> _import(XFile file) async {
+    final t = state.strings;
+    final bytes = await file.readAsBytes();
+    // the old files are UTF-8 or Latin-1
+    String text;
+    try {
+      text = utf8.decode(bytes);
+    } on FormatException {
+      text = latin1.decode(bytes);
+    }
+    try {
+      await state.importOld(file.name, text);
+      _snack(t('ui.imported', {'file': file.name}));
+    } catch (e) {
+      _snack(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     }
   }
 
