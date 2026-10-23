@@ -145,6 +145,7 @@ class ModuleSpec {
   final List<FieldSpec> nodeFields; // fields of every node of the problem, e.g. node capacities of a network flow
   final bool usesCommodities; // the scenario needs commodities (multicommodity)
   final bool usesModes; // the scenario needs modes of transport (multimodal)
+  final bool allNodes; // the problem uses all active nodes, e.g. the tsp
 
   /// key of the summary value the objective function uses - depends on the parameters (e.g. objSense)
   final String? Function(Map<String, dynamic> parameters)? objective;
@@ -163,6 +164,7 @@ class ModuleSpec {
     this.nodeFields = const [],
     this.usesCommodities = false,
     this.usesModes = false,
+    this.allNodes = false,
     this.objective,
   });
 

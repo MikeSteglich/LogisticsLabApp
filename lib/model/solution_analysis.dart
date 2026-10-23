@@ -150,6 +150,14 @@ class SolutionAnalysis {
   /// connections of a solution: from -> to with quantity (tpp: assignments, network flows: edges) - part: only the
   /// quantity and utilization of one commodity or mode, connections without it are left out
   static List<Map<String, dynamic>> connectionsOf(Map<String, dynamic>? results, [String? part]) {
+    // tours: their sections in order - leg: number of the section, value: its length (distance, time, costs)
+    if (results?['routes'] case final List routes) {
+      return [
+        for (final r in routes.cast<Map<String, dynamic>>())
+          for (final (k, l) in ((r['legs'] as List?) ?? const []).cast<Map<String, dynamic>>().indexed)
+            {...l, 'leg': k + 1},
+      ];
+    }
     final all = ((results?['assignments'] ?? results?['edges']) as List? ?? const []).cast<Map<String, dynamic>>();
     if (part == null) return all;
     return [

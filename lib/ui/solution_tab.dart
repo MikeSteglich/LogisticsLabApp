@@ -167,40 +167,43 @@ class SolutionTab extends StatelessWidget {
           const SizedBox(height: 16),
           // one commodity or mode: quantities and utilization of it - the map follows
           if (parts.isNotEmpty) ...[PartChooser(state: s), const SizedBox(height: 8)],
-          Section(
-            padding: EdgeInsets.zero,
-            child: Table(
-              columnWidths: {
-                0: const FlexColumnWidth(3),
-                1: const FlexColumnWidth(3),
-                if (withSplit) 2: const FlexColumnWidth(4),
-              },
-              // numbers as wide as their header or values - the names take the rest
-              defaultColumnWidth: const IntrinsicColumnWidth(),
-              children: [
-                _row(numericFrom: withSplit ? 3 : 2, header: true, [
-                  t('ui.sol.from'),
-                  t('ui.sol.to'),
-                  if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
-                  t('result.flow'),
-                  if (withRates) ...[s.rateLabels.$1, s.rateLabels.$2],
-                  if (withUtilization) t('ui.sol.utilization'),
-                ]),
-                for (final (i, a) in assignments.indexed)
-                  _row(numericFrom: withSplit ? 3 : 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
-                    name(a['from']),
-                    name(a['to']),
-                    if (withSplit) s.split(a),
-                    t.number(a['flow'] as num),
-                    if (withRates) ...[
-                      a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
-                      a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
-                    ],
-                    if (withUtilization) percent(a['utilization']),
+          if (s.isRoute)
+            _Route(state: s)
+          else
+            Section(
+              padding: EdgeInsets.zero,
+              child: Table(
+                columnWidths: {
+                  0: const FlexColumnWidth(3),
+                  1: const FlexColumnWidth(3),
+                  if (withSplit) 2: const FlexColumnWidth(4),
+                },
+                // numbers as wide as their header or values - the names take the rest
+                defaultColumnWidth: const IntrinsicColumnWidth(),
+                children: [
+                  _row(numericFrom: withSplit ? 3 : 2, header: true, [
+                    t('ui.sol.from'),
+                    t('ui.sol.to'),
+                    if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
+                    t('result.flow'),
+                    if (withRates) ...[s.rateLabels.$1, s.rateLabels.$2],
+                    if (withUtilization) t('ui.sol.utilization'),
                   ]),
-              ],
+                  for (final (i, a) in assignments.indexed)
+                    _row(numericFrom: withSplit ? 3 : 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
+                      name(a['from']),
+                      name(a['to']),
+                      if (withSplit) s.split(a),
+                      t.number(a['flow'] as num),
+                      if (withRates) ...[
+                        a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
+                        a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
+                      ],
+                      if (withUtilization) percent(a['utilization']),
+                    ]),
+                ],
+              ),
             ),
-          ),
           // warehouses of a multi-stage WLP
           if (open.isNotEmpty) ...[
             const SizedBox(height: 16),
@@ -462,6 +465,45 @@ class _NodeUsesState extends State<_NodeUses> {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// the tour: its sections in order with their length and the length so far - a tap highlights the section on the map
+class _Route extends StatelessWidget {
+  final AppState state;
+  const _Route({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
+    var sum = 0.0;
+    return Section(
+      padding: EdgeInsets.zero,
+      child: Table(
+        columnWidths: const {1: FlexColumnWidth(3), 2: FlexColumnWidth(3)},
+        defaultColumnWidth: const IntrinsicColumnWidth(),
+        children: [
+          SolutionTab._row(numericFrom: 3, header: true, [
+            t('ui.sol.leg'),
+            t('ui.sol.from'),
+            t('ui.sol.to'),
+            t('ui.sol.legValue'),
+            t('ui.sol.cumulated'),
+          ]),
+          for (final (i, a) in s.connections.indexed)
+            if (a['value'] case final num v)
+              SolutionTab._row(numericFrom: 3, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
+                '${a['leg']}',
+                name(a['from']),
+                name(a['to']),
+                s.valueText(v),
+                s.valueText(sum += v),
+              ]),
+        ],
+      ),
     );
   }
 }

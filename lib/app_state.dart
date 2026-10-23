@@ -131,7 +131,29 @@ class AppState extends ChangeNotifier {
 
   /// active and with a role in the problem - other nodes are pale in the list and on the map
   bool isRelevant(Node n) =>
-      n.active && (n.roles.any(problemRoles.contains) || (spec?.network == NetworkUse.required && _inNetwork(n.id)));
+      n.active &&
+      (spec?.allNodes == true ||
+          n.roles.any(problemRoles.contains) ||
+          (spec?.network == NetworkUse.required && _inNetwork(n.id)));
+
+  /// a value of the solution in its unit - costs with two decimals and €, else with the unit (km, min)
+  String valueText(num v) {
+    final unit = solution?.document['valueUnit'] as String?;
+    return unit == null || unit == 'costs' ? '${strings.fixed(v, 2)} €' : '${strings.number(v)} $unit';
+  }
+
+  /// roles of a node for its symbol on the map - those of the problem; a tsp: the start like a supplier (square),
+  /// the other stops like customers (circle)
+  List<String> symbolRoles(Node n) {
+    if (spec?.allNodes == true) return [n.id == problem?.parameters['startNode'] ? 'supplier' : 'customer'];
+    return [
+      for (final r in n.roles)
+        if (problemRoles.contains(r)) r,
+    ];
+  }
+
+  /// the solution consists of tours (tsp) - its connections are the sections of the tours
+  bool get isRoute => solution?.results?['routes'] != null;
 
   /// node of the network of the problem - network flows use every node of it, also transit nodes
   bool _inNetwork(String id) => network?.edges.any((e) => e.from == id || e.to == id) ?? false;

@@ -331,5 +331,20 @@
   "ui.records.edit": "edit",
   "ui.edge.direction": "This direction does not fit the problem – edges lead from suppliers over transshipment nodes to customers",
   "ui.edge.allHintTransit": "Adds the missing directed edges from every {from} to every transshipment node and from there to every {to}",
-  "ui.map.fitProblem": "Centre the problem"
+  "ui.map.fitProblem": "Centre the problem",
+  "module.tsp.description": "Shortest round trip or passage through all active nodes",
+  "field.tourType": "Kind of tour",
+  "choice.tourType.round": "Round trip – back to the start",
+  "choice.tourType.path": "Passage – from the start to the end",
+  "choice.tourType.open": "Open end",
+  "field.startNode": "Start",
+  "field.endNode": "End",
+  "result.tourLength": "Length of the tour",
+  "result.nrOfNodes": "Nodes",
+  "result.longestLeg": "Longest section",
+  "ui.sol.leg": "No.",
+  "ui.sol.legValue": "Section",
+  "ui.sol.cumulated": "So far",
+  "ui.tsp.start": "Start",
+  "ui.tsp.stops": "Stops"
 }

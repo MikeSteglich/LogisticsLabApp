@@ -331,5 +331,20 @@
   "ui.records.edit": "bearbeiten",
   "ui.edge.direction": "Diese Richtung passt nicht zum Problem – Kanten führen von Anbietern über Umladeknoten zu Nachfragern",
   "ui.edge.allHintTransit": "Legt die fehlenden gerichteten Kanten von jedem {from} zu jedem Umladeknoten und von dort zu jedem {to} an",
-  "ui.map.fitProblem": "Problem zentrieren"
+  "ui.map.fitProblem": "Problem zentrieren",
+  "module.tsp.description": "Kürzeste Rundreise oder Durchfahrt durch alle aktiven Knoten",
+  "field.tourType": "Art der Tour",
+  "choice.tourType.round": "Rundreise – zurück zum Start",
+  "choice.tourType.path": "Durchfahrt – vom Start zum Ziel",
+  "choice.tourType.open": "Offenes Ende",
+  "field.startNode": "Start",
+  "field.endNode": "Ziel",
+  "result.tourLength": "Länge der Tour",
+  "result.nrOfNodes": "Knoten",
+  "result.longestLeg": "Längster Abschnitt",
+  "ui.sol.leg": "Nr.",
+  "ui.sol.legValue": "Abschnitt",
+  "ui.sol.cumulated": "Bis hier",
+  "ui.tsp.start": "Start",
+  "ui.tsp.stops": "Stationen"
 }

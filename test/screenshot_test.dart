@@ -161,6 +161,20 @@ void main() {
     state.setTab(DataTab.nodes);
     await shot('9c-nodes-parcels');
     state.setSolutionPart(null);
+    // tsp: passage from the plant to Cottbus
+    state.chooseProblem('Rundreise');
+    state.edit(
+      () => state.problem!.parameters
+        ..['tourType'] = 'path'
+        ..['startNode'] = 'W'
+        ..['endNode'] = 'C',
+    );
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('10-tsp-path');
+    state.setTab(DataTab.parameters);
+    await shot('10b-tsp-parameters');
     state.chooseProblem('Transport direkt vom Werk');
 
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait

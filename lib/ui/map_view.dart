@@ -241,7 +241,8 @@ class _MapViewState extends State<MapView> {
             (
               index: i,
               points: s.edgePoints(from.position, to.position),
-              flow: a['flow'] as num,
+              // quantity - the number of the section of a tour
+              label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
               selected: i == s.selectedFlow,
             ),
     ];
@@ -272,7 +273,7 @@ class _MapViewState extends State<MapView> {
     final flows = _showSolution ? _flows() : const <_Flow>[];
     _Label flowLabel(_Flow f) => _Label(
       f.points[f.points.length ~/ 2],
-      s.strings.number(f.flow),
+      f.label,
       const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: Ui.tabular),
       centered: true,
       color: f.selected ? Ui.highlight : Ui.accentDark,
@@ -298,10 +299,7 @@ class _MapViewState extends State<MapView> {
     // the start of the edge being drawn is marked like the selection
     final selected = s.drawingEdge ? n.id == s.edgeStart : n.id == s.selectedNode;
     // shape by the roles in the problem - a depot is no supplier of a tpp
-    final roles = [
-      for (final r in n.roles)
-        if (s.problemRoles.contains(r)) r,
-    ];
+    final roles = s.symbolRoles(n);
     final relevant = s.isRelevant(n);
     final color = relevant ? Ui.text : Ui.pale;
     // with a solution: how far the supply is shipped / the demand is met
@@ -539,6 +537,13 @@ class _MapViewState extends State<MapView> {
     if (i >= list.length) return null;
     final a = list[i];
     final t = s.strings;
+    if (a['leg'] case final int leg) {
+      // section of a tour
+      return (
+        '$leg. ${_name('${a['from']}')} → ${_name('${a['to']}')}',
+        a['value'] is num ? s.valueText(a['value'] as num) : '',
+      );
+    }
     final flow = a['flow'] as num, rate = a['rate'] as num?;
     final split = s.split(a);
     return (
@@ -570,7 +575,8 @@ class _MapViewState extends State<MapView> {
       '${_name(e.from)} ${net.directed ? '→' : '↔'} ${_name(e.to)}',
       [
         for (final f in s.spec?.edgeFields ?? const <FieldSpec>[]) '${t(f.label)} ${value(e[f.key])}',
-        if (used.isNotEmpty) '${t('result.flow')} ${t.number(used.first['flow'] as num)}',
+        if (used.isNotEmpty && used.first['flow'] is num) '${t('result.flow')} ${t.number(used.first['flow'] as num)}',
+        if (used.isNotEmpty && used.first['leg'] != null) '${t('ui.sol.leg')} ${used.first['leg']}',
       ].join(' · '),
     );
   }
@@ -662,7 +668,11 @@ class _MapViewState extends State<MapView> {
   /// slim legend at the bottom: colours of the roles, course of the edges, roads being loaded or missing
   Widget _legend() {
     final t = s.strings;
-    final roles = s.problemRoles.where((r) => r == 'supplier' || r == 'candidate' || r == 'customer');
+    // a tsp: start and stops
+    final tsp = s.spec?.allNodes == true;
+    final roles = tsp
+        ? const ['supplier', 'customer']
+        : s.problemRoles.where((r) => r == 'supplier' || r == 'candidate' || r == 'customer');
     Widget item(Widget mark, String text, {Color color = Ui.textMuted}) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -696,7 +706,7 @@ class _MapViewState extends State<MapView> {
                 transform: role == 'candidate' ? Matrix4.rotationZ(0.785) : null,
                 transformAlignment: Alignment.center,
               ),
-              t('role.$role.plural'),
+              tsp ? t(role == 'supplier' ? 'ui.tsp.start' : 'ui.tsp.stops') : t('role.$role.plural'),
             ),
           item(
             CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),
@@ -905,7 +915,7 @@ class _LabelLayer extends StatelessWidget {
   }
 }
 
-typedef _Flow = ({int index, List<LatLng> points, num flow, bool selected});
+typedef _Flow = ({int index, List<LatLng> points, String label, bool selected});
 
 /// pie of a share inside a ring - a customer and the part of its demand that is met
 class _PiePainter extends CustomPainter {
