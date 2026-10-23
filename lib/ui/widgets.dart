@@ -1,0 +1,375 @@
+/// Common building blocks: split view, number field and the fields generated from a FieldSpec.
+library;
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import '../i18n/strings.dart';
+import '../modules/modules.dart';
+import 'theme.dart';
+
+//*************** split view: map | data area ************************************
+
+/// Two areas with a draggable divider - side by side (axis horizontal) or one above the other.
+/// ratio is the part of the first child; double click on the divider restores the default.
+class SplitView extends StatelessWidget {
+  final Axis axis;
+  final double ratio;
+  final ValueChanged<double> onChanged;
+  final ValueChanged<double> onChangeEnd;
+  final VoidCallback onReset;
+  final String semanticLabel;
+  final Widget first;
+  final Widget second;
+
+  const SplitView({
+    super.key,
+    required this.axis,
+    required this.ratio,
+    required this.onChanged,
+    required this.onChangeEnd,
+    required this.onReset,
+    required this.semanticLabel,
+    required this.first,
+    required this.second,
+  });
+
+  static const handle = 12.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final horizontal = axis == Axis.horizontal;
+    return LayoutBuilder(
+      builder: (context, c) {
+        final total = (horizontal ? c.maxWidth : c.maxHeight) - handle;
+        final a = (total * ratio).floorToDouble();
+        void drag(Offset local) => onChanged(((horizontal ? local.dx : local.dy) - handle / 2) / total);
+        final divider = Semantics(
+          label: semanticLabel,
+          slider: true,
+          value: '${(ratio * 100).round()} %',
+          increasedValue: '${(ratio * 100 + 5).round()} %',
+          decreasedValue: '${(ratio * 100 - 5).round()} %',
+          onIncrease: () => onChangeEnd(ratio + 0.05),
+          onDecrease: () => onChangeEnd(ratio - 0.05),
+          child: MouseRegion(
+            cursor: horizontal ? SystemMouseCursors.resizeColumn : SystemMouseCursors.resizeRow,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onDoubleTap: onReset,
+              onPanUpdate: (d) {
+                final box = context.findRenderObject() as RenderBox;
+                drag(box.globalToLocal(d.globalPosition));
+              },
+              onPanEnd: (_) => onChangeEnd(ratio),
+              child: SizedBox(
+                width: horizontal ? handle : null,
+                height: horizontal ? null : handle,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    if (horizontal) const VerticalDivider(width: 1) else const Divider(height: 1),
+                    Container(
+                      width: horizontal ? 6 : 36,
+                      height: horizontal ? 36 : 6,
+                      decoration: BoxDecoration(color: Ui.inputBorder, borderRadius: BorderRadius.circular(3)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        final children = [
+          SizedBox(width: horizontal ? a : null, height: horizontal ? null : a, child: first),
+          divider,
+          Expanded(child: second),
+        ];
+        return horizontal ? Row(children: children) : Column(children: children);
+      },
+    );
+  }
+}
+
+//*************** fields ************************************
+
+class FieldLabel extends StatelessWidget {
+  final String text;
+  const FieldLabel(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Text(
+      text,
+      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Ui.textMuted),
+    ),
+  );
+}
+
+/// Text field that keeps its own controller - the value is taken on every change (onChanged).
+class TextValueField extends StatefulWidget {
+  final String label;
+  final String value;
+  final ValueChanged<String> onChanged;
+  final bool readOnly;
+  final String? error;
+  final String? hint;
+
+  const TextValueField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.readOnly = false,
+    this.error,
+    this.hint,
+  });
+
+  @override
+  State<TextValueField> createState() => _TextValueFieldState();
+}
+
+class _TextValueFieldState extends State<TextValueField> {
+  late final _c = TextEditingController(text: widget.value);
+
+  @override
+  void didUpdateWidget(TextValueField old) {
+    super.didUpdateWidget(old);
+    // changed from outside, e.g. the position set on the map
+    if (widget.value != old.value && widget.value != _c.text) _c.text = widget.value;
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      FieldLabel(widget.label),
+      TextField(
+        controller: _c,
+        readOnly: widget.readOnly,
+        onChanged: widget.onChanged,
+        decoration: InputDecoration(
+          errorText: widget.error,
+          hintText: widget.hint,
+          fillColor: widget.readOnly ? Ui.surfaceAlt : null,
+        ),
+      ),
+    ],
+  );
+}
+
+/// Number in the format of the language - empty is null (with hint, e.g. "unlimited").
+class NumberField extends StatefulWidget {
+  final String label;
+  final num? value;
+  final ValueChanged<num?> onChanged;
+  final Strings strings;
+  final int decimals;
+  final String? hint;
+  final String? unit;
+  final Message? Function(num?)? check;
+
+  const NumberField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    required this.strings,
+    this.decimals = 6,
+    this.hint,
+    this.unit,
+    this.check,
+  });
+
+  @override
+  State<NumberField> createState() => _NumberFieldState();
+}
+
+class _NumberFieldState extends State<NumberField> {
+  late final _c = TextEditingController(text: _text(widget.value));
+  String? _error;
+
+  String _text(num? v) => v == null ? '' : widget.strings.number(v, decimals: widget.decimals, grouping: false);
+
+  @override
+  void didUpdateWidget(NumberField old) {
+    super.didUpdateWidget(old);
+    final current = widget.strings.parse(_c.text);
+    if (widget.value != current && widget.value != old.value) {
+      _c.text = _text(widget.value);
+      _error = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  void _changed(String t) {
+    final v = widget.strings.parse(t);
+    String? error;
+    if (t.trim().isNotEmpty && v == null) {
+      error = widget.strings('error.number', {'label': widget.label});
+    } else {
+      final m = widget.check?.call(v);
+      if (m != null) error = widget.strings.message(m);
+    }
+    setState(() => _error = error);
+    if (error == null) widget.onChanged(v);
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      FieldLabel(widget.unit == null ? widget.label : '${widget.label} (${widget.unit})'),
+      TextField(
+        controller: _c,
+        onChanged: _changed,
+        textAlign: TextAlign.right,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-\s]'))],
+        style: const TextStyle(fontFeatures: Ui.tabular),
+        decoration: InputDecoration(errorText: _error, hintText: widget.hint, errorMaxLines: 2),
+      ),
+    ],
+  );
+}
+
+/// Field of a FieldSpec - value and change go to the map [values] (node attributes or parameters).
+class SpecField extends StatelessWidget {
+  final FieldSpec spec;
+  final Object? value;
+  final ValueChanged<Object?> onChanged;
+  final Strings strings;
+
+  const SpecField({super.key, required this.spec, required this.value, required this.onChanged, required this.strings});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = strings;
+    final label = s(spec.label);
+    switch (spec.kind) {
+      case FieldKind.boolean:
+        return InkWell(
+          onTap: () => onChanged(!(value == true)),
+          borderRadius: BorderRadius.circular(Ui.radius),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 40),
+            child: Row(
+              children: [
+                Checkbox(value: value == true, onChanged: (v) => onChanged(v ?? false)),
+                Flexible(child: Text(label, style: const TextStyle(fontSize: 14))),
+                if (s.has(spec.help)) ...[
+                  const SizedBox(width: 6),
+                  Tooltip(
+                    message: s(spec.help),
+                    child: const Icon(Icons.info_outline, size: 16, color: Ui.textSecondary),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      case FieldKind.choice:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FieldLabel(label),
+            DropdownButtonFormField<String?>(
+              initialValue: spec.choices.contains(value) ? value as String : null,
+              isExpanded: true,
+              hint: s.has(spec.help) ? Text(s(spec.help), overflow: TextOverflow.ellipsis) : null,
+              items: [
+                if (!spec.required && spec.defaultValue == null)
+                  DropdownMenuItem<String?>(
+                    value: null,
+                    child: Text('–', style: TextStyle(color: Ui.textSecondary)),
+                  ),
+                for (final c in spec.choices) DropdownMenuItem<String?>(value: c, child: Text(s(spec.choiceLabel(c)))),
+              ],
+              onChanged: onChanged,
+            ),
+          ],
+        );
+      case FieldKind.text:
+        return TextValueField(label: label, value: value as String? ?? '', onChanged: onChanged);
+      case FieldKind.number || FieldKind.integer || FieldKind.unlimited:
+        return NumberField(
+          label: label,
+          value: value is num ? value as num : null,
+          strings: s,
+          unit: spec.unit,
+          decimals: spec.kind == FieldKind.integer ? 0 : 6,
+          hint: spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null,
+          check: (v) => spec.validate(v),
+          onChanged: onChanged,
+        );
+    }
+  }
+}
+
+/// Fields in a grid with [columns] columns - booleans over the whole width.
+class FieldGrid extends StatelessWidget {
+  final List<Widget> children;
+  final int columns;
+  const FieldGrid({super.key, required this.children, this.columns = 2});
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, c) {
+      final cols = c.maxWidth < 360 ? 1 : columns;
+      final w = (c.maxWidth - Ui.gap * (cols - 1)) / cols;
+      return Wrap(
+        spacing: Ui.gap,
+        runSpacing: Ui.gap,
+        children: [
+          for (final child in children)
+            SizedBox(width: child is SpecField && child.spec.kind == FieldKind.boolean ? c.maxWidth : w, child: child),
+        ],
+      );
+    },
+  );
+}
+
+class Section extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  const Section({super.key, required this.child, this.padding = const EdgeInsets.all(16)});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: padding,
+    decoration: BoxDecoration(
+      border: Border.all(color: Ui.border),
+      borderRadius: BorderRadius.circular(Ui.radius),
+      color: Ui.surface,
+    ),
+    child: child,
+  );
+}
+
+/// Badge with the problem type, e.g. TPP.
+class TypeBadge extends StatelessWidget {
+  final String text;
+  const TypeBadge(this.text, {super.key});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(color: Ui.accentLight, borderRadius: BorderRadius.circular(4)),
+    child: Text(
+      text,
+      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.4, color: Ui.accentDark),
+    ),
+  );
+}
