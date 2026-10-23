@@ -478,6 +478,9 @@ class AppState extends ChangeNotifier {
   /// extensions of the old files - converted by the core (convertX.py)
   static const oldFormats = ['tppx', 'tspx', 'clpx', 'dlpx', 'nwfx', 'vrpx'];
 
+  /// formats of LogisticsLab 4 and older - planar coordinates and own matrices, not convertible
+  static const legacyFormats = ['TPP', 'TSP', 'NWF', 'WLP', 'VRP', 'CLP', 'DLP', 'STP', 'LOP'];
+
   static bool isOldFile(String name) => oldFormats.contains(name.split('.').last.toLowerCase());
 
   /// converts an old file and opens the scenario - not saved yet (Save asks for the place)

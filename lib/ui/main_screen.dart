@@ -9,9 +9,16 @@ import '../modules/modules.dart';
 import 'data_panel.dart';
 import 'file_ops.dart';
 import 'map_view.dart';
+import 'messages.dart';
 import 'settings_dialog.dart';
 import 'theme.dart';
 import 'widgets.dart';
+
+/// solves the problem - an error or a problem without solution is shown in a dialog (and in the status bar)
+Future<void> solve(BuildContext context, AppState s) async {
+  await s.solve();
+  if (s.message != null && context.mounted) await showError(context, s.strings, s.message!);
+}
 
 class MainScreen extends StatelessWidget {
   final AppState state;
@@ -25,8 +32,8 @@ class MainScreen extends StatelessWidget {
       const SingleActivator(LogicalKeyboardKey.keyO, control: true): files.open,
       const SingleActivator(LogicalKeyboardKey.keyS, meta: true): files.save,
       const SingleActivator(LogicalKeyboardKey.keyS, control: true): files.save,
-      const SingleActivator(LogicalKeyboardKey.enter, meta: true): state.solve,
-      const SingleActivator(LogicalKeyboardKey.enter, control: true): state.solve,
+      const SingleActivator(LogicalKeyboardKey.enter, meta: true): () => solve(context, state),
+      const SingleActivator(LogicalKeyboardKey.enter, control: true): () => solve(context, state),
     };
     return CallbackShortcuts(
       bindings: shortcuts,
@@ -124,7 +131,7 @@ class _Header extends StatelessWidget {
                 FilledButton.icon(
                   icon: const Icon(Icons.play_arrow_rounded, size: 20),
                   label: Text(t('ui.solve')),
-                  onPressed: s.spec == null ? null : s.solve,
+                  onPressed: s.spec == null ? null : () => solve(context, s),
                 ),
               const SizedBox(width: 12),
               _LanguageToggle(state: s),

@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../app_state.dart';
 import '../backend/backend.dart';
+import 'messages.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
 import 'theme.dart';
@@ -444,7 +445,7 @@ class _GeocodeButtonState extends State<_GeocodeButton> {
     try {
       hits = await s.geocode(address, exceptNode: n.id);
     } catch (e) {
-      if (mounted) _snack('${t('ui.status.error')}: $e');
+      if (mounted) await showError(context, t, '$e');
       return;
     } finally {
       if (mounted) setState(() => _busy = false);

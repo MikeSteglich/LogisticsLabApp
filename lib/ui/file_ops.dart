@@ -13,16 +13,12 @@ import '../app_state.dart';
 import '../backend/backend.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
+import 'messages.dart';
 
-const _llab = XTypeGroup(
-  label: 'LogisticsLab',
-  extensions: ['llab'],
-  uniformTypeIdentifiers: ['public.json', 'public.data'],
-);
+const _llab = XTypeGroup(label: 'LogisticsLab', extensions: ['llab']);
 const _old = XTypeGroup(
   label: 'LogisticsLab (alt)',
   extensions: [...AppState.oldFormats, 'TPPX', 'TSPX', 'CLPX', 'DLPX', 'NWFX', 'VRPX'],
-  uniformTypeIdentifiers: ['public.data', 'public.plain-text'],
 );
 const _llsol = XTypeGroup(label: 'LogisticsLab-Lösung', extensions: ['llsol']);
 
@@ -31,10 +27,9 @@ class FileOps {
   final AppState state;
   FileOps(this.context, this.state);
 
-  void _snack(String text) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), behavior: SnackBarBehavior.floating));
-  }
+  void _snack(String text) => showNote(context, text);
+
+  Future<void> _error(String text) => showError(context, state.strings, text);
 
   Future<bool> _discardChanges() async {
     if (!state.dirty) return true;
@@ -65,7 +60,7 @@ class FileOps {
     try {
       file = await openFile(acceptedTypeGroups: [_llab, _old]);
     } catch (e) {
-      _snack('$e');
+      await _error('$e');
       return;
     }
     if (file == null) return;
@@ -74,7 +69,7 @@ class FileOps {
     try {
       state.openScenario(Scenario.parse(await file.readAsString()), name: file.name, path: kIsWeb ? null : file.path);
     } on Exception catch (e) {
-      _snack(state.strings('ui.error.open', {'msg': '$e'}));
+      await _error(state.strings('ui.error.open', {'msg': '$e'}));
     }
   }
 
@@ -85,7 +80,7 @@ class FileOps {
     try {
       file = await openFile(acceptedTypeGroups: [_old]);
     } catch (e) {
-      _snack('$e');
+      await _error('$e');
       return;
     }
     if (file != null) await _import(file);
@@ -93,6 +88,12 @@ class FileOps {
 
   Future<void> _import(XFile file) async {
     final t = state.strings;
+    // formats of LogisticsLab 4 (TPP, ...): planar coordinates and own matrices - not convertible
+    final ext = file.name.split('.').last.toUpperCase();
+    if (AppState.legacyFormats.contains(ext)) {
+      await _error(t('ui.error.legacy', {'file': file.name, 'ext': ext}));
+      return;
+    }
     final bytes = await file.readAsBytes();
     // the old files are UTF-8 or Latin-1
     String text;
@@ -101,13 +102,15 @@ class FileOps {
     } on FormatException {
       text = latin1.decode(bytes);
     }
+    // the app is blocked while the core starts and converts
+    if (!context.mounted) return;
     try {
-      await state.importOld(file.name, text);
+      await busy(context, t('ui.importing', {'file': file.name}), () => state.importOld(file.name, text));
       _snack(t('ui.imported', {'file': file.name}));
     } on BackendException catch (e) {
-      _snack(e.outdated ? t('ui.error.outdated') : t('ui.error.import', {'file': file.name, 'msg': '$e'}));
+      await _error(e.outdated ? t('ui.error.outdated') : t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     } catch (e) {
-      _snack(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
+      await _error(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     }
   }
 
@@ -152,7 +155,7 @@ class FileOps {
       await XFile.fromData(data, name: name, mimeType: 'application/json').saveTo(path);
       return path;
     } catch (e) {
-      _snack('$e');
+      await _error('$e');
       return null;
     }
   }
