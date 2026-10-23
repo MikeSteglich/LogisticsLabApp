@@ -132,6 +132,9 @@ class ModuleSpec {
   final List<ResultColumn> nodeResults;
   final List<ResultColumn> assignments; // rows from -> to, e.g. flows of a tpp
 
+  /// key of the summary value the objective function uses - depends on the parameters (e.g. objSense)
+  final String? Function(Map<String, dynamic> parameters)? objective;
+
   const ModuleSpec({
     required this.type,
     required this.group,
@@ -143,6 +146,7 @@ class ModuleSpec {
     this.summary = const [],
     this.nodeResults = const [],
     this.assignments = const [],
+    this.objective,
   });
 
   String get label => 'module.$type';

@@ -35,6 +35,8 @@ final tppSpec = ModuleSpec(
     FieldSpec('capacity', FieldKind.unlimited, min: 0, requires: 'useCapacities'),
     FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, requires: 'useFixedCosts'),
   ],
+  // costs (or value) in total - the largest cost rate of the used connections with minimax (bottleneck)
+  objective: (p) => p['objSense'] == 'minimax' ? 'maxCostRate' : 'totalCosts',
   summary: const [
     ResultColumn('totalCosts', unit: '€'),
     ResultColumn('totalVarCosts', unit: '€'),

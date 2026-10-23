@@ -261,5 +261,6 @@
   "ui.about.thanks": "Many thanks to Katrin Kampe for valuable suggestions and testing.",
   "ui.about.successor": "New development succeeding LogisticsLab 5 – its X files (TPPX, CLPX, …) can be imported.",
   "ui.osm.contributors": "OpenStreetMap contributors",
-  "ui.about.thServers": "servers of TH Wildau"
+  "ui.about.thServers": "servers of TH Wildau",
+  "ui.sol.objective": "Objective"
 }

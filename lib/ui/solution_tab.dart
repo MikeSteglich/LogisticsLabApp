@@ -29,33 +29,63 @@ class SolutionTab extends StatelessWidget {
     final summary = (res?['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
     final assignments = ((res?['assignments'] as List?) ?? const []).cast<Map<String, dynamic>>();
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
-    String money(num v) => '${t.fixed(v, 2)} €';
+    // unit of the objective and the costs: costs (€) or the unit of distances / times (matrixMode)
+    final valueUnit = sol.document['valueUnit'] as String?;
+    String money(num v) =>
+        valueUnit == null || valueUnit == 'costs' ? '${t.fixed(v, 2)} €' : '${t.number(v)} $valueUnit';
+    final objectiveKey = spec.objective?.call(s.problem?.parameters ?? const {});
     final ok = sol.status == 'solution';
     final analysis = s.analysis;
-    Widget card(double w, String label, String value, {bool warn = false}) => SizedBox(
+    // the value of the objective function: blue frame and note
+    // the value of the objective function: blue frame with a note on its top edge
+    Widget card(double w, String label, String value, {bool warn = false, bool objective = false}) => SizedBox(
       width: w,
-      child: Section(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: Ui.small, overflow: TextOverflow.ellipsis),
-            const SizedBox(height: 2),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: Ui.tabular,
-                  color: warn ? Ui.warning : Ui.text,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: w,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: objective ? Ui.accentLight : Ui.surface,
+              border: Border.all(color: objective ? Ui.accent : Ui.border, width: objective ? 2 : 1),
+              borderRadius: BorderRadius.circular(Ui.radius),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: Ui.small, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: Ui.tabular,
+                      color: warn ? Ui.warning : Ui.text,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (objective)
+            Positioned(
+              top: -8,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                decoration: BoxDecoration(color: Ui.accent, borderRadius: BorderRadius.circular(3)),
+                child: Text(
+                  t('ui.sol.objective'),
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white),
                 ),
               ),
             ),
-          ],
-        ),
+        ],
       ),
     );
     final warnings = [for (final w in (sol.document['warnings'] as List? ?? const [])) '$w'];
@@ -104,7 +134,12 @@ class SolutionTab extends StatelessWidget {
                 children: [
                   for (final col in spec.summary)
                     if (summary[col.key] case final num v)
-                      card(w, t(col.label), col.unit == '€' ? money(v) : t.number(v)),
+                      card(
+                        w,
+                        t(col.label),
+                        col.unit == '€' ? money(v) : t.number(v),
+                        objective: col.key == objectiveKey,
+                      ),
                   // how the nodes are served: supply left, demand not met, customers with several suppliers
                   if (analysis != null) ...[
                     for (final (i, role) in analysis.roles.take(2).indexed)
