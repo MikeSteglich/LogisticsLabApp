@@ -33,7 +33,7 @@ void main() {
     // chips with the counts: all, suppliers, customers, others (the depots)
     expect(find.text('Alle  7'), findsOneWidget);
     expect(find.text('Anbieter  1'), findsOneWidget);
-    expect(find.text('Kunden  4'), findsOneWidget);
+    expect(find.text('Nachfrager  4'), findsOneWidget);
     expect(find.text('Sonstige  2'), findsOneWidget);
 
     await tester.tap(find.text('Anbieter  1'));
@@ -47,7 +47,7 @@ void main() {
     expect(state.nodeFilter, 'customer');
     expect(ids(), contains('W'));
     expect(state.selectedNode, 'W');
-    expect(find.text('Kunden  5'), findsOneWidget);
+    expect(find.text('Nachfrager  5'), findsOneWidget);
 
     // a new node gets the role of the list shown
     state.addNode(const LatLng(52.4, 13.0));

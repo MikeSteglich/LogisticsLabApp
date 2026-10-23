@@ -74,7 +74,7 @@ void main() {
     expect(find.text('Ungenutztes Angebot'), findsOneWidget);
     expect(find.text('Ungedeckter Bedarf'), findsOneWidget);
     expect(find.text('60'), findsOneWidget);
-    expect(find.text('Kunden mit mehreren Anbietern'), findsOneWidget);
+    expect(find.text('Nachfrager mit mehreren Anbietern'), findsOneWidget);
     expect(find.text('Bedarf nicht gedeckt  3'), findsOneWidget);
     expect(find.text('Angebot nicht ausgeschöpft  1'), findsOneWidget);
     await tester.tap(find.text('Mehrere Anbieter  1'));

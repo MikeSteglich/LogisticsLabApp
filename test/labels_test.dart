@@ -63,8 +63,17 @@ void main() {
     expect(zoomed.length, greaterThan(few.length));
 
     // layer off: no labels
+    // the layers are a small button - they open on a click
+    expect(find.text('Beschriftung'), findsNothing);
+    await tester.tap(find.byTooltip('Ebenen'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Beschriftung'));
     await tester.pumpAndSettle();
     expect(labels(), isEmpty);
+    // a click on the map closes them
+    await tester.tapAt(tester.getCenter(find.byType(FlutterMap)) + const Offset(-200, 150));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(find.text('Beschriftung'), findsNothing);
   });
 }

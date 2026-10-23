@@ -29,6 +29,7 @@ class _MapViewState extends State<MapView> {
   bool _showSolution = true;
   bool _showNetwork = true;
   bool _showLabels = true;
+  bool _layersOpen = false; // the switches of the layers - closed: a small button
 
   // edge under the mouse - index in the edges of the network or in the connections of the solution
   final _edgeHit = LayerHitNotifier<int>(null);
@@ -81,7 +82,10 @@ class _MapViewState extends State<MapView> {
               _fitAll();
             },
             backgroundColor: Ui.mapBackground,
-            onTap: (_, p) => s.tapMap(p),
+            onTap: (_, p) {
+              if (_layersOpen) setState(() => _layersOpen = false); // a click on the map closes the layers
+              s.tapMap(p);
+            },
             interactionOptions: const InteractionOptions(flags: InteractiveFlag.all & ~InteractiveFlag.rotate),
           ),
           children: [
@@ -118,6 +122,13 @@ class _MapViewState extends State<MapView> {
         ),
         _hoverCard(),
         Positioned(top: 12, right: 12, child: _layers()),
+        // above the attribution of OSM at the bottom left, beside the zoom buttons
+        Positioned(
+          left: 12,
+          right: 72,
+          bottom: 44,
+          child: Align(alignment: Alignment.bottomLeft, child: _legend()),
+        ),
         Positioned(bottom: 36, right: 12, child: _zoom()),
       ],
     );
@@ -518,88 +529,132 @@ class _MapViewState extends State<MapView> {
     child: child,
   );
 
+  /// layers: a small button, the switches open on a click
   Widget _layers() {
     final t = s.strings;
+    if (!_layersOpen) {
+      return Tooltip(
+        message: t('ui.layers'),
+        child: Material(
+          color: Ui.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Ui.radius),
+            side: const BorderSide(color: Ui.border),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(Ui.radius),
+            onTap: () => setState(() => _layersOpen = true),
+            child: const SizedBox(width: 40, height: 40, child: Icon(Icons.layers_outlined, size: 20)),
+          ),
+        ),
+      );
+    }
     Widget check(String label, bool v, ValueChanged<bool> on) => InkWell(
       onTap: () => on(!v),
       child: SizedBox(
-        height: 36,
+        height: 32,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Checkbox(value: v, onChanged: (x) => on(x ?? false), visualDensity: VisualDensity.compact),
+            Checkbox(
+              value: v,
+              onChanged: (x) => on(x ?? false),
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
             Text(label, style: const TextStyle(fontSize: 13)),
           ],
         ),
       ),
     );
-    return _panel(
-      Column(
+    return Container(
+      padding: const EdgeInsets.fromLTRB(4, 2, 2, 4),
+      decoration: BoxDecoration(
+        color: Ui.surface,
+        border: Border.all(color: Ui.border),
+        borderRadius: BorderRadius.circular(Ui.radius),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(t('ui.layers').toUpperCase(), style: Ui.sectionLabel),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(width: 8),
+              Text(t('ui.layers').toUpperCase(), style: Ui.sectionLabel),
+              const SizedBox(width: 24),
+              IconButton(
+                tooltip: t('ui.close'),
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.close, size: 16),
+                onPressed: () => setState(() => _layersOpen = false),
+              ),
+            ],
+          ),
           check(t('ui.layer.solution'), _showSolution, (v) => setState(() => _showSolution = v)),
           check(t('ui.layer.labels'), _showLabels, (v) => setState(() => _showLabels = v)),
           if (s.problem?.network != null)
             check(t('ui.layer.network'), _showNetwork, (v) => setState(() => _showNetwork = v)),
-          const SizedBox(height: 4),
-          // colours of the roles of the problem
-          for (final role in s.problemRoles.where((r) => r == 'supplier' || r == 'customer'))
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: 22,
-                    child: Center(
-                      child: Container(
-                        width: 11,
-                        height: 11,
-                        decoration: BoxDecoration(
-                          color: Ui.roleColors(role).$1,
-                          shape: role == 'customer' ? BoxShape.circle : BoxShape.rectangle,
-                          borderRadius: role == 'customer' ? null : BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(t('role.$role.plural'), style: Ui.small),
-                ],
+        ],
+      ),
+    );
+  }
+
+  /// slim legend at the bottom: colours of the roles, course of the edges, roads being loaded or missing
+  Widget _legend() {
+    final t = s.strings;
+    final roles = s.problemRoles.where((r) => r == 'supplier' || r == 'customer');
+    Widget item(Widget mark, String text, {Color color = Ui.textMuted}) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        mark,
+        const SizedBox(width: 5),
+        Text(text, style: TextStyle(fontSize: 11.5, color: color)),
+      ],
+    );
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Ui.surface.withValues(alpha: 0.92),
+        border: Border.all(color: Ui.border),
+        borderRadius: BorderRadius.circular(Ui.radius),
+      ),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 2,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          for (final role in roles)
+            item(
+              Container(
+                width: 9,
+                height: 9,
+                decoration: BoxDecoration(
+                  color: Ui.roleColors(role).$1,
+                  shape: role == 'customer' ? BoxShape.circle : BoxShape.rectangle,
+                  borderRadius: role == 'customer' ? null : BorderRadius.circular(1.5),
+                ),
               ),
+              t('role.$role.plural'),
             ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomPaint(size: const Size(22, 10), painter: _EdgeIcon(s.scenario.usesRoads)),
-              const SizedBox(width: 6),
-              Text(t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'), style: Ui.small),
-            ],
+          item(
+            CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),
+            t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'),
           ),
           if (s.scenario.usesRoads && s.routesLoading > 0)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
-                  const SizedBox(width: 6),
-                  Text(t('ui.routes.loading', {'n': s.routesLoading}), style: Ui.small),
-                ],
-              ),
+            item(
+              const SizedBox(width: 9, height: 9, child: CircularProgressIndicator(strokeWidth: 1.5)),
+              t('ui.routes.loading', {'n': s.routesLoading}),
             ),
           if (s.scenario.usesRoads && s.routesMissing > 0)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  t('ui.routes.missing', {'n': s.routesMissing}),
-                  style: const TextStyle(fontSize: 12, color: Ui.warning),
-                ),
-                TextButton(onPressed: s.retryRoutes, child: Text(t('ui.routes.retry'))),
-              ],
+            InkWell(
+              onTap: s.retryRoutes,
+              child: item(
+                const Icon(Icons.refresh, size: 12, color: Ui.warning),
+                '${t('ui.routes.missing', {'n': s.routesMissing})} · ${t('ui.routes.retry')}',
+                color: Ui.warning,
+              ),
             ),
         ],
       ),
