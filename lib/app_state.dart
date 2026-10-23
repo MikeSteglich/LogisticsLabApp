@@ -451,6 +451,8 @@ class AppState extends ChangeNotifier {
     if (p == null || solving) return;
     final name = p.name;
     final rev = revision;
+    // the data at the start - edits while solving do not reach the solver, they make the solution stale
+    final data = jsonDecode(jsonEncode(scenario.json)) as Map<String, dynamic>;
     message = null;
     lastResult = null;
     status = 'starting';
@@ -464,7 +466,7 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       final answer = await Future.any([
         b.solveScenario(
-          scenario.json,
+          data,
           name,
           onStatus: (a) {
             jobId = a.id;
