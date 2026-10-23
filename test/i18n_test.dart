@@ -49,7 +49,7 @@ void main() {
     expect(find.text('Lösen'), findsOneWidget);
 
     for (final (code, name, solve) in [('es', 'Español', 'Resolver'), ('fr', 'Français', 'Résoudre')]) {
-      await tester.tap(find.byIcon(Icons.translate));
+      await tester.tap(find.byIcon(Icons.language));
       await tester.pumpAndSettle();
       await tester.tap(find.text(name));
       // the texts are loaded from the assets

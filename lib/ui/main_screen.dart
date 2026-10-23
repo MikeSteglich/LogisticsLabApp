@@ -290,7 +290,7 @@ class _LanguageToggle extends StatelessWidget {
           minimumSize: const Size(0, 36),
           padding: const EdgeInsets.symmetric(horizontal: 10),
         ),
-        icon: const Icon(Icons.translate, size: 16),
+        icon: const Icon(Icons.language, size: 16),
         label: Text(state.strings.language.toUpperCase()),
         onPressed: () => m.isOpen ? m.close() : m.open(),
       ),
