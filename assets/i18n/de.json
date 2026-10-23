@@ -358,5 +358,6 @@
   "result.nrOfLegs": "Abschnitte",
   "ui.tsp.end": "Ziel",
   "choice.tourType.openStart": "Offener Anfang – nur das Ziel ist fest",
-  "choice.tourType.free": "Komplett offen – Start und Ziel frei"
+  "choice.tourType.free": "Komplett offen – Start und Ziel frei",
+  "ui.legend.networkNodes": "Knoten des Netzes"
 }

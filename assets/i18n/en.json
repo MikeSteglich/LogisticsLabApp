@@ -358,5 +358,6 @@
   "result.nrOfLegs": "Sections",
   "ui.tsp.end": "End",
   "choice.tourType.openStart": "Open start – only the end is fixed",
-  "choice.tourType.free": "Completely open – start and end free"
+  "choice.tourType.free": "Completely open – start and end free",
+  "ui.legend.networkNodes": "Nodes of the network"
 }

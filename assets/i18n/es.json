@@ -358,5 +358,6 @@
   "result.nrOfLegs": "Tramos",
   "ui.tsp.end": "Destino",
   "choice.tourType.openStart": "Inicio abierto – solo el destino es fijo",
-  "choice.tourType.free": "Totalmente abierto – inicio y destino libres"
+  "choice.tourType.free": "Totalmente abierto – inicio y destino libres",
+  "ui.legend.networkNodes": "Nodos de la red"
 }

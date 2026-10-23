@@ -714,6 +714,22 @@ class _MapViewState extends State<MapView> {
                     )
                   : t('role.$role.plural'),
             ),
+          // nodes without a role of the problem in its network: grey diamonds - transshipment nodes of a flow, the
+          // other nodes of the network of a shortest path
+          if (s.scenario.nodes.any((n) => s.isRelevant(n) && s.symbolRoles(n).isEmpty))
+            item(
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Ui.mapBackground,
+                  border: Border.all(color: Ui.textMuted, width: 1.5),
+                ),
+                transform: Matrix4.rotationZ(0.785),
+                transformAlignment: Alignment.center,
+              ),
+              t(s.spec?.type == 'shortestpath' ? 'ui.legend.networkNodes' : 'role.transit.plural'),
+            ),
           item(
             CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),
             t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'),
