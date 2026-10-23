@@ -176,6 +176,14 @@ class AppState extends ChangeNotifier {
   };
 
   /// connections of the solution of the problem - tpp: assignments, network flows: edges
+  /// rates of the connections are contributions (tpp max) instead of costs
+  bool get ratesAreContributions => (solution?.results?['summary'] as Map?)?.containsKey('totalContribution') ?? false;
+
+  /// labels of the rate and the value of a connection: cost rate and costs, or contribution per unit and contribution
+  (String, String) get rateLabels => ratesAreContributions
+      ? (strings('result.contributionRate'), strings('ui.sol.contribution'))
+      : (strings('result.rate'), strings('ui.sol.costs'));
+
   List<Map<String, dynamic>> get connections => SolutionAnalysis.connectionsOf(solution?.results);
 
   /// how the nodes are served in the solution of the problem (shares, partners) - null without solution

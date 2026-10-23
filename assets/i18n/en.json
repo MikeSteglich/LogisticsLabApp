@@ -16,7 +16,7 @@
   "field.costFactor": "Cost factor",
   "field.objSense": "Objective",
   "choice.objSense.min": "Minimise costs",
-  "choice.objSense.max": "Maximise value",
+  "choice.objSense.max": "Maximise contribution",
   "choice.objSense.minimax": "Minimise bottleneck",
   "field.matrixMode": "Valuation",
   "field.matrixMode.help": "Not set: costs if cost per km or per hour are set, otherwise distances",
@@ -305,5 +305,15 @@
   "ui.sol.isOpen": "open",
   "ui.sol.isClosed": "closed",
   "field.minBlock.help": "Connections with a lower cost rate are blocked",
-  "field.maxBlock.help": "Connections with a higher cost rate are blocked"
+  "field.maxBlock.help": "Connections with a higher cost rate are blocked",
+  "field.price": "Revenue per unit",
+  "field.price.help": "Price the customer pays per unit – for maximising the contribution margin",
+  "field.unitCost": "Cost per unit",
+  "field.unitCost.help": "Production or purchase cost per unit at the supplier – for maximising the contribution margin",
+  "result.netContribution": "Contribution after fixed costs",
+  "result.totalContribution": "Contribution margin",
+  "result.minContributionRate": "Smallest contribution per unit",
+  "result.maxContributionRate": "Largest contribution per unit",
+  "result.contributionRate": "Contribution per unit",
+  "ui.sol.contribution": "Contribution"
 }

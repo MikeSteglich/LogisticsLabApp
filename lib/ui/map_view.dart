@@ -511,8 +511,8 @@ class _MapViewState extends State<MapView> {
       '${_name('${a['from']}')} → ${_name('${a['to']}')}',
       [
         '${t('result.flow')} ${t.number(flow)}',
-        if (rate != null) '${t('result.rate')} ${t.fixed(rate, 2)}',
-        if (rate != null) '${t('ui.sol.costs')} ${t.fixed(flow * rate, 2)}',
+        if (rate != null) '${s.rateLabels.$1} ${t.fixed(rate, 2)}',
+        if (rate != null) '${s.rateLabels.$2} ${t.fixed(flow * rate, 2)}',
         if (split.isNotEmpty) split,
       ].join(' · '),
     );

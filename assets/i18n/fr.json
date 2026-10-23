@@ -16,7 +16,7 @@
   "field.costFactor": "Facteur de coût",
   "field.objSense": "Objectif",
   "choice.objSense.min": "Minimiser les coûts",
-  "choice.objSense.max": "Maximiser la valeur",
+  "choice.objSense.max": "Maximiser la marge",
   "choice.objSense.minimax": "Minimiser le goulet",
   "field.matrixMode": "Évaluation",
   "field.matrixMode.help": "Non défini : coûts si un coût par km ou par heure est défini, sinon distances",
@@ -305,5 +305,15 @@
   "ui.sol.isOpen": "ouvert",
   "ui.sol.isClosed": "fermé",
   "field.minBlock.help": "Les liaisons avec un taux de coût inférieur sont bloquées",
-  "field.maxBlock.help": "Les liaisons avec un taux de coût supérieur sont bloquées"
+  "field.maxBlock.help": "Les liaisons avec un taux de coût supérieur sont bloquées",
+  "field.price": "Recette par unité",
+  "field.price.help": "Prix payé par le client par unité – pour maximiser la marge sur coûts variables",
+  "field.unitCost": "Coût par unité",
+  "field.unitCost.help": "Coût de production ou d’achat par unité chez le fournisseur – pour maximiser la marge sur coûts variables",
+  "result.netContribution": "Marge après coûts fixes",
+  "result.totalContribution": "Marge sur coûts variables",
+  "result.minContributionRate": "Plus petite marge par unité",
+  "result.maxContributionRate": "Plus grande marge par unité",
+  "result.contributionRate": "Marge par unité",
+  "ui.sol.contribution": "Marge"
 }

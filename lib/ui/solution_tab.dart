@@ -175,7 +175,7 @@ class SolutionTab extends StatelessWidget {
                   t('ui.sol.to'),
                   if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
                   t('result.flow'),
-                  if (withRates) ...[t('result.rate'), t('ui.sol.costs')],
+                  if (withRates) ...[s.rateLabels.$1, s.rateLabels.$2],
                 ]),
                 for (final (i, a) in assignments.indexed)
                   _row(numericFrom: withSplit ? 3 : 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [

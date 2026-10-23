@@ -16,7 +16,7 @@
   "field.costFactor": "Factor de coste",
   "field.objSense": "Objetivo",
   "choice.objSense.min": "Minimizar costes",
-  "choice.objSense.max": "Maximizar valor",
+  "choice.objSense.max": "Maximizar el margen",
   "choice.objSense.minimax": "Minimizar el cuello de botella",
   "field.matrixMode": "Valoración",
   "field.matrixMode.help": "Sin indicar: costes si hay coste por km o por hora, si no distancias",
@@ -305,5 +305,15 @@
   "ui.sol.isOpen": "abierto",
   "ui.sol.isClosed": "cerrado",
   "field.minBlock.help": "Se bloquean las conexiones con una tarifa menor",
-  "field.maxBlock.help": "Se bloquean las conexiones con una tarifa mayor"
+  "field.maxBlock.help": "Se bloquean las conexiones con una tarifa mayor",
+  "field.price": "Ingreso por unidad",
+  "field.price.help": "Precio que paga el cliente por unidad – para maximizar el margen de contribución",
+  "field.unitCost": "Coste por unidad",
+  "field.unitCost.help": "Coste de producción o compra por unidad en el proveedor – para maximizar el margen de contribución",
+  "result.netContribution": "Margen tras costes fijos",
+  "result.totalContribution": "Margen de contribución",
+  "result.minContributionRate": "Menor margen por unidad",
+  "result.maxContributionRate": "Mayor margen por unidad",
+  "result.contributionRate": "Margen por unidad",
+  "ui.sol.contribution": "Margen"
 }

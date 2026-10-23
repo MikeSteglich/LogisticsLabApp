@@ -16,7 +16,7 @@
   "field.costFactor": "Kostenfaktor",
   "field.objSense": "Zielfunktion",
   "choice.objSense.min": "Kosten minimieren",
-  "choice.objSense.max": "Wert maximieren",
+  "choice.objSense.max": "Deckungsbeitrag maximieren",
   "choice.objSense.minimax": "Engpass minimieren",
   "field.matrixMode": "Bewertung",
   "field.matrixMode.help": "Ohne Angabe: Kosten, wenn Kosten je km oder je Stunde gesetzt sind, sonst Distanzen",
@@ -305,5 +305,15 @@
   "ui.sol.isOpen": "geöffnet",
   "ui.sol.isClosed": "geschlossen",
   "field.minBlock.help": "Verbindungen mit einem kleineren Kostensatz werden gesperrt",
-  "field.maxBlock.help": "Verbindungen mit einem größeren Kostensatz werden gesperrt"
+  "field.maxBlock.help": "Verbindungen mit einem größeren Kostensatz werden gesperrt",
+  "field.price": "Erlös je Einheit",
+  "field.price.help": "Preis, den der Nachfrager je Einheit zahlt – für die Maximierung des Deckungsbeitrags",
+  "field.unitCost": "Kosten je Einheit",
+  "field.unitCost.help": "Herstell- oder Einkaufskosten je Einheit beim Anbieter – für die Maximierung des Deckungsbeitrags",
+  "result.netContribution": "Deckungsbeitrag nach Fixkosten",
+  "result.totalContribution": "Deckungsbeitrag",
+  "result.minContributionRate": "Kleinster Deckungsbeitrag je Einheit",
+  "result.maxContributionRate": "Größter Deckungsbeitrag je Einheit",
+  "result.contributionRate": "Deckungsbeitrag je Einheit",
+  "ui.sol.contribution": "Deckungsbeitrag"
 }
