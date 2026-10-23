@@ -20,8 +20,10 @@ abstract final class Ui {
   static const error = Color(0xFFC0362C);
   static const mapBackground = Color(0xFFE9EDF1);
   static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
-  static const network = Color(0xFF808A97); // edges of the network on the map
-  static const networkSelected = Color(0xFF3F454D); // selected edge of the network - blue is for used edges
+  // edges of the network on the map: petrol - not in the colours of the OSM map (roads grey/white, yellow, orange,
+  // red, water light blue, green); blue is for the used edges of a solution, orange for the highlighted one
+  static const network = Color(0xFF2F6F73);
+  static const networkSelected = Color(0xFF1B4547); // selected edge of the network
   // colours of the roles on the map: suppliers blue (not the blue of the solution lines), customers green
   static const supplier = Color(0xFF2F6DB5);
   static const supplierDark = Color(0xFF1F4E87);

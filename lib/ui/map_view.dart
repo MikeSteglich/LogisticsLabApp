@@ -226,6 +226,7 @@ class _MapViewState extends State<MapView> {
     final net = s.network;
     if (net == null) return const [];
     final edges = net.edges;
+    final withSolution = _showSolution && s.connections.isNotEmpty;
     // the selected edge last - on top
     final order = [
       for (var i = 0; i < edges.length; i++)
@@ -248,11 +249,12 @@ class _MapViewState extends State<MapView> {
                     strokeJoin: StrokeJoin.round,
                   )
                 : Polyline(
-                    // solid - dashes of overlapping edges merge into solid lines; light grey beside the solution
+                    // solid - dashes of overlapping edges merge into solid lines; beside a solution thinner and
+                    // lighter: the used edges (blue) are on top
                     hitValue: i,
                     points: s.edgePoints(a.position, b.position),
-                    color: Ui.network,
-                    strokeWidth: 3,
+                    color: withSolution ? Ui.network.withValues(alpha: 0.7) : Ui.network,
+                    strokeWidth: withSolution ? 2.5 : 3,
                     borderColor: Colors.white,
                     borderStrokeWidth: 1,
                     strokeCap: StrokeCap.round,
@@ -825,7 +827,8 @@ class _EdgeIcon extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()
-      ..color = Ui.textSecondary
+      ..color = Ui
+          .network // as the edges on the map
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round;
