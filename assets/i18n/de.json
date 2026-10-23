@@ -24,8 +24,8 @@
   "choice.matrixMode.times": "Fahrzeiten",
   "choice.matrixMode.costs": "Kosten",
   "field.isSingleSource": "Jeder Nachfrager von genau einem Anbieter",
-  "field.minBlock": "Mindestmenge je Verbindung",
-  "field.maxBlock": "Höchstmenge je Verbindung",
+  "field.minBlock": "Kleinster erlaubter Kostensatz",
+  "field.maxBlock": "Größter erlaubter Kostensatz",
   "field.useSupplyRanges": "Angebot als Spanne",
   "field.useDemandRanges": "Nachfrage als Spanne",
   "field.useCapacities": "Kapazitäten der Verbindungen",
@@ -303,5 +303,7 @@
   "ui.net.required": "Dieses Problem braucht ein Netz – im Netz-Tab wählen oder anlegen.",
   "ui.sol.open": "Lager",
   "ui.sol.isOpen": "geöffnet",
-  "ui.sol.isClosed": "geschlossen"
+  "ui.sol.isClosed": "geschlossen",
+  "field.minBlock.help": "Verbindungen mit einem kleineren Kostensatz werden gesperrt",
+  "field.maxBlock.help": "Verbindungen mit einem größeren Kostensatz werden gesperrt"
 }

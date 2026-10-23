@@ -24,8 +24,8 @@
   "choice.matrixMode.times": "Tiempos de viaje",
   "choice.matrixMode.costs": "Costes",
   "field.isSingleSource": "Cada demandante de un solo proveedor",
-  "field.minBlock": "Cantidad mínima por conexión",
-  "field.maxBlock": "Cantidad máxima por conexión",
+  "field.minBlock": "Tarifa mínima permitida",
+  "field.maxBlock": "Tarifa máxima permitida",
   "field.useSupplyRanges": "Oferta como intervalo",
   "field.useDemandRanges": "Demanda como intervalo",
   "field.useCapacities": "Capacidades de las conexiones",
@@ -303,5 +303,7 @@
   "ui.net.required": "Este problema necesita una red – elíjala o créela en la pestaña de red.",
   "ui.sol.open": "Almacenes",
   "ui.sol.isOpen": "abierto",
-  "ui.sol.isClosed": "cerrado"
+  "ui.sol.isClosed": "cerrado",
+  "field.minBlock.help": "Se bloquean las conexiones con una tarifa menor",
+  "field.maxBlock.help": "Se bloquean las conexiones con una tarifa mayor"
 }

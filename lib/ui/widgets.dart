@@ -175,6 +175,7 @@ class NumberField extends StatefulWidget {
   final int decimals;
   final String? hint;
   final String? unit;
+  final String? help; // shown as tooltip of an info symbol beside the label
   final Message? Function(num?)? check;
 
   const NumberField({
@@ -186,6 +187,7 @@ class NumberField extends StatefulWidget {
     this.decimals = 6,
     this.hint,
     this.unit,
+    this.help,
     this.check,
   });
 
@@ -232,7 +234,19 @@ class _NumberFieldState extends State<NumberField> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      FieldLabel(widget.unit == null ? widget.label : '${widget.label} (${widget.unit})'),
+      Row(
+        children: [
+          Flexible(child: FieldLabel(widget.unit == null ? widget.label : '${widget.label} (${widget.unit})')),
+          if (widget.help != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 4, bottom: 4),
+              child: Tooltip(
+                message: widget.help!,
+                child: const Icon(Icons.info_outline, size: 14, color: Ui.textSecondary),
+              ),
+            ),
+        ],
+      ),
       TextField(
         controller: _c,
         onChanged: _changed,
@@ -410,6 +424,7 @@ class SpecField extends StatelessWidget {
           unit: spec.unit,
           decimals: spec.kind == FieldKind.integer ? 0 : 6,
           hint: spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null,
+          help: s.has(spec.help) ? s(spec.help) : null,
           check: (v) => spec.validate(v),
           onChanged: onChanged,
         );

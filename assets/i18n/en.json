@@ -24,8 +24,8 @@
   "choice.matrixMode.times": "Travel times",
   "choice.matrixMode.costs": "Costs",
   "field.isSingleSource": "Each customer from exactly one supplier",
-  "field.minBlock": "Minimum quantity per connection",
-  "field.maxBlock": "Maximum quantity per connection",
+  "field.minBlock": "Lowest allowed cost rate",
+  "field.maxBlock": "Highest allowed cost rate",
   "field.useSupplyRanges": "Supply as range",
   "field.useDemandRanges": "Demand as range",
   "field.useCapacities": "Capacities of the connections",
@@ -303,5 +303,7 @@
   "ui.net.required": "This problem needs a network – choose or create it in the network tab.",
   "ui.sol.open": "Warehouses",
   "ui.sol.isOpen": "open",
-  "ui.sol.isClosed": "closed"
+  "ui.sol.isClosed": "closed",
+  "field.minBlock.help": "Connections with a lower cost rate are blocked",
+  "field.maxBlock.help": "Connections with a higher cost rate are blocked"
 }

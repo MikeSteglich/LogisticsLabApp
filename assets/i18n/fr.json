@@ -24,8 +24,8 @@
   "choice.matrixMode.times": "Temps de trajet",
   "choice.matrixMode.costs": "Coûts",
   "field.isSingleSource": "Chaque demandeur par un seul fournisseur",
-  "field.minBlock": "Quantité minimale par liaison",
-  "field.maxBlock": "Quantité maximale par liaison",
+  "field.minBlock": "Taux de coût minimal autorisé",
+  "field.maxBlock": "Taux de coût maximal autorisé",
   "field.useSupplyRanges": "Offre comme intervalle",
   "field.useDemandRanges": "Demande comme intervalle",
   "field.useCapacities": "Capacités des liaisons",
@@ -303,5 +303,7 @@
   "ui.net.required": "Ce problème a besoin d’un réseau – choisissez-le ou créez-le dans l’onglet réseau.",
   "ui.sol.open": "Entrepôts",
   "ui.sol.isOpen": "ouvert",
-  "ui.sol.isClosed": "fermé"
+  "ui.sol.isClosed": "fermé",
+  "field.minBlock.help": "Les liaisons avec un taux de coût inférieur sont bloquées",
+  "field.maxBlock.help": "Les liaisons avec un taux de coût supérieur sont bloquées"
 }
