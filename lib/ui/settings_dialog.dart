@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../backend/backend.dart';
+import '../i18n/strings.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -40,14 +41,15 @@ class _SettingsDialogState extends State<_SettingsDialog> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 FieldLabel(t('ui.language')),
-                SegmentedButton<String>(
-                  segments: const [
-                    ButtonSegment(value: 'de', label: Text('Deutsch')),
-                    ButtonSegment(value: 'en', label: Text('English')),
-                  ],
-                  selected: {t.language},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (v) => s.setLanguage(v.first),
+                SizedBox(
+                  width: 240,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: t.language,
+                    items: [
+                      for (final l in supportedLanguages) DropdownMenuItem(value: l, child: Text(languageNames[l]!)),
+                    ],
+                    onChanged: (v) => v == null ? null : s.setLanguage(v),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 FieldLabel(t('ui.backend.title')),

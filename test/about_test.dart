@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/main.dart';
+import 'package:logisticslab_app/model/scenario.dart';
 import 'package:logisticslab_app/ui/about_dialog.dart';
 import 'package:logisticslab_app/ui/map_view.dart';
 
@@ -19,6 +20,19 @@ void main() {
       multiLine: true,
     ).firstMatch(File('pubspec.yaml').readAsStringSync());
     expect(appVersion, m!.group(1));
+  });
+
+  testWidgets('title of the window: file and app', (tester) async {
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    final state = (await tester.runAsync(AppState.create))!;
+    expect(windowTitle(state), 'Unbenannt – LogisticsLab Studio');
+    state.openScenario(
+      Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
+      name: 'brandenburg.llab',
+    );
+    expect(windowTitle(state), 'brandenburg.llab – LogisticsLab Studio');
+    state.edit(() => state.scenario.nodes.first.name = 'Werk');
+    expect(windowTitle(state), 'brandenburg.llab • – LogisticsLab Studio');
   });
 
   testWidgets('about dialog from the menu', (tester) async {

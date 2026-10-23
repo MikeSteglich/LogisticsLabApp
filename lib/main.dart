@@ -1,6 +1,7 @@
 /// LogisticsLab Studio - one app for the logistics optimisation problems of pyLogisticsLab (desktop, browser, tablet).
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -19,7 +20,21 @@ Future<void> main() async {
 
 /// menu of macOS (macos/Runner/AppDelegate.swift): "About LogisticsLab Studio" shows the about dialog of the app
 const _menu = MethodChannel('logisticslab/menu');
+
+/// title of the window on macOS (macos/Runner/MainFlutterWindow.swift) - other systems keep the name of the app
+const _window = MethodChannel('logisticslab/window');
+String? _windowTitle;
+
+void _setWindowTitle(String title) {
+  if (kIsWeb || title == _windowTitle) return;
+  _windowTitle = title;
+  _window.invokeMethod('title', title).catchError((_) => null); // no handler: title unchanged
+}
+
 final _navigator = GlobalKey<NavigatorState>();
+
+/// e.g. "brandenburg.llab • - LogisticsLab Studio"
+String windowTitle(AppState s) => '${s.fileName ?? s.strings('ui.untitled')}${s.dirty ? ' •' : ''} – $appName';
 
 class LogisticsLabApp extends StatelessWidget {
   final AppState state;
@@ -33,12 +48,16 @@ class LogisticsLabApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: state,
-    builder: (context, _) => MaterialApp(
-      title: appName,
-      navigatorKey: _navigator,
-      debugShowCheckedModeBanner: false,
-      theme: buildTheme(),
-      home: MainScreen(state: state),
-    ),
+    builder: (context, _) {
+      _setWindowTitle(windowTitle(state));
+      return MaterialApp(
+        // file - app, a dot for unsaved changes
+        title: windowTitle(state),
+        navigatorKey: _navigator,
+        debugShowCheckedModeBanner: false,
+        theme: buildTheme(),
+        home: MainScreen(state: state),
+      );
+    },
   );
 }

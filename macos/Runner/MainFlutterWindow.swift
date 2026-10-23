@@ -18,6 +18,17 @@ class MainFlutterWindow: NSWindow {
     self.tabbingMode = .disallowed
     self.title = "LogisticsLab Studio"
 
+    // title of the window from the app: the open file
+    FlutterMethodChannel(name: "logisticslab/window", binaryMessenger: flutterViewController.engine.binaryMessenger)
+      .setMethodCallHandler { [weak self] call, result in
+        if call.method == "title", let title = call.arguments as? String {
+          self?.title = title
+          result(nil)
+        } else {
+          result(FlutterMethodNotImplemented)
+        }
+      }
+
     RegisterGeneratedPlugins(registry: flutterViewController)
 
     super.awakeFromNib()

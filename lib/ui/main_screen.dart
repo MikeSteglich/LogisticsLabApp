@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app_state.dart';
+import '../i18n/strings.dart';
 import '../modules/modules.dart';
 import 'data_panel.dart';
 import 'file_ops.dart';
@@ -179,15 +180,16 @@ class _Logo extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(appName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                // the name of the app is in the title of the window - here the file
                 ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 220),
+                  constraints: const BoxConstraints(maxWidth: 240),
                   child: Text(
-                    state.dirty ? '$file · ${t('ui.modified')}' : file,
+                    file,
                     overflow: TextOverflow.ellipsis,
-                    style: Ui.small,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                   ),
                 ),
+                Text(state.dirty ? t('ui.modified') : t('ui.saved.state'), style: Ui.small),
               ],
             ),
           ],
@@ -274,23 +276,37 @@ class _ProblemChooser extends StatelessWidget {
   );
 }
 
+/// language of the app: a small button with the code (DE, EN, ...) and a menu of the languages
 class _LanguageToggle extends StatelessWidget {
   final AppState state;
   const _LanguageToggle({required this.state});
 
   @override
-  Widget build(BuildContext context) => Tooltip(
-    message: state.strings('ui.language'),
-    child: SegmentedButton<String>(
-      style: const ButtonStyle(visualDensity: VisualDensity.compact),
-      segments: const [
-        ButtonSegment(value: 'de', label: Text('DE')),
-        ButtonSegment(value: 'en', label: Text('EN')),
-      ],
-      selected: {state.strings.language},
-      showSelectedIcon: false,
-      onSelectionChanged: (v) => state.setLanguage(v.first),
+  Widget build(BuildContext context) => MenuAnchor(
+    builder: (context, m, _) => Tooltip(
+      message: state.strings('ui.language'),
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 36),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+        ),
+        icon: const Icon(Icons.translate, size: 16),
+        label: Text(state.strings.language.toUpperCase()),
+        onPressed: () => m.isOpen ? m.close() : m.open(),
+      ),
     ),
+    menuChildren: [
+      for (final l in supportedLanguages)
+        MenuItemButton(
+          leadingIcon: Icon(
+            l == state.strings.language ? Icons.radio_button_checked : Icons.radio_button_off,
+            size: 16,
+            color: l == state.strings.language ? Ui.accent : Ui.textSecondary,
+          ),
+          onPressed: () => state.setLanguage(l),
+          child: Text(languageNames[l]!),
+        ),
+    ],
   );
 }
 

@@ -262,5 +262,6 @@
   "ui.about.successor": "Neuentwicklung als Nachfolger von LogisticsLab 5 – dessen X-Dateien (TPPX, CLPX, …) lassen sich importieren.",
   "ui.osm.contributors": "OpenStreetMap-Mitwirkende",
   "ui.about.thServers": "Server der TH Wildau",
-  "ui.sol.objective": "Zielfunktion"
+  "ui.sol.objective": "Zielfunktion",
+  "ui.saved.state": "gespeichert"
 }

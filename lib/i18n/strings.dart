@@ -13,8 +13,11 @@ import 'package:intl/intl.dart';
 
 import '../modules/module_spec.dart' show Message;
 
-const supportedLanguages = ['de', 'en'];
-const localeOfLanguage = {'de': 'de_DE', 'en': 'en_GB'};
+const supportedLanguages = ['de', 'en', 'es', 'fr'];
+const localeOfLanguage = {'de': 'de_DE', 'en': 'en_GB', 'es': 'es_ES', 'fr': 'fr_FR'};
+
+/// names of the languages in their own language - for the choice of the language
+const languageNames = {'de': 'Deutsch', 'en': 'English', 'es': 'Español', 'fr': 'Français'};
 
 String systemLanguage() {
   final l = PlatformDispatcher.instance.locale.languageCode;

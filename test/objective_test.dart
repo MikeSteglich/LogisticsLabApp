@@ -11,7 +11,6 @@ import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
 import 'package:logisticslab_app/ui/map_view.dart';
-import 'package:logisticslab_app/ui/theme.dart';
 
 void main() {
   Future<AppState> show(WidgetTester tester, {String objSense = 'min', String? valueUnit}) async {
