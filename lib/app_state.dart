@@ -401,6 +401,8 @@ class AppState extends ChangeNotifier {
   String? status; // waiting, running, starting ... while solving
   String? jobId;
   String? message; // last error or note for the status bar
+  String? lastResult; // status of the last solving: solution, noSolution, error, cancelled
+  Completer<ProblemAnswer?>? _cancelSolve;
   bool get solving => status != null;
 
   Future<Backend> _getBackend() {
@@ -435,8 +437,8 @@ class AppState extends ChangeNotifier {
   }
 
   /// stops the solver (also one that is just starting) - the next request starts a new one; not while solving
-  Future<void> resetBackend() async {
-    if (solving) return;
+  Future<void> resetBackend({bool force = false}) async {
+    if (solving && !force) return;
     final starting = _startingBackend;
     _startingBackend = null;
     _starting = null;
@@ -450,47 +452,72 @@ class AppState extends ChangeNotifier {
     final name = p.name;
     final rev = revision;
     message = null;
+    lastResult = null;
     status = 'starting';
+    final cancelled = _cancelSolve = Completer<ProblemAnswer?>();
     notifyListeners();
     try {
-      final b = await _getBackend();
+      // a cancel before the problem has an id (solver starting, matrix of OSM) gives up waiting at once
+      final b = await Future.any([_getBackend(), cancelled.future.then((_) => null)]);
+      if (b == null) throw const _Cancelled();
       status = 'waiting';
       notifyListeners();
-      final answer = await b.solveScenario(
-        scenario.json,
-        name,
-        onStatus: (a) {
-          jobId = a.id;
-          if (!finishedStatus.contains(a.status)) status = a.status;
-          notifyListeners();
-        },
-      );
+      final answer = await Future.any([
+        b.solveScenario(
+          scenario.json,
+          name,
+          onStatus: (a) {
+            jobId = a.id;
+            if (!finishedStatus.contains(a.status)) status = a.status;
+            notifyListeners();
+          },
+        ),
+        cancelled.future,
+      ]);
+      if (answer == null) throw const _Cancelled();
+      lastResult = answer.status;
+      if (answer.status == 'cancelled') return; // cancelled by the user - no error
       if (answer.solution != null) {
         solutions[name] = SolutionState(answer.solution!, rev);
         selectedFlow = null;
         if (problemName == name) tab = DataTab.solution;
       }
       message = answer.status == 'solution' ? null : '${strings('ui.status.${answer.status}')}: ${answer.message}';
+    } on _Cancelled {
+      lastResult = 'cancelled';
     } on BackendException catch (e) {
-      message = e.outdated ? strings('ui.error.outdated') : '${strings('ui.status.error')}: $e';
+      if (cancelled.isCompleted) {
+        lastResult = 'cancelled'; // the solver has been stopped by the cancel
+      } else {
+        message = e.outdated ? strings('ui.error.outdated') : '${strings('ui.status.error')}: $e';
+      }
     } catch (e) {
       message = '${strings('ui.status.error')}: $e';
     } finally {
       status = null;
       jobId = null;
+      _cancelSolve = null;
       notifyListeners();
     }
   }
 
+  /// cancels the problem being solved: with an id the core cancels it (and stops the solver), before that the
+  /// app gives up waiting and stops the local solver (it starts again with the next request)
   Future<void> cancel() async {
     final id = jobId;
-    if (id == null || _backend == null) return;
-    try {
-      await _backend!.cancel(id);
-    } catch (e) {
-      message = '$e';
-      notifyListeners();
+    final b = _backend;
+    if (id != null && b != null) {
+      try {
+        await b.cancel(id).timeout(requestTimeout);
+        return;
+      } catch (_) {
+        // the solver does not answer - stopped below
+      }
     }
+    final c = _cancelSolve;
+    if (c == null || c.isCompleted) return;
+    c.complete(null);
+    await resetBackend(force: true);
   }
 
   //*********** old LogisticsLab files ************
@@ -584,4 +611,9 @@ class AppState extends ChangeNotifier {
     _closeBackend();
     super.dispose();
   }
+}
+
+/// the user has cancelled solving
+class _Cancelled implements Exception {
+  const _Cancelled();
 }

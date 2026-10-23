@@ -225,5 +225,6 @@
   "ui.error.import": "{file} kann nicht importiert werden: {msg}",
   "ui.error.outdated": "Der Rechenkern ist älter als die App und kennt diese Funktion nicht. Bitte den Rechenkern aktualisieren (Einstellungen → Rechnen) bzw. die App neu installieren.",
   "ui.importing": "Importiere {file} …",
-  "ui.error.legacy": "{file}: {ext} ist ein Format von LogisticsLab 4 (oder älter) mit ebenen Koordinaten und eigener Matrix. Es lässt sich nicht in ein Szenario umwandeln – nur TPPX, TSPX, CLPX, DLPX, NWFX und VRPX."
+  "ui.error.legacy": "{file}: {ext} ist ein Format von LogisticsLab 4 (oder älter) mit ebenen Koordinaten und eigener Matrix. Es lässt sich nicht in ein Szenario umwandeln – nur TPPX, TSPX, CLPX, DLPX, NWFX und VRPX.",
+  "ui.solve.cancelled": "Lösen abgebrochen"
 }

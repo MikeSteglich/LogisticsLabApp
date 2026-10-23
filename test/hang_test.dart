@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/backend/backend.dart';
+import 'package:logisticslab_app/model/scenario.dart';
 import 'package:logisticslab_app/ui/messages.dart';
 
 void main() {
@@ -76,5 +77,30 @@ void main() {
       expect(error, isA<BackendException>());
       expect(watch.elapsed, lessThan(const Duration(seconds: 20)));
     });
+  });
+
+  testWidgets('cancel before the problem has an id', (tester) async {
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    final state = (await tester.runAsync(AppState.create))!;
+    final python = Platform.isWindows ? 'python' : 'python3';
+    await tester.runAsync(
+      () => state.setBackendSettings(
+        BackendSettings(executable: python, arguments: ['${Directory.current.path}/test/fixtures/hanging_core.py']),
+      ),
+    );
+    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
+    await tester.runAsync(() async {
+      final solving = state.solve();
+      await Future.delayed(const Duration(seconds: 1));
+      expect(state.solving, isTrue);
+      expect(state.jobId, isNull); // the hanging solver gives no id
+      final watch = Stopwatch()..start();
+      await state.cancel();
+      await solving.timeout(const Duration(seconds: 20));
+      expect(watch.elapsed, lessThan(const Duration(seconds: 20)));
+    });
+    expect(state.lastResult, 'cancelled');
+    expect(state.message, isNull);
+    expect(state.solving, isFalse);
   });
 }

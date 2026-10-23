@@ -17,7 +17,12 @@ import 'widgets.dart';
 /// solves the problem - an error or a problem without solution is shown in a dialog (and in the status bar)
 Future<void> solve(BuildContext context, AppState s) async {
   await s.solve();
-  if (s.message != null && context.mounted) await showError(context, s.strings, s.message!);
+  if (!context.mounted) return;
+  if (s.lastResult == 'cancelled') {
+    showNote(context, s.strings('ui.solve.cancelled'));
+  } else if (s.message != null) {
+    await showError(context, s.strings, s.message!);
+  }
 }
 
 class MainScreen extends StatelessWidget {
@@ -125,7 +130,7 @@ class _Header extends StatelessWidget {
                 OutlinedButton.icon(
                   icon: const Icon(Icons.stop_rounded, size: 18),
                   label: Text(t('ui.cancel')),
-                  onPressed: s.jobId == null ? null : s.cancel,
+                  onPressed: s.cancel,
                 )
               else
                 FilledButton.icon(
