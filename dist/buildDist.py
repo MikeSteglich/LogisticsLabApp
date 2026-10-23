@@ -44,6 +44,7 @@ APP_NAME = "LogisticsLab"
 DIST_NAME = "LogisticsLabApp"           # nicht LogisticsLab: so heisst schon die Python-Distribution von pyLogisticsLab
 STDIO = "logisticsLabStdio"
 EXAMPLE = PROJECT / "assets/examples/brandenburg.llab"
+OLD_FILE = PROJECT / "test/fixtures/Baukies-angebotsueberschuss.TPPX"     # import of old LogisticsLab files
 
 
 class BuildError(Exception):
@@ -135,8 +136,9 @@ def stdio_place(t, app):
 
 
 def stdio_test(exe, tdir):
-    """JSON-RPC wie die App: solveScenario mit dem Beispiel (Luftlinie - ohne Netz), dann result."""
-    log("Test: Rechenkern der App loest ein Szenario (solveScenario)")
+    """JSON-RPC wie die App: convert (Import einer alten Datei), solveScenario mit dem Beispiel (Luftlinie - ohne
+    Netz), dann result - ein Rechenkern, der aelter als die App ist, faellt hier auf."""
+    log("Test: Rechenkern der App wandelt eine alte Datei um (convert) und loest ein Szenario (solveScenario)")
     scen = json.loads(EXAMPLE.read_text(encoding="utf-8"))
     scen["matrix"]["matrixSource"] = "beeline"
     problem = next(p["name"] for p in scen["problems"] if p["type"] == "tpp")
@@ -160,6 +162,17 @@ def stdio_test(exe, tdir):
             msg = json.loads(line)
             if msg.get("method") == "ready":
                 print(f"    bereit: Version {msg['params'].get('version')}")
+                raw = OLD_FILE.read_bytes()
+                try:
+                    content = raw.decode("utf-8")
+                except UnicodeDecodeError:
+                    content = raw.decode("latin-1")         # the old files are UTF-8 or Latin-1
+                send(0, "convert", {"fileName": OLD_FILE.name, "content": content})
+            elif msg.get("id") == 0:
+                if "error" in msg:
+                    raise BuildError(f"convert: {msg['error']}")
+                conv = msg["result"]
+                print(f"    {OLD_FILE.name} -> {conv['fileName']}: {len(conv['scenario']['nodes'])} Knoten")
                 send(1, "solveScenario", {"scenario": scen, "problem": problem})
             elif msg.get("id") == 1:
                 if "error" in msg:
