@@ -2,6 +2,8 @@
 /// a busy dialog blocks the app while a step runs that must not be interrupted (e.g. import).
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../i18n/strings.dart';
@@ -33,8 +35,26 @@ Future<void> showError(BuildContext context, Strings t, String text) async {
 }
 
 /// runs [work] behind a dialog that blocks the app - with [text], e.g. "importing drogma.CLPX …"
-Future<T> busy<T>(BuildContext context, String text, Future<T> Function() work) async {
+///
+/// With [cancelLabel] the dialog has a button to give up waiting: the result is null then, a later result or
+/// error of [work] is dropped, and [onCancel] runs (e.g. to restart a solver that hangs).
+Future<T?> busy<T>(
+  BuildContext context,
+  String text,
+  Future<T> Function() work, {
+  String? cancelLabel,
+  VoidCallback? onCancel,
+}) {
   final navigator = Navigator.of(context, rootNavigator: true);
+  final result = Completer<T?>();
+  var open = true;
+  void close() {
+    if (open) {
+      open = false;
+      navigator.pop();
+    }
+  }
+
   showDialog<void>(
     context: context,
     barrierDismissible: false,
@@ -48,12 +68,32 @@ Future<T> busy<T>(BuildContext context, String text, Future<T> Function() work) 
             Flexible(child: Text(text)),
           ],
         ),
+        actions: [
+          if (cancelLabel != null)
+            TextButton(
+              onPressed: () {
+                if (result.isCompleted) return;
+                close();
+                result.complete(null);
+                onCancel?.call();
+              },
+              child: Text(cancelLabel),
+            ),
+        ],
       ),
     ),
   );
-  try {
-    return await work();
-  } finally {
-    navigator.pop();
-  }
+  work().then(
+    (v) {
+      if (result.isCompleted) return; // cancelled - the result is dropped
+      close();
+      result.complete(v);
+    },
+    onError: (Object e, StackTrace st) {
+      if (result.isCompleted) return;
+      close();
+      result.completeError(e, st);
+    },
+  );
+  return result.future;
 }

@@ -76,6 +76,9 @@ class GeoHit {
   }
 }
 
+/// longest wait for a short request (convert, geocoding) - a solver that hangs does not block the app
+const requestTimeout = Duration(seconds: 60);
+
 const finishedStatus = ['solution', 'noSolution', 'error', 'cancelled'];
 
 typedef StatusCallback = void Function(ProblemAnswer status);

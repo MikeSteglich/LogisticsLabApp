@@ -21,14 +21,22 @@ class RemoteBackend implements Backend {
   @override
   Future<void> start() async {}
 
-  Future<(int, Map<String, dynamic>)> _post(String endpoint, Map<String, dynamic> body) async {
+  Future<(int, Map<String, dynamic>)> _post(
+    String endpoint,
+    Map<String, dynamic> body, {
+    Duration timeout = requestTimeout,
+  }) async {
     final http.Response r;
     try {
-      r = await _client.post(
-        baseUrl.resolve(endpoint),
-        headers: {'Content-Type': 'application/json', if (apiKey.isNotEmpty) 'X-API-Key': apiKey},
-        body: jsonEncode(body),
-      );
+      r = await _client
+          .post(
+            baseUrl.resolve(endpoint),
+            headers: {'Content-Type': 'application/json', if (apiKey.isNotEmpty) 'X-API-Key': apiKey},
+            body: jsonEncode(body),
+          )
+          .timeout(timeout);
+    } on TimeoutException {
+      throw BackendException(504, 'no answer of the server $baseUrl within ${timeout.inSeconds} s');
     } catch (e) {
       throw BackendException(503, 'server $baseUrl not available: $e');
     }
@@ -49,7 +57,11 @@ class RemoteBackend implements Backend {
 
   @override
   Future<ProblemAnswer> solveScenario(Map<String, dynamic> scenario, String problem, {StatusCallback? onStatus}) async {
-    final (code, body) = await _post('scenario', {'scenario': scenario, 'problem': problem});
+    // the server computes the matrix (OSM) before it answers
+    final (code, body) = await _post('scenario', {
+      'scenario': scenario,
+      'problem': problem,
+    }, timeout: const Duration(minutes: 10));
     if (code != 200) throw _error(code, body);
     final id = body['id'] as String;
     String? lastStatus;

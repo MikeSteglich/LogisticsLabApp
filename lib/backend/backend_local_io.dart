@@ -159,7 +159,13 @@ class LocalBackend implements Backend {
 
   @override
   Future<(Map<String, dynamic>, String)> convert(String fileName, String content) async {
-    final r = await _call('convert', {'fileName': fileName, 'content': content}) as Map<String, dynamic>;
+    final r =
+        await _call('convert', {'fileName': fileName, 'content': content}).timeout(
+              requestTimeout,
+              onTimeout: () =>
+                  throw BackendException(504, 'no answer of the solver within ${requestTimeout.inSeconds} s'),
+            )
+            as Map<String, dynamic>;
     return (r['scenario'] as Map<String, dynamic>, r['fileName'] as String);
   }
 

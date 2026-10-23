@@ -397,6 +397,7 @@ class AppState extends ChangeNotifier {
 
   Backend? _backend;
   Future<Backend>? _starting;
+  Backend? _startingBackend;
   String? status; // waiting, running, starting ... while solving
   String? jobId;
   String? message; // last error or note for the status bar
@@ -406,14 +407,23 @@ class AppState extends ChangeNotifier {
     if (_backend != null) return Future.value(_backend!);
     return _starting ??= () async {
       final b = createBackend(_backendSettings);
+      _startingBackend = b;
       try {
         await b.start();
       } catch (e) {
-        _starting = null;
+        if (identical(_startingBackend, b)) {
+          _starting = null;
+          _startingBackend = null;
+        }
         rethrow;
+      }
+      if (!identical(_startingBackend, b)) {
+        await b.close(); // reset while starting
+        throw BackendException(499, 'the solver has been stopped');
       }
       _backend = b;
       _starting = null;
+      _startingBackend = null;
       return b;
     }();
   }
@@ -422,6 +432,16 @@ class AppState extends ChangeNotifier {
     final b = _backend;
     _backend = null;
     await b?.close();
+  }
+
+  /// stops the solver (also one that is just starting) - the next request starts a new one; not while solving
+  Future<void> resetBackend() async {
+    if (solving) return;
+    final starting = _startingBackend;
+    _startingBackend = null;
+    _starting = null;
+    await _closeBackend();
+    await starting?.close();
   }
 
   Future<void> solve() async {
@@ -485,8 +505,17 @@ class AppState extends ChangeNotifier {
 
   /// converts an old file and opens the scenario - not saved yet (Save asks for the place)
   Future<void> importOld(String fileName, String content) async {
+    final (json, name) = await convertOld(fileName, content);
+    openImported(json, name);
+  }
+
+  /// scenario of an old file and its name - opened with openImported (not, if the import was cancelled)
+  Future<(Map<String, dynamic>, String)> convertOld(String fileName, String content) async {
     final backend = await _getBackend();
-    final (json, name) = await backend.convert(fileName, content);
+    return backend.convert(fileName, content);
+  }
+
+  void openImported(Map<String, dynamic> json, String name) {
     openScenario(Scenario(json), name: name);
     dirty = true;
     notifyListeners();

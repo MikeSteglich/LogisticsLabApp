@@ -1,6 +1,7 @@
 /// Open and save scenario files (.llab) and solutions (.llsol) - file dialogs on the desktop, download in the browser.
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -105,9 +106,18 @@ class FileOps {
     // the app is blocked while the core starts and converts
     if (!context.mounted) return;
     try {
-      await busy(context, t('ui.importing', {'file': file.name}), () => state.importOld(file.name, text));
+      final converted = await busy(
+        context,
+        t('ui.importing', {'file': file.name}),
+        () => state.convertOld(file.name, text),
+        cancelLabel: t('ui.cancel'),
+        onCancel: state.resetBackend, // the solver may hang - the next request starts a new one
+      );
+      if (converted == null) return; // cancelled
+      state.openImported(converted.$1, converted.$2);
       _snack(t('ui.imported', {'file': file.name}));
     } on BackendException catch (e) {
+      if (e.httpStatus == 504) unawaited(state.resetBackend()); // no answer - restart the solver
       await _error(e.outdated ? t('ui.error.outdated') : t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     } catch (e) {
       await _error(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
