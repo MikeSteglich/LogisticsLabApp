@@ -15,6 +15,8 @@ class NetworkTab extends StatelessWidget {
   final AppState state;
   const NetworkTab({super.key, required this.state});
 
+  static final _selectedRow = GlobalKey();
+
   void _snack(BuildContext context, String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), behavior: SnackBarBehavior.floating));
 
@@ -79,96 +81,117 @@ class NetworkTab extends StatelessWidget {
     final spec = s.spec;
     final roles = spec?.roles ?? const <RoleSpec>[];
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    final chooser = Row(
       children: [
-        Text(t('ui.tab.network'), style: Ui.title),
-        const SizedBox(height: Ui.gap),
-        FieldLabel(t('ui.net.forProblem')),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: DropdownButtonFormField<String?>(
-            key: ValueKey('net-${p.name}-${p.network}-${nets.length}'),
-            initialValue: nets.containsKey(p.network) ? p.network : null,
-            isExpanded: true,
-            items: [
-              DropdownMenuItem(value: null, child: Text(t('ui.net.none'))),
-              for (final n in nets.values)
-                DropdownMenuItem(value: n.name, child: Text('${n.name} · ${t('ui.net.edges', {'n': n.edges.length})}')),
-              DropdownMenuItem(value: _newNetwork, child: Text(t('ui.net.new'))),
-            ],
-            onChanged: (v) => v == _newNetwork ? _create(context) : s.chooseNetwork(v),
-          ),
-        ),
-        const SizedBox(height: Ui.gap),
-        Text(t('ui.net.help'), style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
-        if (net != null) ...[
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: () => s.edit(() => net.directed = !net.directed),
-            child: Row(
-              children: [
-                Checkbox(value: net.directed, onChanged: (v) => s.edit(() => net.directed = v ?? true)),
-                Flexible(child: Text(t('ui.net.directed'), style: const TextStyle(fontSize: 13))),
+        Expanded(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: DropdownButtonFormField<String?>(
+              key: ValueKey('net-${p.name}-${p.network}-${nets.length}'),
+              initialValue: nets.containsKey(p.network) ? p.network : null,
+              isExpanded: true,
+              decoration: InputDecoration(labelText: t('ui.net.forProblem')),
+              items: [
+                DropdownMenuItem(value: null, child: Text(t('ui.net.none'))),
+                for (final n in nets.values)
+                  DropdownMenuItem(
+                    value: n.name,
+                    child: Text('${n.name} · ${t('ui.net.edges', {'n': n.edges.length})}'),
+                  ),
+                DropdownMenuItem(value: _newNetwork, child: Text(t('ui.net.new'))),
               ],
+              onChanged: (v) => v == _newNetwork ? _create(context) : s.chooseNetwork(v),
             ),
           ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            crossAxisAlignment: WrapCrossAlignment.center,
+        ),
+        const SizedBox(width: 6),
+        Tooltip(
+          message: t('ui.net.help'),
+          child: const Icon(Icons.info_outline, size: 18, color: Ui.textSecondary),
+        ),
+      ],
+    );
+    if (net == null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Align(alignment: Alignment.topLeft, child: chooser),
+      );
+    }
+    final header = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        chooser,
+        const SizedBox(height: 4),
+        InkWell(
+          onTap: () => s.edit(() => net.directed = !net.directed),
+          child: Row(
             children: [
-              OutlinedButton.icon(
-                icon: const Icon(Icons.add, size: 16),
-                label: Text(t('ui.edge.add')),
-                onPressed: () => _addEdge(context),
-              ),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.timeline, size: 16),
-                style: s.drawingEdge
-                    ? OutlinedButton.styleFrom(
-                        backgroundColor: Ui.accentLight,
-                        side: const BorderSide(color: Ui.accent),
-                      )
-                    : null,
-                label: Text(t('ui.edge.draw')),
-                onPressed: () => s.setDrawingEdge(!s.drawingEdge),
-              ),
-              if (roles.length >= 2)
-                Tooltip(
-                  message: t('ui.edge.allHint', {
-                    'from': 'role.${spec!.nodeRole(roles[0], p.parameters)}',
-                    'to': 'role.${spec.nodeRole(roles[1], p.parameters)}',
-                  }),
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.device_hub, size: 16),
-                    label: Text(t('ui.edge.all')),
-                    onPressed: () => _snack(context, t('ui.edge.added', {'n': s.addAllEdges()})),
-                  ),
-                ),
-              Tooltip(
-                message: t('ui.edge.delete'),
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(minimumSize: const Size(40, 40), padding: EdgeInsets.zero),
-                  onPressed: s.edge == null ? null : s.deleteEdge,
-                  child: const Icon(Icons.delete_outline, size: 18),
-                ),
-              ),
+              Checkbox(value: net.directed, onChanged: (v) => s.edit(() => net.directed = v ?? true)),
+              Flexible(child: Text(t('ui.net.directed'), style: const TextStyle(fontSize: 13))),
             ],
           ),
-          const SizedBox(height: Ui.gap),
-          Section(
-            padding: EdgeInsets.zero,
-            child: _EdgeTable(state: s, net: net),
-          ),
-          const SizedBox(height: 16),
-          if (s.edge != null)
-            _EdgeMask(key: ValueKey('${identityHashCode(s.edge!.json)}|${t.language}'), state: s, edge: s.edge!)
-          else
-            Text(t('ui.edge.none'), style: const TextStyle(color: Ui.textSecondary)),
-        ],
+        ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            OutlinedButton.icon(
+              icon: const Icon(Icons.add, size: 16),
+              label: Text(t('ui.edge.add')),
+              onPressed: () => _addEdge(context),
+            ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.timeline, size: 16),
+              style: s.drawingEdge
+                  ? OutlinedButton.styleFrom(
+                      backgroundColor: Ui.accentLight,
+                      side: const BorderSide(color: Ui.accent),
+                    )
+                  : null,
+              label: Text(t('ui.edge.draw')),
+              onPressed: () => s.setDrawingEdge(!s.drawingEdge),
+            ),
+            if (roles.length >= 2)
+              Tooltip(
+                message: t('ui.edge.allHint', {
+                  'from': 'role.${spec!.nodeRole(roles[0], p.parameters)}',
+                  'to': 'role.${spec.nodeRole(roles[1], p.parameters)}',
+                }),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.device_hub, size: 16),
+                  label: Text(t('ui.edge.all')),
+                  onPressed: () => _snack(context, t('ui.edge.added', {'n': s.addAllEdges()})),
+                ),
+              ),
+            Tooltip(
+              message: t('ui.edge.delete'),
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(minimumSize: const Size(40, 40), padding: EdgeInsets.zero),
+                onPressed: s.edge == null ? null : s.deleteEdge,
+                child: const Icon(Icons.delete_outline, size: 18),
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+    return ListAndMask(
+      header: header,
+      list: Section(
+        padding: EdgeInsets.zero,
+        child: _EdgeTable(state: s, net: net, selectedKey: _selectedRow),
+      ),
+      mask: s.edge != null
+          ? _EdgeMask(key: ValueKey('${identityHashCode(s.edge!.json)}|${t.language}'), state: s, edge: s.edge!)
+          : Text(t('ui.edge.none'), style: const TextStyle(color: Ui.textSecondary)),
+      selected: s.selectedEdge,
+      selectedKey: _selectedRow,
+      ratio: s.listRatio,
+      onRatio: s.setListRatio,
+      onRatioEnd: (v) => s.setListRatio(v, save: true),
+      onRatioReset: () => s.setListRatio(AppState.defaultListRatio, save: true),
+      semanticLabel: t('ui.split.list'),
     );
   }
 
@@ -199,7 +222,8 @@ class NetworkTab extends StatelessWidget {
 class _EdgeTable extends StatelessWidget {
   final AppState state;
   final Network net;
-  const _EdgeTable({required this.state, required this.net});
+  final GlobalKey selectedKey;
+  const _EdgeTable({required this.state, required this.net, required this.selectedKey});
 
   @override
   Widget build(BuildContext context) {
@@ -264,6 +288,7 @@ class _EdgeTable extends StatelessWidget {
           ),
         for (final (i, e) in edges.indexed)
           Semantics(
+            key: i == s.selectedEdge ? selectedKey : null, // the list scrolls to the selected edge
             button: true,
             selected: i == s.selectedEdge,
             child: row(

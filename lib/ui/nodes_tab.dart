@@ -16,30 +16,32 @@ class NodesTab extends StatelessWidget {
   final AppState state;
   const NodesTab({super.key, required this.state});
 
+  static final _selectedRow = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     final s = state;
     final t = s.strings;
     final nodes = s.scenario.nodes;
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    final header = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            Text(t('ui.tab.nodes'), style: Ui.title),
-            Text(
-              '${t('ui.nodes.count', {'n': nodes.length})} · ${t('ui.nodes.hint')}',
-              style: const TextStyle(fontSize: 13, color: Ui.textSecondary),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
         Row(
           children: [
-            const Spacer(),
+            Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Text(t('ui.tab.nodes'), style: Ui.title),
+                  Text(
+                    '${t('ui.nodes.count', {'n': nodes.length})} · ${t('ui.nodes.hint')}',
+                    style: const TextStyle(fontSize: 13, color: Ui.textSecondary),
+                  ),
+                ],
+              ),
+            ),
             OutlinedButton.icon(
               icon: const Icon(Icons.add, size: 16),
               label: Text(t('ui.node.add')),
@@ -60,19 +62,26 @@ class NodesTab extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: Ui.gap),
+        const SizedBox(height: 10),
         _NodeFilter(state: s),
-        const SizedBox(height: 8),
-        Section(
-          padding: EdgeInsets.zero,
-          child: _NodeTable(state: s),
-        ),
-        const SizedBox(height: 16),
-        if (s.node != null)
-          _NodeMask(key: ValueKey('${identityHashCode(s.node!.json)}|${t.language}'), state: s, node: s.node!)
-        else
-          Text(t('ui.node.none'), style: const TextStyle(color: Ui.textSecondary)),
       ],
+    );
+    return ListAndMask(
+      header: header,
+      list: Section(
+        padding: EdgeInsets.zero,
+        child: _NodeTable(state: s, selectedKey: _selectedRow),
+      ),
+      mask: s.node != null
+          ? _NodeMask(key: ValueKey('${identityHashCode(s.node!.json)}|${t.language}'), state: s, node: s.node!)
+          : Text(t('ui.node.none'), style: const TextStyle(color: Ui.textSecondary)),
+      selected: s.selectedNode,
+      selectedKey: _selectedRow,
+      ratio: s.listRatio,
+      onRatio: s.setListRatio,
+      onRatioEnd: (v) => s.setListRatio(v, save: true),
+      onRatioReset: () => s.setListRatio(AppState.defaultListRatio, save: true),
+      semanticLabel: t('ui.split.list'),
     );
   }
 }
@@ -110,7 +119,8 @@ Future<void> _deleteNode(BuildContext context, AppState s) async {
 
 class _NodeTable extends StatelessWidget {
   final AppState state;
-  const _NodeTable({required this.state});
+  final GlobalKey selectedKey;
+  const _NodeTable({required this.state, required this.selectedKey});
 
   @override
   Widget build(BuildContext context) {
@@ -186,6 +196,7 @@ class _NodeTable extends StatelessWidget {
           // nodes without a role in the problem are pale - their roles are for other problems of the scenario
           if (s.isRelevant(n) case final relevant)
             Semantics(
+              key: n.id == s.selectedNode ? selectedKey : null, // the list scrolls to the selected node
               button: true,
               selected: n.id == s.selectedNode,
               child: row(

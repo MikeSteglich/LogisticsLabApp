@@ -373,3 +373,84 @@ class TypeBadge extends StatelessWidget {
     ),
   );
 }
+
+//*************** list and mask ************************************
+
+/// Header (fixed), list and mask with their own scrolling and a draggable divider between them - the mask stays in
+/// view with long lists. [selectedKey] marks the selected row: the list scrolls to it when [selected] changes.
+class ListAndMask extends StatefulWidget {
+  final Widget header;
+  final Widget list;
+  final Widget mask;
+  final Object? selected;
+  final GlobalKey selectedKey;
+  final double ratio;
+  final ValueChanged<double> onRatio;
+  final ValueChanged<double> onRatioEnd;
+  final VoidCallback onRatioReset;
+  final String semanticLabel;
+
+  const ListAndMask({
+    super.key,
+    required this.header,
+    required this.list,
+    required this.mask,
+    required this.selected,
+    required this.selectedKey,
+    required this.ratio,
+    required this.onRatio,
+    required this.onRatioEnd,
+    required this.onRatioReset,
+    required this.semanticLabel,
+  });
+
+  @override
+  State<ListAndMask> createState() => _ListAndMaskState();
+}
+
+class _ListAndMaskState extends State<ListAndMask> {
+  @override
+  void initState() {
+    super.initState();
+    _scrollToSelected();
+  }
+
+  @override
+  void didUpdateWidget(ListAndMask old) {
+    super.didUpdateWidget(old);
+    if (widget.selected != old.selected) _scrollToSelected();
+  }
+
+  /// e.g. a node chosen on the map - its row comes into view
+  void _scrollToSelected() => WidgetsBinding.instance.addPostFrameCallback((_) {
+    final c = widget.selectedKey.currentContext;
+    if (c != null && c.mounted) {
+      Scrollable.ensureVisible(
+        c,
+        alignment: 0.3,
+        duration: const Duration(milliseconds: 200),
+        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+      );
+    }
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Padding(padding: const EdgeInsets.fromLTRB(16, 16, 16, 8), child: widget.header),
+      Expanded(
+        child: SplitView(
+          axis: Axis.vertical,
+          ratio: widget.ratio,
+          semanticLabel: widget.semanticLabel,
+          onChanged: widget.onRatio,
+          onChangeEnd: widget.onRatioEnd,
+          onReset: widget.onRatioReset,
+          first: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(16, 4, 16, 12), child: widget.list),
+          second: SingleChildScrollView(padding: const EdgeInsets.fromLTRB(16, 12, 16, 16), child: widget.mask),
+        ),
+      ),
+    ],
+  );
+}

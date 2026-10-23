@@ -161,14 +161,14 @@ class _MapViewState extends State<MapView> {
                     strokeJoin: StrokeJoin.round,
                   )
                 : Polyline(
-                    // clearly visible on the tiles, but not to be confused with the solution (blue, solid)
+                    // solid - dashes of overlapping edges merge into solid lines; light grey beside the solution
                     points: s.edgePoints(a.position, b.position),
-                    color: Ui.textMuted,
-                    strokeWidth: 3.5,
+                    color: Ui.network,
+                    strokeWidth: 3,
                     borderColor: Colors.white,
-                    borderStrokeWidth: 1.5,
+                    borderStrokeWidth: 1,
                     strokeCap: StrokeCap.round,
-                    pattern: StrokePattern.dashed(segments: const [10, 6]),
+                    strokeJoin: StrokeJoin.round,
                   ),
     ];
   }
@@ -193,12 +193,11 @@ class _MapViewState extends State<MapView> {
       for (final f in _flows())
         Polyline(
           points: f.points,
-          // a stale solution pale blue - the network is dark grey dashed
+          // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
           color: f.selected ? Ui.highlight : (stale ? Ui.accent.withValues(alpha: 0.4) : Ui.accent),
           strokeWidth: f.selected ? 6 : 3.5,
           strokeCap: StrokeCap.round,
           strokeJoin: StrokeJoin.round,
-          pattern: stale ? StrokePattern.dashed(segments: const [8, 6]) : const StrokePattern.solid(),
         ),
     ];
   }

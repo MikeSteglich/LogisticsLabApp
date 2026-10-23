@@ -29,6 +29,7 @@ class AppState extends ChangeNotifier {
   AppState(this.strings, this._prefs) {
     _backendSettings = _loadBackendSettings();
     splitRatio = _prefs.getDouble('splitRatio') ?? defaultSplitRatio;
+    listRatio = _prefs.getDouble('listRatio') ?? defaultListRatio;
   }
 
   static Future<AppState> create() async {
@@ -44,6 +45,15 @@ class AppState extends ChangeNotifier {
 
   static const defaultSplitRatio = 0.6;
   late double splitRatio; // part of the map - the rest is the data area
+
+  static const defaultListRatio = 0.5;
+  late double listRatio; // part of the list in the nodes and network tab - the rest is the mask
+
+  void setListRatio(double v, {bool save = false}) {
+    listRatio = v.clamp(0.15, 0.85);
+    if (save) _prefs.setDouble('listRatio', listRatio);
+    notifyListeners();
+  }
 
   void setSplitRatio(double v, {bool save = false}) {
     splitRatio = v.clamp(0.25, 0.8);
