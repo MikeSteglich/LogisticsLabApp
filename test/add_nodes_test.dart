@@ -65,15 +65,17 @@ void main() {
     final state = (await tester.runAsync(AppState.create))!;
     state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
-    const p = LatLng(52.2999, 13.2597); // Ludwigsfelde
+    // a click is more exact than the stored coordinates (rounded) - Berliner Dom
+    const p = LatLng(52.51908123456, 13.40108298765);
     state.addNode(p);
     final id = state.selectedNode!;
     await tester.runAsync(() => state.addressOf(id, p));
     final n = state.scenario.node(id)!;
+    expect(n.position, isNot(p)); // rounded
     // needs the geo service of OSM - without an answer the address stays empty
-    if ((n.address ?? '').isNotEmpty) {
-      expect(n.address, contains('Ludwigsfelde'));
-      expect((n.json['addressDetails'] as Map)['city'], 'Ludwigsfelde');
+    if ((n.address ?? '').isNotEmpty || Platform.environment['LOGLAB_ONLINE'] != null) {
+      expect(n.address, contains('10178 Berlin'));
+      expect((n.json['addressDetails'] as Map)['city'], 'Berlin');
     }
     // an address typed meanwhile is kept
     state.edit(() => n.address = 'Werkstraße 1');

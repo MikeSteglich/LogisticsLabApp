@@ -685,8 +685,8 @@ class AppState extends ChangeNotifier {
       return;
     }
     clickedGeometry = geometry;
-    final id = selectedNode;
-    if (id != null && reverseGeocoding) addressOf(id, p);
+    final n = node;
+    if (n != null && reverseGeocoding) addressOf(n.id, n.position); // as stored - rounded
   }
 
   /// tests without a core switch it off
@@ -699,7 +699,8 @@ class AppState extends ChangeNotifier {
       final hit = await (await _getBackend()).reverse(position);
       final n = scenario.node(id);
       if (hit == null || hit.address.isEmpty || n == null || (n.address ?? '').isNotEmpty) return;
-      if (n.position != position) return; // moved again meanwhile
+      // moved again meanwhile - the coordinates are stored rounded, a click is more exact
+      if (const Distance().as(LengthUnit.Meter, n.position, position) > 1) return;
       edit(() {
         n.address = hit.address;
         n.json['addressDetails'] = hit.addressDetails;
