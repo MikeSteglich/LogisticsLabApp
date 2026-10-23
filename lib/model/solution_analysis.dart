@@ -2,7 +2,9 @@
 ///
 /// Built from the ModuleSpec: the roles of the problem with their main field (tpp: supply of the sources, demand
 /// of the destinations), the quantity of a node in the solution (`results.nodes.<id>.flow`) and the connections
-/// (`results.assignments` from -> to). The first role sends, the second receives.
+/// (`results.assignments` from -> to). The first role sends, the second receives. The other nodes of the network
+/// of a network flow (transshipment nodes, warehouses) pass quantities through - with the utilization of their
+/// capacity.
 library;
 
 import '../modules/modules.dart';
@@ -16,8 +18,21 @@ class NodeUse {
   final num? target; // supply or demand
   final num actual; // quantity in the solution
   final List<(String, num)> partners; // other end and quantity of each connection
+  final bool through; // passes quantities through: transshipment node, warehouse - actual is its throughput
+  final num? capacity; // capacity of the node (maxCap, capacity of a warehouse)
+  final num? utilization; // throughput / capacity
 
-  NodeUse(this.node, this.role, this.sends, this.target, this.actual, this.partners);
+  NodeUse(
+    this.node,
+    this.role,
+    this.sends,
+    this.target,
+    this.actual,
+    this.partners, {
+    this.through = false,
+    this.capacity,
+    this.utilization,
+  });
 
   static const _eps = 1e-6;
 
@@ -32,6 +47,12 @@ class NodeUse {
   num get missing => target == null ? 0 : (target! - actual).clamp(0, double.infinity);
 
   bool get multiple => partners.length > 1;
+
+  /// receives from several senders (tpp: customer with several suppliers)
+  bool get multipleReceiver => !sends && !through && multiple;
+
+  /// capacity used completely - a bottleneck
+  bool get full => utilization != null && utilization! >= 1 - _eps;
 }
 
 class SolutionAnalysis {
@@ -40,7 +61,8 @@ class SolutionAnalysis {
 
   SolutionAnalysis(this.uses, this.roles);
 
-  /// null if the problem has no roles with targets or the solution no quantities of the nodes
+  /// null if the problem has no roles with targets or the solution no quantities of the nodes - networkNodes: the
+  /// nodes of the network of a network flow, those without a rated role pass quantities through
   /// The first role of the problem sends (tpp, flows: suppliers), the last receives (customers) - roles between
   /// them (warehouses of a multi-stage WLP) are not rated. Connections: results.assignments (tpp) or results.edges
   /// (network flows); values per commodity are added up.
@@ -48,12 +70,15 @@ class SolutionAnalysis {
     Scenario scenario,
     ModuleSpec? spec,
     Map<String, dynamic> parameters,
-    Map<String, dynamic>? results,
-  ) {
-    final nodeResults = (results?['nodes'] as Map?)?.cast<String, dynamic>();
-    if (spec == null || nodeResults == null || spec.roles.length < 2) return null;
+    Map<String, dynamic>? results, {
+    Iterable<String> networkNodes = const [],
+  }) {
+    if (spec == null || results == null) return null;
+    final nodeResults = (results['nodes'] as Map?)?.cast<String, dynamic>() ?? const {};
+    if (results['nodes'] == null && networkNodes.isEmpty) return null;
+    if (spec.roles.length < 2 && networkNodes.isEmpty) return null;
     final connections = connectionsOf(results);
-    final rated = [spec.roles.first, spec.roles.last];
+    final rated = spec.roles.length < 2 ? const <RoleSpec>[] : [spec.roles.first, spec.roles.last];
     final roles = [for (final r in rated) spec.nodeRole(r, parameters)];
     final uses = <NodeUse>[];
     for (final (i, r) in rated.indexed) {
@@ -70,8 +95,45 @@ class SolutionAnalysis {
           for (final a in connections)
             if ((sends ? a['from'] : a['to']) == n.id) ('${sends ? a['to'] : a['from']}', a['flow'] as num),
         ];
-        uses.add(NodeUse(n, role, sends, target, actual, partners));
+        uses.add(
+          NodeUse(
+            n,
+            role,
+            sends,
+            target,
+            actual,
+            partners,
+            capacity: res['capacity'] as num?,
+            utilization: res['utilization'] as num?,
+          ),
+        );
       }
+    }
+    // the other nodes of the network: throughput (the core gives it with node capacities, else the inflow)
+    final rolesOfSpec = {for (final r in spec.roles) spec.nodeRole(r, parameters)};
+    for (final id in networkNodes) {
+      if (uses.any((u) => u.node.id == id)) continue;
+      final n = scenario.node(id);
+      if (n == null || !n.active) continue;
+      final res = (nodeResults[id] as Map?)?.cast<String, dynamic>() ?? const {};
+      final inflow = connections.where((a) => a['to'] == id).fold<num>(0, (sum, a) => sum + (a['flow'] as num));
+      final role = n.roles.firstWhere(rolesOfSpec.contains, orElse: () => 'transit');
+      uses.add(
+        NodeUse(
+          n,
+          role,
+          false,
+          null,
+          total(res['flow']) ?? inflow,
+          [
+            for (final a in connections)
+              if (a['from'] == id || a['to'] == id) ('${a['from'] == id ? a['to'] : a['from']}', a['flow'] as num),
+          ],
+          through: true,
+          capacity: res['capacity'] as num?,
+          utilization: res['utilization'] as num?,
+        ),
+      );
     }
     return SolutionAnalysis(uses, roles);
   }
@@ -95,5 +157,8 @@ class SolutionAnalysis {
   num missing(String role) => ofRole(role).fold<num>(0, (sum, u) => sum + u.missing);
 
   /// receivers served by more than one sender (tpp: customers with several suppliers)
-  int get multipleReceivers => uses.where((u) => !u.sends && u.multiple).length;
+  int get multipleReceivers => uses.where((u) => u.multipleReceiver).length;
+
+  /// nodes passing quantities through (transshipment nodes, warehouses)
+  Iterable<NodeUse> get through => uses.where((u) => u.through);
 }

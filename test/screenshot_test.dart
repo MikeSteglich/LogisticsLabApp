@@ -138,6 +138,18 @@ void main() {
     state.setTab(DataTab.solution);
     await settle(() => false, seconds: 4);
     await shot('8-multistagewlp');
+    // min cost flow: utilization of the edges, the warehouses as transshipment nodes
+    state.chooseProblem('Distribution über die Lager');
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('8b-utilization');
+    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    await tester.pump();
+    await shot('8b2-utilization-nodes');
+    state.setTab(DataTab.nodes);
+    state.setNodeFilter(AppState.transitFilter);
+    await shot('8c-transit-filter');
     state.chooseProblem('Zwei Güter');
     state.selectNode('B');
     await shot('9-commodities');

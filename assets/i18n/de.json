@@ -94,7 +94,7 @@
   "ui.node.idExists": "Die ID {id} gibt es schon",
   "role.candidate": "Kandidat",
   "role.depot": "Depot",
-  "role.transit": "Umschlag",
+  "role.transit": "Umladeknoten",
   "ui.net.forProblem": "Netz für dieses Problem",
   "ui.net.none": "kein Netz – alle Verbindungen erlaubt",
   "ui.net.edges": "{n} Kanten",
@@ -196,7 +196,7 @@
   "role.customer.plural": "Nachfrager",
   "role.candidate.plural": "Kandidaten",
   "role.depot.plural": "Depots",
-  "role.transit.plural": "Umschlagpunkte",
+  "role.transit.plural": "Umladeknoten",
   "ui.net.new": "Neues Netz …",
   "ui.net.name": "Name des Netzes",
   "ui.net.exists": "Ein Netz mit diesem Namen gibt es schon",
@@ -315,5 +315,10 @@
   "result.minContributionRate": "Kleinster Deckungsbeitrag je Einheit",
   "result.maxContributionRate": "Größter Deckungsbeitrag je Einheit",
   "result.contributionRate": "Deckungsbeitrag je Einheit",
-  "ui.sol.contribution": "Deckungsbeitrag"
+  "ui.sol.contribution": "Deckungsbeitrag",
+  "ui.sol.utilization": "Auslastung",
+  "ui.sol.ofCapacity": "von {capacity}",
+  "ui.sol.throughput": "Durchsatz",
+  "ui.sol.full": "Voll ausgelastet",
+  "ui.sol.shareOrUtilization": "Anteil / Auslastung"
 }

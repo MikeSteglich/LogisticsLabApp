@@ -599,6 +599,7 @@ class _NodeFilter extends StatelessWidget {
     final options = <(String?, String)>[
       (null, t('ui.filter.all')),
       for (final r in problemRoles) (r, t('role.$r.plural')),
+      if (s.nodesOf(AppState.transitFilter).isNotEmpty) (AppState.transitFilter, t('role.transit.plural')),
       if (problemRoles.isNotEmpty && s.nodesOf('').isNotEmpty) ('', t('ui.filter.others')),
     ];
     return Wrap(

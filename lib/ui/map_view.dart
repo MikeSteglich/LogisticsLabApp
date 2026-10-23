@@ -394,7 +394,7 @@ class _MapViewState extends State<MapView> {
                           borderRadius: BorderRadius.circular(6),
                         )
                       : null,
-                  child: use != null && use.multiple && !use.sends
+                  child: use != null && use.multipleReceiver
                       // served by several suppliers: their number
                       ? Stack(
                           clipBehavior: Clip.none,
@@ -431,11 +431,16 @@ class _MapViewState extends State<MapView> {
   /// e.g. "demand 120 · received 75 (63 %) · from Werk Ludwigsfelde 75"
   String _useInfo(NodeUse u) {
     final t = s.strings;
+    final used = u.utilization == null
+        ? ''
+        : ' · ${t('ui.sol.utilization')} ${t.number(u.utilization! * 100, decimals: 0)} % '
+              '${t('ui.sol.ofCapacity', {'capacity': t.number(u.capacity ?? 0)})}';
+    if (u.through) return '${t('ui.sol.throughput')} ${t.number(u.actual)}$used';
     final target = u.target == null ? '' : '${t(u.sends ? 'field.supply' : 'field.demand')} ${t.number(u.target!)} · ';
     final share = u.share == null ? '' : ' (${t.number(u.share! * 100, decimals: 0)} %)';
     final partners = u.partners.map((p) => '${_name(p.$1)} ${t.number(p.$2)}').join(', ');
     return '$target${t(u.sends ? 'ui.sol.shipped' : 'ui.sol.received')} ${t.number(u.actual)}$share'
-        '${partners.isEmpty ? '' : ' · ${t(u.sends ? 'ui.sol.toPartners' : 'ui.sol.fromPartners')} $partners'}';
+        '${partners.isEmpty ? '' : ' · ${t(u.sends ? 'ui.sol.toPartners' : 'ui.sol.fromPartners')} $partners'}$used';
   }
 
   //*********** edges under the mouse ************
@@ -514,6 +519,9 @@ class _MapViewState extends State<MapView> {
         if (rate != null) '${s.rateLabels.$1} ${t.fixed(rate, 2)}',
         if (rate != null) '${s.rateLabels.$2} ${t.fixed(flow * rate, 2)}',
         if (split.isNotEmpty) split,
+        if (a['utilization'] case final num u)
+          '${t('ui.sol.utilization')} ${t.number(u * 100, decimals: 0)} %'
+              '${a['capacity'] is num ? ' ${t('ui.sol.ofCapacity', {'capacity': t.number(a['capacity'] as num)})}' : ''}',
       ].join(' · '),
     );
   }

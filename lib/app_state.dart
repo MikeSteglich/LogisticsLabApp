@@ -187,8 +187,19 @@ class AppState extends ChangeNotifier {
   List<Map<String, dynamic>> get connections => SolutionAnalysis.connectionsOf(solution?.results);
 
   /// how the nodes are served in the solution of the problem (shares, partners) - null without solution
-  SolutionAnalysis? get analysis =>
-      SolutionAnalysis.of(scenario, spec, problem?.parameters ?? const {}, solution?.results);
+  SolutionAnalysis? get analysis => SolutionAnalysis.of(
+    scenario,
+    spec,
+    problem?.parameters ?? const {},
+    solution?.results,
+    networkNodes: spec?.network == NetworkUse.required ? networkNodeIds : const [],
+  );
+
+  /// nodes of the network of the problem in the order of the scenario
+  List<String> get networkNodeIds => [
+    for (final n in scenario.nodes)
+      if (_inNetwork(n.id)) n.id,
+  ];
 
   bool get solutionIsStale => solution != null && solution!.revision != revision;
 
@@ -240,7 +251,12 @@ class AppState extends ChangeNotifier {
     selectedFlow = null;
     selectedEdge = null;
     drawingEdge = false;
-    if (nodeFilter != null && nodeFilter!.isNotEmpty && !problemRoles.contains(nodeFilter)) nodeFilter = null;
+    if (nodeFilter != null &&
+        nodeFilter!.isNotEmpty &&
+        nodeFilter != transitFilter &&
+        !problemRoles.contains(nodeFilter)) {
+      nodeFilter = null;
+    }
     _keepSelectionVisible();
     notifyListeners();
   }
@@ -374,13 +390,22 @@ class AppState extends ChangeNotifier {
 
   //*********** filter of the node list ************
 
-  /// null: all nodes, '': nodes without a role in the problem, else a role of the problem
+  /// null: all nodes, '': nodes without a role in the problem, transitFilter: transshipment nodes of a network flow,
+  /// else a role of the problem
   String? nodeFilter;
+
+  static const transitFilter = '@transit';
+
+  /// network flow: nodes of its network without a role of the problem pass quantities through
+  bool isTransit(Node n) =>
+      spec?.network == NetworkUse.required && !n.roles.any(problemRoles.contains) && _inNetwork(n.id);
 
   bool _passes(Node n, String? filter) => filter == null
       ? true
+      : filter == transitFilter
+      ? isTransit(n)
       : filter.isEmpty
-      ? !n.roles.any(problemRoles.contains)
+      ? !n.roles.any(problemRoles.contains) && !isTransit(n)
       : n.roles.contains(filter);
 
   List<Node> nodesOf(String? filter) => [
@@ -402,7 +427,7 @@ class AppState extends ChangeNotifier {
   void _keepSelectionVisible() {
     final n = node;
     if (n == null || _passes(n, nodeFilter)) return;
-    nodeFilter = n.roles.where(problemRoles.contains).firstOrNull ?? '';
+    nodeFilter = n.roles.where(problemRoles.contains).firstOrNull ?? (isTransit(n) ? transitFilter : '');
   }
 
   void newProblem(String type) {

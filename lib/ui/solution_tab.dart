@@ -31,6 +31,8 @@ class SolutionTab extends StatelessWidget {
     // cost rates: tpp, min cost flow, multi-stage WLP - split per commodity or mode: multicommodity, multimodal
     final withRates = assignments.any((a) => a['rate'] != null);
     final withSplit = assignments.any((a) => a['flows'] != null || a['modes'] != null);
+    final withUtilization = assignments.any((a) => a['utilization'] != null);
+    String percent(Object? v) => v is num ? '${t.number(v * 100, decimals: 0)} %' : '';
     final open = s.openNodes;
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
     // unit of the objective and the costs: costs (€) or the unit of distances / times (matrixMode)
@@ -153,7 +155,8 @@ class SolutionTab extends StatelessWidget {
                         t.number(analysis.missing(role)),
                         warn: i == 1 && analysis.missing(role) > 0,
                       ),
-                    card(w, t('ui.sol.multipleCount.${analysis.roles[1]}'), '${analysis.multipleReceivers}'),
+                    if (analysis.roles.length > 1)
+                      card(w, t('ui.sol.multipleCount.${analysis.roles[1]}'), '${analysis.multipleReceivers}'),
                   ],
                 ],
               );
@@ -168,7 +171,8 @@ class SolutionTab extends StatelessWidget {
                 1: const FlexColumnWidth(3),
                 if (withSplit) 2: const FlexColumnWidth(4),
               },
-              defaultColumnWidth: const FlexColumnWidth(2),
+              // numbers as wide as their header or values - the names take the rest
+              defaultColumnWidth: const IntrinsicColumnWidth(),
               children: [
                 _row(numericFrom: withSplit ? 3 : 2, header: true, [
                   t('ui.sol.from'),
@@ -176,6 +180,7 @@ class SolutionTab extends StatelessWidget {
                   if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
                   t('result.flow'),
                   if (withRates) ...[s.rateLabels.$1, s.rateLabels.$2],
+                  if (withUtilization) t('ui.sol.utilization'),
                 ]),
                 for (final (i, a) in assignments.indexed)
                   _row(numericFrom: withSplit ? 3 : 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
@@ -187,6 +192,7 @@ class SolutionTab extends StatelessWidget {
                       a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
                       a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
                     ],
+                    if (withUtilization) percent(a['utilization']),
                   ]),
               ],
             ),
@@ -295,14 +301,23 @@ class _NodeUsesState extends State<_NodeUses> {
     final roles = a.roles.take(2).toList();
     bool passes(NodeUse u) => switch (_filter) {
       'all' => true,
-      'multiple' => !u.sends && u.multiple,
-      final f => f == 'notFull:${u.role}' && u.notFull,
+      'multiple' => u.multipleReceiver,
+      'through' => u.through,
+      'full' => u.full,
+      final f => f == 'notFull:${u.role}' && u.notFull && !u.through,
     };
+    final through = a.through.length;
+    final full = a.uses.where((u) => u.full).length;
     final options = <(String, String, int)>[
       ('all', t('ui.filter.all'), a.uses.length),
-      for (final r in roles) ('notFull:$r', t('ui.sol.notFull.$r'), a.ofRole(r).where((u) => u.notFull).length),
-      ('multiple', t('ui.sol.multiple.${roles[1]}'), a.multipleReceivers),
+      for (final r in roles)
+        ('notFull:$r', t('ui.sol.notFull.$r'), a.ofRole(r).where((u) => u.notFull && !u.through).length),
+      if (roles.length > 1) ('multiple', t('ui.sol.multiple.${roles[1]}'), a.multipleReceivers),
+      if (through > 0) ('through', t('role.transit.plural'), through),
+      if (full > 0) ('full', t('ui.sol.full'), full),
     ];
+    if (!options.any((o) => o.$1 == _filter)) _filter = 'all';
+    final withUtilization = a.through.any((u) => u.utilization != null);
     final shown = a.uses.where(passes).toList();
     String name(String id) => s.scenario.node(id)?.name ?? id;
 
@@ -341,11 +356,13 @@ class _NodeUsesState extends State<_NodeUses> {
         ),
       ),
     );
+    // share of the target (supply, demand) - nodes passing quantities through: utilization of their capacity
     Widget bar(NodeUse u) {
-      final share = u.share;
+      final share = u.through ? u.utilization?.clamp(0, 1).toDouble() : u.share;
       if (share == null) return text('');
+      final warn = u.through ? u.full : u.notFull;
       // the bar takes the room the percentage leaves
-      return Row(
+      final bar = Row(
         children: [
           Flexible(
             child: ConstrainedBox(
@@ -355,14 +372,21 @@ class _NodeUsesState extends State<_NodeUses> {
                 child: LinearProgressIndicator(
                   value: share,
                   backgroundColor: Ui.border,
-                  color: u.notFull ? Ui.warning : Ui.roleColors(u.role).$1, // as on the map
+                  color: warn ? Ui.warning : Ui.roleColors(u.role).$1, // as on the map
                 ),
               ),
             ),
           ),
           const SizedBox(width: 6),
-          text('${t.number(share * 100, decimals: 0)} %', color: u.notFull ? Ui.warning : Ui.text),
+          text('${t.number(share * 100, decimals: 0)} %', color: warn ? Ui.warning : Ui.text),
         ],
+      );
+      if (!u.through) return bar;
+      return Tooltip(
+        message:
+            '${t('ui.sol.utilization')} ${t.number(u.utilization! * 100, decimals: 0)} % '
+            '${t('ui.sol.ofCapacity', {'capacity': t.number(u.capacity ?? 0)})}',
+        child: bar,
       );
     }
 
@@ -398,7 +422,10 @@ class _NodeUsesState extends State<_NodeUses> {
                 cell(text(t('ui.col.roles'), bold: true, color: head)),
                 cell(text(t('ui.sol.target'), bold: true, color: head), right: true),
                 cell(text(t('ui.sol.actual'), bold: true, color: head), right: true),
-                cell(text(t('ui.sol.share'), bold: true, color: head), flex: 3),
+                cell(
+                  text(withUtilization ? t('ui.sol.shareOrUtilization') : t('ui.sol.share'), bold: true, color: head),
+                  flex: 3,
+                ),
                 cell(text(t('ui.sol.partners'), bold: true, color: head), flex: 1, right: true),
               ], background: Ui.surfaceAlt),
               if (shown.isEmpty)
@@ -417,7 +444,7 @@ class _NodeUsesState extends State<_NodeUses> {
                     cell(
                       Tooltip(
                         message: u.partners.map((p) => '${name(p.$1)}: ${t.number(p.$2)}').join('\n'),
-                        child: text('${u.partners.length}', bold: u.multiple && !u.sends),
+                        child: text('${u.partners.length}', bold: u.multipleReceiver),
                       ),
                       flex: 1,
                       right: true,

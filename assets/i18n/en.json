@@ -94,7 +94,7 @@
   "ui.node.idExists": "The ID {id} already exists",
   "role.candidate": "Candidate",
   "role.depot": "Depot",
-  "role.transit": "Transit",
+  "role.transit": "Transshipment node",
   "ui.net.forProblem": "Network for this problem",
   "ui.net.none": "no network – all connections allowed",
   "ui.net.edges": "{n} edges",
@@ -196,7 +196,7 @@
   "role.customer.plural": "Customers",
   "role.candidate.plural": "Candidates",
   "role.depot.plural": "Depots",
-  "role.transit.plural": "Transit nodes",
+  "role.transit.plural": "Transshipment nodes",
   "ui.net.new": "New network …",
   "ui.net.name": "Name of the network",
   "ui.net.exists": "A network with this name exists already",
@@ -315,5 +315,10 @@
   "result.minContributionRate": "Smallest contribution per unit",
   "result.maxContributionRate": "Largest contribution per unit",
   "result.contributionRate": "Contribution per unit",
-  "ui.sol.contribution": "Contribution"
+  "ui.sol.contribution": "Contribution",
+  "ui.sol.utilization": "Utilisation",
+  "ui.sol.ofCapacity": "of {capacity}",
+  "ui.sol.throughput": "Throughput",
+  "ui.sol.full": "Fully used",
+  "ui.sol.shareOrUtilization": "Share / utilisation"
 }

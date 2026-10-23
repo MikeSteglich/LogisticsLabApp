@@ -50,6 +50,14 @@ void main() {
     expect(state.connections.map((c) => '${c['from']}-${c['to']}'), contains('W-D1'));
     expect(state.connections.first['rate'], isNotNull);
     expect(state.analysis!.missing('customer'), 0);
+    // utilization of the edge capacities, the warehouses as transshipment nodes in the node list
+    final wd1Edge = state.connections.firstWhere((c) => c['from'] == 'W' && c['to'] == 'D1');
+    expect(wd1Edge['utilization'], closeTo((wd1Edge['flow'] as num) / (wd1Edge['capacity'] as num), 1e-9));
+    final through = state.analysis!.through.map((u) => u.node.id).toSet();
+    expect(through, containsAll(['D1', 'D2']));
+    expect(state.analysis!.use('D1')!.actual, greaterThan(0));
+    expect(state.nodesOf(AppState.transitFilter).map((n) => n.id), containsAll(['D1', 'D2']));
+    expect(state.nodesOf('').map((n) => n.id), isNot(contains('D1')));
 
     // multi-commodity: split per commodity
     await solve('Zwei Güter');
@@ -63,6 +71,8 @@ void main() {
     // multi-stage WLP: open warehouses
     await solve('Lager mehrstufig');
     expect(state.openNodes, {'D1': true, 'D2': true});
+    expect(state.analysis!.use('D1')!.role, 'candidate');
+    expect(state.analysis!.use('D1')!.utilization, isNotNull);
 
     // max flow from the plant to Berlin over the network supply
     state.newProblem('maxflow');

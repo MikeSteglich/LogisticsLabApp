@@ -94,7 +94,7 @@
   "ui.node.idExists": "El ID {id} ya existe",
   "role.candidate": "Candidato",
   "role.depot": "Depósito",
-  "role.transit": "Transbordo",
+  "role.transit": "Nodo de transbordo",
   "ui.net.forProblem": "Red para este problema",
   "ui.net.none": "sin red – todas las conexiones permitidas",
   "ui.net.edges": "{n} aristas",
@@ -196,7 +196,7 @@
   "role.customer.plural": "Demandantes",
   "role.candidate.plural": "Candidatos",
   "role.depot.plural": "Depósitos",
-  "role.transit.plural": "Puntos de transbordo",
+  "role.transit.plural": "Nodos de transbordo",
   "ui.net.new": "Nueva red …",
   "ui.net.name": "Nombre de la red",
   "ui.net.exists": "Ya existe una red con este nombre",
@@ -315,5 +315,10 @@
   "result.minContributionRate": "Menor margen por unidad",
   "result.maxContributionRate": "Mayor margen por unidad",
   "result.contributionRate": "Margen por unidad",
-  "ui.sol.contribution": "Margen"
+  "ui.sol.contribution": "Margen",
+  "ui.sol.utilization": "Utilización",
+  "ui.sol.ofCapacity": "de {capacity}",
+  "ui.sol.throughput": "Caudal",
+  "ui.sol.full": "Plenamente utilizados",
+  "ui.sol.shareOrUtilization": "Proporción / utilización"
 }
