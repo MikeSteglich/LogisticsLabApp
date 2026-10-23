@@ -101,7 +101,7 @@ class AppState extends ChangeNotifier {
     await _prefs.setString('backend.url', s.url);
     await _prefs.setString('backend.apiKey', s.apiKey);
     await _closeBackend();
-    _routes.clear();
+    _routeFailures.clear(); // a new solver or server - courses given up are tried again
     notifyListeners();
   }
 
@@ -147,7 +147,6 @@ class AppState extends ChangeNotifier {
     dirty = false;
     revision++;
     solutions.clear();
-    _routes.clear();
     final first = s.problems.where((p) => modules.containsKey(p.type)).firstOrNull ?? s.problems.firstOrNull;
     problemName = first?.name;
     selectedNode = s.nodes.firstOrNull?.id;
@@ -590,22 +589,50 @@ class AppState extends ChangeNotifier {
 
   //*********** course of the edges on the map ************
 
-  final _routes = <String, List<LatLng>>{};
-  final _routing = <String>{};
-  final _routeQueue = <(String, LatLng, LatLng)>[];
+  final _routes = <String, List<LatLng>>{}; // loaded courses - kept for other files with the same coordinates
+  final _routing = <String>{}; // queued or loading
+  final _routeQueue = <(String, LatLng, LatLng, String)>[];
+  final _routeFailures = <String, int>{}; // failed attempts of a course
+  final _routeEnds = <String, (LatLng, LatLng, String)>{};
   bool _routeWorker = false;
+
+  /// attempts and pauses before a course is given up - a server may not answer for a moment
+  static const _routeRetries = [Duration(seconds: 2), Duration(seconds: 10), Duration(seconds: 30)];
+
+  /// courses being loaded, courses given up (shown straight)
+  int get routesLoading => _routing.length;
+  int get routesMissing => _routeFailures.values.where((n) => n > _routeRetries.length).length;
 
   /// points of an edge - along the roads if the matrix source is OSM (loaded in the background), else straight
   List<LatLng> edgePoints(LatLng a, LatLng b) {
     if (!scenario.usesRoads) return [a, b];
-    final key = '${scenario.travelmode}|${a.latitude},${a.longitude}|${b.latitude},${b.longitude}';
+    final mode = scenario.travelmode;
+    final key = '$mode|${a.latitude},${a.longitude}|${b.latitude},${b.longitude}';
     final r = _routes[key];
     if (r != null) return r;
-    if (_routing.add(key)) {
-      _routeQueue.add((key, a, b));
-      _runRoutes();
+    if ((_routeFailures[key] ?? 0) == 0) _queueRoute(key, a, b, mode);
+    return [a, b]; // until the course is loaded
+  }
+
+  void _queueRoute(String key, LatLng a, LatLng b, String mode) {
+    if (!_routing.add(key)) return;
+    _routeEnds[key] = (a, b, mode);
+    _routeQueue.add((key, a, b, mode));
+    _runRoutes();
+  }
+
+  /// courses given up are loaded again
+  void retryRoutes() {
+    final failed = [
+      for (final MapEntry(:key, :value) in _routeFailures.entries)
+        if (value > _routeRetries.length) key,
+    ];
+    for (final key in failed) {
+      _routeFailures.remove(key);
+      final (a, b, mode) = _routeEnds[key]!;
+      _queueRoute(key, a, b, mode);
     }
-    return [a, b];
+    notifyListeners();
   }
 
   Future<void> _runRoutes() async {
@@ -613,13 +640,25 @@ class AppState extends ChangeNotifier {
     _routeWorker = true;
     try {
       while (_routeQueue.isNotEmpty) {
-        final (key, a, b) = _routeQueue.removeAt(0);
+        final (key, a, b, mode) = _routeQueue.removeAt(0);
         try {
           final backend = await _getBackend();
-          final points = await backend.route([a, b], scenario.travelmode);
+          final points = await backend.route([a, b], mode).timeout(requestTimeout);
           _routes[key] = points.length >= 2 ? points : [a, b];
+          _routeFailures.remove(key);
+          _routing.remove(key);
         } catch (_) {
-          _routes[key] = [a, b]; // shown straight - the computing is not available
+          // not given up at once - the server may not answer or the solver restart
+          final n = (_routeFailures[key] ?? 0) + 1;
+          _routeFailures[key] = n;
+          if (n <= _routeRetries.length) {
+            Timer(_routeRetries[n - 1], () {
+              _routing.remove(key);
+              _queueRoute(key, a, b, mode);
+            });
+          } else {
+            _routing.remove(key);
+          }
         }
         notifyListeners();
       }

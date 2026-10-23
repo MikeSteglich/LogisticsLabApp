@@ -270,31 +270,40 @@ class _MapViewState extends State<MapView> {
       for (final r in n.roles)
         if (s.problemRoles.contains(r)) r,
     ];
-    final color = s.isRelevant(n) ? Ui.text : Ui.pale;
+    final relevant = s.isRelevant(n);
+    final color = relevant ? Ui.text : Ui.pale;
     // with a solution: how far the supply is shipped / the demand is met
     final use = _analysis?.use(n.id);
+    // suppliers blue, customers green - pale without a role in the problem
+    final (fill, line) = relevant
+        ? Ui.roleColors(roles.contains('customer') ? 'customer' : 'supplier')
+        : (Ui.pale, Ui.pale);
     final Widget shape;
     if (roles.contains('supplier') || roles.contains('depot')) {
       shape = use == null
           ? Container(
               width: 16,
               height: 16,
-              decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(
+                color: fill,
+                borderRadius: BorderRadius.circular(2),
+                border: Border.all(color: line, width: 1.5),
+              ),
             )
-          // green level from the bottom - full: everything shipped, empty: not used
+          // level from the bottom - full: everything shipped, empty: not used
           : Container(
               width: 16,
               height: 16,
               decoration: BoxDecoration(
                 color: Ui.surface,
                 borderRadius: BorderRadius.circular(2),
-                border: Border.all(color: use.unused ? Ui.pale : Ui.symbolLine, width: 2),
+                border: Border.all(color: use.unused ? Ui.pale : line, width: 2),
               ),
               alignment: Alignment.bottomCenter,
               child: FractionallySizedBox(
                 heightFactor: use.share ?? 1,
                 widthFactor: 1,
-                child: const ColoredBox(color: Ui.served),
+                child: ColoredBox(color: fill),
               ),
             );
     } else if (roles.contains('customer')) {
@@ -305,7 +314,7 @@ class _MapViewState extends State<MapView> {
               decoration: BoxDecoration(
                 color: Ui.surface,
                 shape: BoxShape.circle,
-                border: Border.all(color: color, width: 3),
+                border: Border.all(color: fill, width: 3.5),
               ),
             )
           // pie of the demand met - an orange ring if it is not met completely
@@ -313,8 +322,8 @@ class _MapViewState extends State<MapView> {
               size: const Size(18, 18),
               painter: _PiePainter(
                 share: use.share ?? 1,
-                fill: Ui.served,
-                ring: use.notFull ? Ui.warning : Ui.symbolLine,
+                fill: fill,
+                ring: use.notFull ? Ui.warning : line,
                 ringWidth: use.notFull ? 3 : 2,
               ),
             );
@@ -535,6 +544,32 @@ class _MapViewState extends State<MapView> {
           if (s.problem?.network != null)
             check(t('ui.layer.network'), _showNetwork, (v) => setState(() => _showNetwork = v)),
           const SizedBox(height: 4),
+          // colours of the roles of the problem
+          for (final role in s.problemRoles.where((r) => r == 'supplier' || r == 'customer'))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 22,
+                    child: Center(
+                      child: Container(
+                        width: 11,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: Ui.roleColors(role).$1,
+                          shape: role == 'customer' ? BoxShape.circle : BoxShape.rectangle,
+                          borderRadius: role == 'customer' ? null : BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(t('role.$role.plural'), style: Ui.small),
+                ],
+              ),
+            ),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -543,6 +578,29 @@ class _MapViewState extends State<MapView> {
               Text(t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'), style: Ui.small),
             ],
           ),
+          if (s.scenario.usesRoads && s.routesLoading > 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
+                  const SizedBox(width: 6),
+                  Text(t('ui.routes.loading', {'n': s.routesLoading}), style: Ui.small),
+                ],
+              ),
+            ),
+          if (s.scenario.usesRoads && s.routesMissing > 0)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  t('ui.routes.missing', {'n': s.routesMissing}),
+                  style: const TextStyle(fontSize: 12, color: Ui.warning),
+                ),
+                TextButton(onPressed: s.retryRoutes, child: Text(t('ui.routes.retry'))),
+              ],
+            ),
         ],
       ),
     );

@@ -288,7 +288,7 @@ class _NodeUsesState extends State<_NodeUses> {
                 child: LinearProgressIndicator(
                   value: share,
                   backgroundColor: Ui.border,
-                  color: u.notFull ? Ui.warning : Ui.served, // as on the map
+                  color: u.notFull ? Ui.warning : Ui.roleColors(u.role).$1, // as on the map
                 ),
               ),
             ),

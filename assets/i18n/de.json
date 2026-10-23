@@ -243,5 +243,8 @@
   "ui.sol.shipped": "geliefert",
   "ui.sol.received": "erhalten",
   "ui.sol.toPartners": "an",
-  "ui.sol.fromPartners": "von"
+  "ui.sol.fromPartners": "von",
+  "ui.routes.loading": "Straßenverlauf wird geladen … ({n})",
+  "ui.routes.missing": "{n} Kanten ohne Straßenverlauf",
+  "ui.routes.retry": "Erneut laden"
 }

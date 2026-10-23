@@ -21,8 +21,18 @@ abstract final class Ui {
   static const mapBackground = Color(0xFFE9EDF1);
   static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
   static const network = Color(0xFF6B7684); // edges of the network on the map
-  static const served = Color(0xFF3DA672); // part of the supply shipped / of the demand met (map)
-  static const symbolLine = Color(0xFF3B424B); // outline of the node symbols with a solution
+  // colours of the roles on the map: suppliers blue (not the blue of the solution lines), customers green
+  static const supplier = Color(0xFF2F6DB5);
+  static const supplierDark = Color(0xFF1F4E87);
+  static const customer = Color(0xFF3DA672);
+  static const customerDark = Color(0xFF2A7A52);
+
+  /// fill and outline of a role - other roles dark grey
+  static (Color, Color) roleColors(String role) => switch (role) {
+    'supplier' || 'depot' => (supplier, supplierDark),
+    'customer' => (customer, customerDark),
+    _ => (textMuted, text),
+  };
   static const highlight = Color(0xFFC25A0E); // connection of the solution selected in the table
   static const highlightLight = Color(0xFFFBEEE4);
 
