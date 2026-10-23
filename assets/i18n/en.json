@@ -372,5 +372,10 @@
   "ui.check.missing": "{field} missing at: {nodes}",
   "ui.check.wrong": "{field} is invalid at: {nodes}",
   "ui.check.more": "{n} more",
-  "ui.check.noNodes": "No {role} in the problem – assign the role in the nodes tab"
+  "ui.check.noNodes": "No {role} in the problem – assign the role in the nodes tab",
+  "ui.check.multipleRoles": "More than one role in the problem at: {nodes} – one role per problem",
+  "ui.check.noEdges": "The network has no edges yet – create them in the network tab",
+  "ui.check.twoNodes": "At least two active nodes are needed",
+  "ui.check.costRates": "Costs as the measure need costs per km or per hour – in the parameters tab under matrix",
+  "ui.check.nodeParam": "{field}: the node {node} does not exist or is inactive"
 }

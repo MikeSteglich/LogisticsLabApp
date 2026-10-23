@@ -372,5 +372,10 @@
   "ui.check.missing": "Falta {field} en: {nodes}",
   "ui.check.wrong": "{field} no es válido en: {nodes}",
   "ui.check.more": "{n} más",
-  "ui.check.noNodes": "No hay {role} en el problema – asigne el rol en la pestaña de nodos"
+  "ui.check.noNodes": "No hay {role} en el problema – asigne el rol en la pestaña de nodos",
+  "ui.check.multipleRoles": "Más de un rol en el problema en: {nodes} – un solo rol por problema",
+  "ui.check.noEdges": "La red aún no tiene aristas – créelas en la pestaña de red",
+  "ui.check.twoNodes": "Se necesitan al menos dos nodos activos",
+  "ui.check.costRates": "Los costes como medida necesitan costes por km o por hora – en la pestaña de parámetros, matriz",
+  "ui.check.nodeParam": "{field}: el nodo {node} no existe o está inactivo"
 }

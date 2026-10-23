@@ -5,7 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter/material.dart';
 import 'package:logisticslab_app/app_state.dart';
+import 'package:logisticslab_app/main.dart';
+import 'package:logisticslab_app/ui/map_view.dart';
+import 'dart:io';
 import 'package:logisticslab_app/model/scenario.dart';
 
 void main() {
@@ -39,5 +43,32 @@ void main() {
     expect(state.nodeProblems, ['Angebot ist ungültig bei: Werk']);
     state.edit(() => state.scenario.node('N1')!['supply'] = 10);
     expect(state.nodeProblems, isEmpty);
+  });
+
+  testWidgets('one role per problem - the roles of other problems stay', (tester) async {
+    MapView.showTiles = false;
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    tester.view.physicalSize = const Size(1440, 1200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = (await tester.runAsync(AppState.create))!;
+    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
+    state.scenario.matrix['matrixSource'] = 'beeline';
+    state.selectNode('D1'); // candidate, depot, transit - no role of the tpp
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    final d1 = state.scenario.node('D1')!;
+    final mask = find.byType(FilterChip);
+    await tester.tap(find.descendant(of: mask, matching: find.text('Anbieter')).last);
+    await tester.pump();
+    expect(d1.roles, containsAll(['supplier', 'candidate', 'depot', 'transit']));
+    await tester.tap(find.descendant(of: mask, matching: find.text('Nachfrager')).last);
+    await tester.pump();
+    expect(d1.roles, contains('customer'));
+    expect(d1.roles, isNot(contains('supplier'))); // replaced
+    expect(d1.roles, containsAll(['candidate', 'depot', 'transit'])); // other problems
+    // two roles of the problem, e.g. from an old file: checked before solving
+    state.edit(() => d1.roles = [...d1.roles, 'supplier']);
+    expect(state.nodeProblems, contains(startsWith('Mehr als eine Rolle im Problem bei: Lager Wildau')));
   });
 }

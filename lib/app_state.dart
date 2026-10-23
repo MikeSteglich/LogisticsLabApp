@@ -288,6 +288,24 @@ class AppState extends ChangeNotifier {
       if (nodes.length > 5) strings('ui.check.more', {'n': nodes.length - 5}),
     ].join(', ');
     final out = <String>[];
+    // data of the scenario the problem needs
+    if (s.usesCommodities && scenario.commodities.isEmpty) out.add(strings('ui.commodities.none'));
+    if (s.usesModes && scenario.modes.isEmpty) out.add(strings('ui.modes.none'));
+    if (s.network == NetworkUse.required && network != null && network!.edges.isEmpty) {
+      out.add(strings('ui.check.noEdges'));
+    }
+    if (s.allNodes && scenario.nodes.where((n) => n.active).length < 2) out.add(strings('ui.check.twoNodes'));
+    final matrix = scenario.matrix;
+    if (p.parameters['matrixMode'] == 'costs' && matrix['costPerKm'] == null && matrix['costPerHour'] == null) {
+      out.add(strings('ui.check.costRates'));
+    }
+    // nodes of the parameters (start, end, source, sink): active nodes of the scenario
+    for (final f in s.visibleParameters(p.parameters).where((f) => f.kind == FieldKind.node)) {
+      final id = p.parameters[f.key];
+      if (id == null) continue; // required: checked with the parameters
+      final n = scenario.node('$id');
+      if (n == null || !n.active) out.add(strings('ui.check.nodeParam', {'field': strings(f.label), 'node': '$id'}));
+    }
     for (final r in s.activeRoles(p.parameters)) {
       final role = s.nodeRole(r, p.parameters);
       final nodes = [
@@ -297,6 +315,15 @@ class AppState extends ChangeNotifier {
       if (nodes.isEmpty) {
         out.add(strings('ui.check.noNodes', {'role': strings('role.$role.plural')}));
         continue;
+      }
+      // one role per problem - a node with two of them (e.g. from an old file)
+      if (r == s.activeRoles(p.parameters).first) {
+        final roles = problemRoles;
+        final multiple = [
+          for (final n in scenario.nodes)
+            if (n.active && n.roles.where(roles.contains).length > 1) n,
+        ];
+        if (multiple.isNotEmpty) out.add(strings('ui.check.multipleRoles', {'nodes': names(multiple)}));
       }
       for (final f in r.nodeFields.where((f) => f.isVisible(p.parameters))) {
         final missing = [

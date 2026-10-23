@@ -372,5 +372,10 @@
   "ui.check.missing": "{field} manque pour : {nodes}",
   "ui.check.wrong": "{field} n’est pas valide pour : {nodes}",
   "ui.check.more": "{n} autres",
-  "ui.check.noNodes": "Aucun(e) {role} dans le problème – attribuez le rôle dans l’onglet nœuds"
+  "ui.check.noNodes": "Aucun(e) {role} dans le problème – attribuez le rôle dans l’onglet nœuds",
+  "ui.check.multipleRoles": "Plus d’un rôle dans le problème pour : {nodes} – un seul rôle par problème",
+  "ui.check.noEdges": "Le réseau n’a pas encore d’arcs – créez-les dans l’onglet réseau",
+  "ui.check.twoNodes": "Il faut au moins deux nœuds actifs",
+  "ui.check.costRates": "Les coûts comme mesure exigent des coûts par km ou par heure – onglet paramètres, matrice",
+  "ui.check.nodeParam": "{field} : le nœud {node} n’existe pas ou est inactif"
 }
