@@ -191,8 +191,10 @@ class AppState extends ChangeNotifier {
 
   int? selectedFlow; // index in the connections (assignments) of the solution - highlighted on the map
 
-  void selectFlow(int? i) {
+  /// [showTab]: chosen on the map - the solution tab shows the connection
+  void selectFlow(int? i, {bool showTab = false}) {
     selectedFlow = i == selectedFlow ? null : i; // a second tap removes the highlight
+    if (showTab && selectedFlow != null) tab = DataTab.solution;
     if (selectedFlow != null) selectedEdge = null; // only one highlight on the map
     notifyListeners();
   }
@@ -283,8 +285,10 @@ class AppState extends ChangeNotifier {
     });
   }
 
-  void selectEdge(int? i) {
+  /// [showTab]: chosen on the map - the network tab shows the edge in its mask
+  void selectEdge(int? i, {bool showTab = false}) {
     selectedEdge = i;
+    if (showTab && i != null) tab = DataTab.network;
     if (i != null) selectedFlow = null; // only one highlight on the map
     notifyListeners();
   }

@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 
 import '../app_state.dart';
 import '../model/scenario.dart';
+import '../modules/modules.dart';
 import 'theme.dart';
 
 class MapView extends StatefulWidget {
@@ -27,6 +28,10 @@ class _MapViewState extends State<MapView> {
   bool _showSolution = true;
   bool _showNetwork = true;
   bool _showLabels = true;
+
+  // edge under the mouse - index in the edges of the network or in the connections of the solution
+  final _edgeHit = LayerHitNotifier<int>(null);
+  final _flowHit = LayerHitNotifier<int>(null);
   bool _ready = false;
   int _fitted = -1; // AppState.geometry of the last fit
   Timer? _fitTimer;
@@ -35,6 +40,8 @@ class _MapViewState extends State<MapView> {
 
   @override
   void dispose() {
+    _edgeHit.dispose();
+    _flowHit.dispose();
     _fitTimer?.cancel();
     super.dispose();
   }
@@ -79,8 +86,18 @@ class _MapViewState extends State<MapView> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'de.th-wildau.logisticslab',
               ),
-            if (_showNetwork) PolylineLayer(polylines: _networkLines()),
-            if (_showSolution) PolylineLayer(polylines: _solutionLines()),
+            if (_showNetwork)
+              _hitLayer(
+                PolylineLayer<int>(polylines: _networkLines(), hitNotifier: _edgeHit, minimumHitbox: 12),
+                _edgeHit,
+                (i) => s.selectEdge(i, showTab: true),
+              ),
+            if (_showSolution)
+              _hitLayer(
+                PolylineLayer<int>(polylines: _solutionLines(), hitNotifier: _flowHit, minimumHitbox: 12),
+                _flowHit,
+                (i) => s.selectFlow(i, showTab: true),
+              ),
             if (_showLabels) _LabelLayer(labels: _labels(), obstacles: [for (final n in nodes) n.position]),
             MarkerLayer(markers: [for (final n in nodes) _symbol(n)], rotate: false),
             RichAttributionWidget(
@@ -95,6 +112,7 @@ class _MapViewState extends State<MapView> {
           right: 220,
           child: Align(alignment: Alignment.topLeft, child: _tools()),
         ),
+        _hoverCard(),
         Positioned(top: 12, right: 12, child: _layers()),
         Positioned(bottom: 36, right: 12, child: _zoom()),
       ],
@@ -138,7 +156,7 @@ class _MapViewState extends State<MapView> {
 
   //*********** layers ************
 
-  List<Polyline> _networkLines() {
+  List<Polyline<int>> _networkLines() {
     final net = s.network;
     if (net == null) return const [];
     final edges = net.edges;
@@ -154,6 +172,7 @@ class _MapViewState extends State<MapView> {
           if (s.scenario.node(edges[i].to) case final b?)
             i == s.selectedEdge
                 ? Polyline(
+                    hitValue: i,
                     points: s.edgePoints(a.position, b.position),
                     color: Ui.accent,
                     strokeWidth: 5,
@@ -162,6 +181,7 @@ class _MapViewState extends State<MapView> {
                   )
                 : Polyline(
                     // solid - dashes of overlapping edges merge into solid lines; light grey beside the solution
+                    hitValue: i,
                     points: s.edgePoints(a.position, b.position),
                     color: Ui.network,
                     strokeWidth: 3.5,
@@ -174,7 +194,7 @@ class _MapViewState extends State<MapView> {
   }
 
   /// connections of the solution - the selected one last, so that it is drawn on top
-  List<({List<LatLng> points, num flow, bool selected})> _flows() {
+  List<_Flow> _flows() {
     final res = s.solution?.results;
     final list = res?['assignments'] as List?;
     if (list == null) return const [];
@@ -182,16 +202,22 @@ class _MapViewState extends State<MapView> {
       for (final (i, a) in list.cast<Map<String, dynamic>>().indexed)
         if (s.scenario.node(a['from'] as String) case final from?)
           if (s.scenario.node(a['to'] as String) case final to?)
-            (points: s.edgePoints(from.position, to.position), flow: a['flow'] as num, selected: i == s.selectedFlow),
+            (
+              index: i,
+              points: s.edgePoints(from.position, to.position),
+              flow: a['flow'] as num,
+              selected: i == s.selectedFlow,
+            ),
     ];
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
   }
 
-  List<Polyline> _solutionLines() {
+  List<Polyline<int>> _solutionLines() {
     final stale = s.solutionIsStale;
     return [
       for (final f in _flows())
         Polyline(
+          hitValue: f.index,
           points: f.points,
           // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
           color: f.selected ? Ui.highlight : (stale ? Ui.accent.withValues(alpha: 0.4) : Ui.accent),
@@ -207,8 +233,8 @@ class _MapViewState extends State<MapView> {
   List<_Label> _labels() {
     final nodes = s.scenario.nodes;
     final selected = nodes.where((n) => n.id == s.selectedNode);
-    final flows = _showSolution ? _flows() : const <({List<LatLng> points, num flow, bool selected})>[];
-    _Label flowLabel(({List<LatLng> points, num flow, bool selected}) f) => _Label(
+    final flows = _showSolution ? _flows() : const <_Flow>[];
+    _Label flowLabel(_Flow f) => _Label(
       f.points[f.points.length ~/ 2],
       s.strings.number(f.flow),
       const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: Ui.tabular),
@@ -302,6 +328,104 @@ class _MapViewState extends State<MapView> {
           ),
         ),
       ),
+    );
+  }
+
+  //*********** edges under the mouse ************
+
+  /// layer whose lines react to the mouse: the pointer becomes a hand, a tap selects the line
+  Widget _hitLayer(Widget layer, LayerHitNotifier<int> hit, void Function(int) select) => MouseRegion(
+    cursor: SystemMouseCursors.click,
+    hitTestBehavior: HitTestBehavior.deferToChild, // only over a line - the map stays movable
+    onExit: (_) => hit.value = null,
+    child: GestureDetector(
+      behavior: HitTestBehavior.deferToChild,
+      onTap: () {
+        final h = hit.value;
+        if (h != null && h.hitValues.isNotEmpty) select(h.hitValues.first);
+      },
+      child: layer,
+    ),
+  );
+
+  /// card at the mouse with the line under it - a connection of the solution has priority over an edge
+  Widget _hoverCard() => ValueListenableBuilder(
+    valueListenable: _flowHit,
+    builder: (context, flowHit, _) => ValueListenableBuilder(
+      valueListenable: _edgeHit,
+      builder: (context, edgeHit, _) {
+        final hit = flowHit ?? edgeHit;
+        if (hit == null || hit.hitValues.isEmpty) return const SizedBox.shrink();
+        final lines = flowHit != null ? _flowInfo(hit.hitValues.first) : _edgeInfo(hit.hitValues.first);
+        if (lines == null) return const SizedBox.shrink();
+        return Positioned(
+          left: hit.point.dx + 14,
+          top: hit.point.dy + 14,
+          child: IgnorePointer(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 320),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: Ui.surface,
+                borderRadius: BorderRadius.circular(Ui.radius),
+                border: Border.all(color: Ui.border),
+                boxShadow: const [BoxShadow(color: Color(0x22000000), blurRadius: 8, offset: Offset(0, 2))],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(lines.$1, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  if (lines.$2.isNotEmpty)
+                    Text(
+                      lines.$2,
+                      style: const TextStyle(fontSize: 12, color: Ui.textMuted, fontFeatures: Ui.tabular),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  );
+
+  String _name(String id) => s.scenario.node(id)?.name ?? id;
+
+  /// title and values of a connection of the solution
+  (String, String)? _flowInfo(int i) {
+    final list = s.solution?.results?['assignments'] as List?;
+    if (list == null || i >= list.length) return null;
+    final a = list[i] as Map<String, dynamic>;
+    final t = s.strings;
+    final flow = a['flow'] as num, rate = a['rate'] as num?;
+    return (
+      '${_name('${a['from']}')} → ${_name('${a['to']}')}',
+      [
+        '${t('result.flow')} ${t.number(flow)}',
+        if (rate != null) '${t('result.rate')} ${t.fixed(rate, 2)}',
+        if (rate != null) '${t('ui.sol.costs')} ${t.fixed(flow * rate, 2)}',
+      ].join(' · '),
+    );
+  }
+
+  /// title and values of an edge of the network - with the quantity of the solution if it is used
+  (String, String)? _edgeInfo(int i) {
+    final net = s.network;
+    if (net == null || i >= net.edges.length) return null;
+    final e = net.edges[i];
+    final t = s.strings;
+    String value(Object? v) => v == null ? '–' : (v == 'M' ? '∞' : (v is num ? t.number(v) : '$v'));
+    final flows = (s.solution?.results?['assignments'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    final used = flows.where(
+      (a) => (a['from'] == e.from && a['to'] == e.to) || (!net.directed && a['from'] == e.to && a['to'] == e.from),
+    );
+    return (
+      '${_name(e.from)} ${net.directed ? '→' : '↔'} ${_name(e.to)}',
+      [
+        for (final f in s.spec?.edgeFields ?? const <FieldSpec>[]) '${t(f.label)} ${value(e[f.key])}',
+        if (used.isNotEmpty) '${t('result.flow')} ${t.number(used.first['flow'] as num)}',
+      ].join(' · '),
     );
   }
 
@@ -533,3 +657,5 @@ class _LabelLayer extends StatelessWidget {
     return MarkerLayer(markers: shown, rotate: false);
   }
 }
+
+typedef _Flow = ({int index, List<LatLng> points, num flow, bool selected});

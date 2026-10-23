@@ -46,7 +46,7 @@ void main() {
     await tester.pump();
 
     List<Polyline> orange() => [
-      for (final l in tester.widgetList<PolylineLayer>(find.byType(PolylineLayer)))
+      for (final l in tester.widgetList<PolylineLayer>(find.byWidgetPredicate((w) => w is PolylineLayer)))
         for (final p in l.polylines)
           if (p.color == Ui.highlight) p,
     ];
