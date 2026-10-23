@@ -80,7 +80,8 @@ class LocalBackend implements Backend {
         final e = msg['error'];
         final data = e['data'];
         final status = data is Map && data['httpStatus'] is int ? data['httpStatus'] as int : 500;
-        completer?.completeError(BackendException(status, '${e['message']}'));
+        // -32601: unknown method - the solver is older than the app
+        completer?.completeError(BackendException(status, '${e['message']}', outdated: e['code'] == -32601));
       } else {
         completer?.complete(msg['result']);
       }

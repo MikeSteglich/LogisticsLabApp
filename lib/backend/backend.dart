@@ -12,7 +12,11 @@ import 'backend_remote.dart';
 class BackendException implements Exception {
   final int httpStatus;
   final String message;
-  BackendException(this.httpStatus, this.message);
+
+  /// the solver or server is older than the app and does not know the request (e.g. convert)
+  final bool outdated;
+
+  BackendException(this.httpStatus, this.message, {this.outdated = false});
 
   @override
   String toString() => message;

@@ -43,10 +43,14 @@ class RemoteBackend implements Backend {
 
   static String _message(Map<String, dynamic> b) => '${b['message'] ?? b['detail'] ?? b}';
 
+  /// error of a request - an unknown endpoint (404 Not Found of FastAPI) means a server older than the app
+  static BackendException _error(int code, Map<String, dynamic> b) =>
+      BackendException(code, _message(b), outdated: code == 404 && b['detail'] == 'Not Found');
+
   @override
   Future<ProblemAnswer> solveScenario(Map<String, dynamic> scenario, String problem, {StatusCallback? onStatus}) async {
     final (code, body) = await _post('scenario', {'scenario': scenario, 'problem': problem});
-    if (code != 200) throw BackendException(code, _message(body));
+    if (code != 200) throw _error(code, body);
     final id = body['id'] as String;
     String? lastStatus;
     while (true) {
@@ -79,21 +83,21 @@ class RemoteBackend implements Backend {
       ],
       'travelmode': travelmode,
     });
-    if (code != 200) throw BackendException(code, _message(body));
+    if (code != 200) throw _error(code, body);
     return [for (final c in body['route'] as List) LatLng((c[0] as num).toDouble(), (c[1] as num).toDouble())];
   }
 
   @override
   Future<List<GeoHit>> geocode(String address, {LatLng? near, int limit = 5}) async {
     final (code, body) = await _post('coordinates', GeoHit.request(address, near, limit));
-    if (code != 200) throw BackendException(code, _message(body));
+    if (code != 200) throw _error(code, body);
     return GeoHit.fromAnswer(body);
   }
 
   @override
   Future<(Map<String, dynamic>, String)> convert(String fileName, String content) async {
     final (code, body) = await _post('convert', {'fileName': fileName, 'content': content});
-    if (code != 200) throw BackendException(code, _message(body));
+    if (code != 200) throw _error(code, body);
     return (body['scenario'] as Map<String, dynamic>, body['fileName'] as String);
   }
 

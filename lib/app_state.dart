@@ -451,6 +451,8 @@ class AppState extends ChangeNotifier {
         if (problemName == name) tab = DataTab.solution;
       }
       message = answer.status == 'solution' ? null : '${strings('ui.status.${answer.status}')}: ${answer.message}';
+    } on BackendException catch (e) {
+      message = e.outdated ? strings('ui.error.outdated') : '${strings('ui.status.error')}: $e';
     } catch (e) {
       message = '${strings('ui.status.error')}: $e';
     } finally {

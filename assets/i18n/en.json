@@ -222,5 +222,6 @@
   "ui.node.deleteRefs": "Deleting the node removes these references.",
   "ui.import": "Import old LogisticsLab file …",
   "ui.imported": "Imported: {file} – not saved yet",
-  "ui.error.import": "{file} cannot be imported: {msg}"
+  "ui.error.import": "{file} cannot be imported: {msg}",
+  "ui.error.outdated": "The solver is older than the app and does not know this function. Please update the solver (Settings → Computing) or reinstall the app."
 }

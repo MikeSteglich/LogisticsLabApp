@@ -222,5 +222,6 @@
   "ui.node.deleteRefs": "Beim Löschen werden diese Verweise entfernt.",
   "ui.import": "Alte LogisticsLab-Datei importieren …",
   "ui.imported": "Importiert: {file} – noch nicht gespeichert",
-  "ui.error.import": "{file} kann nicht importiert werden: {msg}"
+  "ui.error.import": "{file} kann nicht importiert werden: {msg}",
+  "ui.error.outdated": "Der Rechenkern ist älter als die App und kennt diese Funktion nicht. Bitte den Rechenkern aktualisieren (Einstellungen → Rechnen) bzw. die App neu installieren."
 }

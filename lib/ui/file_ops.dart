@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import '../app_state.dart';
+import '../backend/backend.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
 
@@ -103,6 +104,8 @@ class FileOps {
     try {
       await state.importOld(file.name, text);
       _snack(t('ui.imported', {'file': file.name}));
+    } on BackendException catch (e) {
+      _snack(e.outdated ? t('ui.error.outdated') : t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     } catch (e) {
       _snack(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     }
