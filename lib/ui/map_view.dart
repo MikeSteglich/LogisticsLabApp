@@ -219,11 +219,9 @@ class _MapViewState extends State<MapView> {
 
   /// connections of the solution - the selected one last, so that it is drawn on top
   List<_Flow> _flows() {
-    final res = s.solution?.results;
-    final list = res?['assignments'] as List?;
-    if (list == null) return const [];
+    final list = s.connections;
     final flows = [
-      for (final (i, a) in list.cast<Map<String, dynamic>>().indexed)
+      for (final (i, a) in list.indexed)
         if (s.scenario.node(a['from'] as String) case final from?)
           if (s.scenario.node(a['to'] as String) case final to?)
             (
@@ -295,9 +293,16 @@ class _MapViewState extends State<MapView> {
     // with a solution: how far the supply is shipped / the demand is met
     final use = _analysis?.use(n.id);
     // suppliers blue, customers green - pale without a role in the problem
-    final (fill, line) = relevant
-        ? Ui.roleColors(roles.contains('customer') ? 'customer' : 'supplier')
-        : (Ui.pale, Ui.pale);
+    final role = roles.contains('customer')
+        ? 'customer'
+        : roles.contains('candidate')
+        ? 'candidate'
+        : roles.isEmpty
+        ? 'transit'
+        : 'supplier';
+    final (fill, line) = relevant ? Ui.roleColors(role) : (Ui.pale, Ui.pale);
+    // warehouse of a multi-stage WLP: open or closed in the solution
+    final open = _showSolution ? s.openNodes[n.id] : null;
     final Widget shape;
     if (roles.contains('supplier') || roles.contains('depot')) {
       shape = use == null
@@ -348,14 +353,19 @@ class _MapViewState extends State<MapView> {
               ),
             );
     } else {
+      // candidates (warehouses) violet - filled if open in the solution; other nodes (transit) grey
+      final isCandidate = role == 'candidate' && relevant;
       shape = Transform.rotate(
         angle: 0.785,
         child: Container(
           width: 14,
           height: 14,
           decoration: BoxDecoration(
-            color: Ui.mapBackground,
-            border: Border.all(color: color, width: 3),
+            color: isCandidate && open == true ? fill : Ui.mapBackground,
+            border: Border.all(
+              color: isCandidate ? (open == false ? Ui.pale : line) : (relevant ? Ui.textMuted : color),
+              width: 3,
+            ),
           ),
         ),
       );
@@ -491,17 +501,19 @@ class _MapViewState extends State<MapView> {
 
   /// title and values of a connection of the solution
   (String, String)? _flowInfo(int i) {
-    final list = s.solution?.results?['assignments'] as List?;
-    if (list == null || i >= list.length) return null;
-    final a = list[i] as Map<String, dynamic>;
+    final list = s.connections;
+    if (i >= list.length) return null;
+    final a = list[i];
     final t = s.strings;
     final flow = a['flow'] as num, rate = a['rate'] as num?;
+    final split = s.split(a);
     return (
       '${_name('${a['from']}')} → ${_name('${a['to']}')}',
       [
         '${t('result.flow')} ${t.number(flow)}',
         if (rate != null) '${t('result.rate')} ${t.fixed(rate, 2)}',
         if (rate != null) '${t('ui.sol.costs')} ${t.fixed(flow * rate, 2)}',
+        if (split.isNotEmpty) split,
       ].join(' · '),
     );
   }
@@ -512,8 +524,8 @@ class _MapViewState extends State<MapView> {
     if (net == null || i >= net.edges.length) return null;
     final e = net.edges[i];
     final t = s.strings;
-    String value(Object? v) => v == null ? '–' : (v == 'M' ? '∞' : (v is num ? t.number(v) : '$v'));
-    final flows = (s.solution?.results?['assignments'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    String value(Object? v) => s.fieldText(v) ?? '–';
+    final flows = s.connections;
     final used = flows.where(
       (a) => (a['from'] == e.from && a['to'] == e.to) || (!net.directed && a['from'] == e.to && a['to'] == e.from),
     );
@@ -613,7 +625,7 @@ class _MapViewState extends State<MapView> {
   /// slim legend at the bottom: colours of the roles, course of the edges, roads being loaded or missing
   Widget _legend() {
     final t = s.strings;
-    final roles = s.problemRoles.where((r) => r == 'supplier' || r == 'customer');
+    final roles = s.problemRoles.where((r) => r == 'supplier' || r == 'candidate' || r == 'customer');
     Widget item(Widget mark, String text, {Color color = Ui.textMuted}) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -644,6 +656,8 @@ class _MapViewState extends State<MapView> {
                   shape: role == 'customer' ? BoxShape.circle : BoxShape.rectangle,
                   borderRadius: role == 'customer' ? null : BorderRadius.circular(1.5),
                 ),
+                transform: role == 'candidate' ? Matrix4.rotationZ(0.785) : null,
+                transformAlignment: Alignment.center,
               ),
               t('role.$role.plural'),
             ),

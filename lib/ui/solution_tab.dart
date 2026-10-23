@@ -27,7 +27,11 @@ class SolutionTab extends StatelessWidget {
     }
     final res = sol.results;
     final summary = (res?['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
-    final assignments = ((res?['assignments'] as List?) ?? const []).cast<Map<String, dynamic>>();
+    final assignments = s.connections;
+    // cost rates: tpp, min cost flow, multi-stage WLP - split per commodity or mode: multicommodity, multimodal
+    final withRates = assignments.any((a) => a['rate'] != null);
+    final withSplit = assignments.any((a) => a['flows'] != null || a['modes'] != null);
+    final open = s.openNodes;
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
     // unit of the objective and the costs: costs (€) or the unit of distances / times (matrixMode)
     final valueUnit = sol.document['valueUnit'] as String?;
@@ -133,7 +137,7 @@ class SolutionTab extends StatelessWidget {
                 runSpacing: 10,
                 children: [
                   for (final col in spec.summary)
-                    if (summary[col.key] case final num v)
+                    if ((col.key == 'objVal' ? res['objVal'] : summary[col.key]) case final num v)
                       card(
                         w,
                         t(col.label),
@@ -159,32 +163,55 @@ class SolutionTab extends StatelessWidget {
           Section(
             padding: EdgeInsets.zero,
             child: Table(
-              columnWidths: const {
-                0: FlexColumnWidth(3),
-                1: FlexColumnWidth(3),
-                2: FlexColumnWidth(2),
-                3: FlexColumnWidth(2),
-                4: FlexColumnWidth(2),
+              columnWidths: {
+                0: const FlexColumnWidth(3),
+                1: const FlexColumnWidth(3),
+                if (withSplit) 2: const FlexColumnWidth(4),
               },
+              defaultColumnWidth: const FlexColumnWidth(2),
               children: [
-                _row([
+                _row(numericFrom: withSplit ? 3 : 2, header: true, [
                   t('ui.sol.from'),
                   t('ui.sol.to'),
+                  if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
                   t('result.flow'),
-                  t('result.rate'),
-                  t('ui.sol.costs'),
-                ], header: true),
+                  if (withRates) ...[t('result.rate'), t('ui.sol.costs')],
+                ]),
                 for (final (i, a) in assignments.indexed)
-                  _row(selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
+                  _row(numericFrom: withSplit ? 3 : 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
                     name(a['from']),
                     name(a['to']),
+                    if (withSplit) s.split(a),
                     t.number(a['flow'] as num),
-                    t.fixed(a['rate'] as num, 2),
-                    t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
+                    if (withRates) ...[
+                      a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
+                      a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
+                    ],
                   ]),
               ],
             ),
           ),
+          // warehouses of a multi-stage WLP
+          if (open.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Text(t('ui.sol.open'), style: Ui.title),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final MapEntry(:key, :value) in open.entries)
+                  Chip(
+                    avatar: Icon(
+                      value ? Icons.check_circle : Icons.cancel_outlined,
+                      size: 16,
+                      color: value ? Ui.ok : Ui.pale,
+                    ),
+                    label: Text('${name(key)} · ${t(value ? 'ui.sol.isOpen' : 'ui.sol.isClosed')}'),
+                  ),
+              ],
+            ),
+          ],
           if (analysis != null) ...[
             const SizedBox(height: 20),
             Text(t('ui.tab.nodes'), style: Ui.title),
@@ -209,37 +236,42 @@ class SolutionTab extends StatelessWidget {
   }
 
   /// row of the connections - a tap highlights the connection on the map (orange)
-  static TableRow _row(List<String> cells, {bool header = false, bool selected = false, VoidCallback? onTap}) =>
-      TableRow(
-        decoration: BoxDecoration(
-          color: header ? Ui.surfaceAlt : (selected ? Ui.highlightLight : null),
-          border: header
-              ? null
-              : Border(
-                  top: const BorderSide(color: Color(0xFFEEF0F3)),
-                  left: BorderSide(color: selected ? Ui.highlight : Colors.transparent, width: 3),
-                ),
-        ),
-        children: [
-          for (final (i, c) in cells.indexed)
-            TableRowInkWell(
-              onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                child: Text(
-                  c,
-                  textAlign: i >= 2 ? TextAlign.right : TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: header || selected ? FontWeight.w600 : FontWeight.w400,
-                    color: header ? Ui.textSecondary : (selected ? Ui.highlight : Ui.text),
-                    fontFeatures: Ui.tabular,
-                  ),
-                ),
+  static TableRow _row(
+    List<String> cells, {
+    bool header = false,
+    bool selected = false,
+    VoidCallback? onTap,
+    int numericFrom = 2, // first column with numbers - right aligned
+  }) => TableRow(
+    decoration: BoxDecoration(
+      color: header ? Ui.surfaceAlt : (selected ? Ui.highlightLight : null),
+      border: header
+          ? null
+          : Border(
+              top: const BorderSide(color: Color(0xFFEEF0F3)),
+              left: BorderSide(color: selected ? Ui.highlight : Colors.transparent, width: 3),
+            ),
+    ),
+    children: [
+      for (final (i, c) in cells.indexed)
+        TableRowInkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+            child: Text(
+              c,
+              textAlign: i >= numericFrom ? TextAlign.right : TextAlign.left,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: header || selected ? FontWeight.w600 : FontWeight.w400,
+                color: header ? Ui.textSecondary : (selected ? Ui.highlight : Ui.text),
+                fontFeatures: Ui.tabular,
               ),
             ),
-        ],
-      );
+          ),
+        ),
+    ],
+  );
 }
 
 /// The nodes in the solution: target, actual quantity, share and partners - with a filter, e.g. demand not met.

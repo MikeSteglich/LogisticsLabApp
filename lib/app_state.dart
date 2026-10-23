@@ -130,7 +130,53 @@ class AppState extends ChangeNotifier {
   List<String> get problemRoles => spec?.problemRoles(problem?.parameters ?? const {}) ?? nodeRoles;
 
   /// active and with a role in the problem - other nodes are pale in the list and on the map
-  bool isRelevant(Node n) => n.active && n.roles.any(problemRoles.contains);
+  bool isRelevant(Node n) =>
+      n.active && (n.roles.any(problemRoles.contains) || (spec?.network == NetworkUse.required && _inNetwork(n.id)));
+
+  /// node of the network of the problem - network flows use every node of it, also transit nodes
+  bool _inNetwork(String id) => network?.edges.any((e) => e.from == id || e.to == id) ?? false;
+
+  /// split of a connection per commodity (multicommodity: flows) or mode (multimodal: modes) - "Bahn 75", empty
+  /// without split
+  String split(Map<String, dynamic> connection) {
+    String part(String key, List<Map<String, dynamic>> records) {
+      final values = (connection[key] as Map?)?.cast<String, dynamic>() ?? const {};
+      return [
+        for (final MapEntry(:key, :value) in values.entries)
+          '${Scenario.recordName(records.firstWhere((r) => r['id'] == key, orElse: () => {'id': key}))} ${strings.number(value as num)}',
+      ].join(' · ');
+    }
+
+    return [part('flows', scenario.commodities), part('modes', scenario.modes)].where((p) => p.isNotEmpty).join(' · ');
+  }
+
+  /// value of a field as text - numbers, 'M' (unlimited), values per commodity (sum), modes (names); null: empty
+  String? fieldText(Object? v) {
+    if (v == null) return null;
+    if (v == 'M') return '∞';
+    if (v is num) return strings.number(v);
+    if (v is Map) {
+      // modes of an edge: their names; values per commodity: the sum
+      if (v.values.every((x) => x is Map)) {
+        return [
+          for (final id in v.keys)
+            Scenario.recordName(scenario.modes.firstWhere((m) => m['id'] == id, orElse: () => {'id': id})),
+        ].join(', ');
+      }
+      final sum = SolutionAnalysis.total(v);
+      return sum == null ? null : strings.number(sum);
+    }
+    return '$v';
+  }
+
+  /// warehouses of the solution (multistagewlp): id -> open
+  Map<String, bool> get openNodes => {
+    for (final MapEntry(:key, :value) in ((solution?.results?['nodes'] as Map?) ?? const {}).entries)
+      if ((value as Map)['open'] != null) key as String: value['open'] == 1,
+  };
+
+  /// connections of the solution of the problem - tpp: assignments, network flows: edges
+  List<Map<String, dynamic>> get connections => SolutionAnalysis.connectionsOf(solution?.results);
 
   /// how the nodes are served in the solution of the problem (shares, partners) - null without solution
   SolutionAnalysis? get analysis =>
@@ -470,6 +516,17 @@ class AppState extends ChangeNotifier {
     if (p == null || solving) return;
     final name = p.name;
     final rev = revision;
+    // checks of the app - the core would refuse the problem
+    final missing = [
+      if (spec?.network == NetworkUse.required && network == null) strings('ui.net.required'),
+      for (final e in spec?.validateParameters(p.parameters) ?? const <Message>[]) strings.message(e),
+    ];
+    if (missing.isNotEmpty) {
+      message = missing.join('\n');
+      lastResult = 'error';
+      notifyListeners();
+      return;
+    }
     // the data at the start - edits while solving do not reach the solver, they make the solution stale
     final data = jsonDecode(jsonEncode(scenario.json)) as Map<String, dynamic>;
     message = null;

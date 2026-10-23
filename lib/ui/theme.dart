@@ -26,11 +26,14 @@ abstract final class Ui {
   static const supplierDark = Color(0xFF1F4E87);
   static const customer = Color(0xFF3DA672);
   static const customerDark = Color(0xFF2A7A52);
+  static const candidate = Color(0xFF7B5CC4); // warehouses, candidates for locations
+  static const candidateDark = Color(0xFF5B3FA0);
 
   /// fill and outline of a role - other roles dark grey
   static (Color, Color) roleColors(String role) => switch (role) {
     'supplier' || 'depot' => (supplier, supplierDark),
     'customer' => (customer, customerDark),
+    'candidate' => (candidate, candidateDark),
     _ => (textMuted, text),
   };
   static const highlight = Color(0xFFC25A0E); // connection of the solution selected in the table

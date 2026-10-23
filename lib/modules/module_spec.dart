@@ -23,6 +23,9 @@ enum FieldKind {
   boolean,
   choice,
   text,
+  node, // id of a node of the scenario, e.g. source of a max flow
+  commodities, // a number per commodity of the scenario, e.g. supplies of a multi-commodity flow
+  modes, // modes allowed at an edge (multimodal) - null: all modes of the scenario
 }
 
 /// Text to be shown in the language of the UI - key with arguments, e.g. error.min with {label} and {min}.
@@ -87,8 +90,10 @@ class FieldSpec {
         return value is bool ? null : Message('error.boolean', {'label': label});
       case FieldKind.choice:
         return choices.contains(value) ? null : Message('error.choice', {'label': label, 'value': value});
-      case FieldKind.text:
+      case FieldKind.text || FieldKind.node:
         return value is String ? null : Message('error.text', {'label': label});
+      case FieldKind.commodities || FieldKind.modes:
+        return value is Map ? null : Message('error.text', {'label': label});
     }
   }
 
@@ -113,11 +118,12 @@ enum NetworkUse { none, optional, required }
 
 /// Column of a result table - key is the field in the llsol file, label `result.<key>.`
 class ResultColumn {
-  final String key;
+  final String key; // key in results.summary - objVal: the objective value of the results
   final String? unit;
-  const ResultColumn(this.key, {this.unit});
+  final String? labelKey; // default result.<key>
+  const ResultColumn(this.key, {this.unit, this.labelKey});
 
-  String get label => 'result.$key';
+  String get label => labelKey ?? 'result.$key';
 }
 
 class ModuleSpec {
@@ -131,6 +137,9 @@ class ModuleSpec {
   final List<ResultColumn> summary;
   final List<ResultColumn> nodeResults;
   final List<ResultColumn> assignments; // rows from -> to, e.g. flows of a tpp
+  final List<FieldSpec> nodeFields; // fields of every node of the problem, e.g. node capacities of a network flow
+  final bool usesCommodities; // the scenario needs commodities (multicommodity)
+  final bool usesModes; // the scenario needs modes of transport (multimodal)
 
   /// key of the summary value the objective function uses - depends on the parameters (e.g. objSense)
   final String? Function(Map<String, dynamic> parameters)? objective;
@@ -146,6 +155,9 @@ class ModuleSpec {
     this.summary = const [],
     this.nodeResults = const [],
     this.assignments = const [],
+    this.nodeFields = const [],
+    this.usesCommodities = false,
+    this.usesModes = false,
     this.objective,
   });
 
@@ -175,6 +187,8 @@ class ModuleSpec {
         if (nodeRoles.contains(nodeRole(r, parameters)))
           for (final f in r.nodeFields)
             if (f.isVisible(parameters) && seen.add(f.key)) f,
+      for (final f in nodeFields)
+        if (f.isVisible(parameters) && seen.add(f.key)) f,
     ];
   }
 
@@ -192,7 +206,7 @@ class ModuleSpec {
     description,
     groupLabel,
     for (final r in roles) ...[r.label, for (final f in r.nodeFields) ...f.messageKeys],
-    for (final f in [...parameters, ...edgeFields]) ...f.messageKeys,
+    for (final f in [...parameters, ...edgeFields, ...nodeFields]) ...f.messageKeys,
     for (final c in [...summary, ...nodeResults, ...assignments]) c.label,
   };
 }

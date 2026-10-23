@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../i18n/strings.dart';
+import '../model/scenario.dart';
 import '../modules/modules.dart';
 import 'theme.dart';
 
@@ -251,8 +252,16 @@ class SpecField extends StatelessWidget {
   final Object? value;
   final ValueChanged<Object?> onChanged;
   final Strings strings;
+  final Scenario? scenario; // nodes, commodities and modes for the fields that refer to them
 
-  const SpecField({super.key, required this.spec, required this.value, required this.onChanged, required this.strings});
+  const SpecField({
+    super.key,
+    required this.spec,
+    required this.value,
+    required this.onChanged,
+    required this.strings,
+    this.scenario,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -303,6 +312,96 @@ class SpecField extends StatelessWidget {
         );
       case FieldKind.text:
         return TextValueField(label: label, value: value as String? ?? '', onChanged: onChanged);
+      case FieldKind.node:
+        final nodes = scenario?.nodes ?? const <Node>[];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FieldLabel(label),
+            DropdownButtonFormField<String?>(
+              initialValue: nodes.any((n) => n.id == value) ? value as String : null,
+              isExpanded: true,
+              items: [
+                for (final n in nodes) DropdownMenuItem<String?>(value: n.id, child: Text('${n.id} · ${n.name}')),
+              ],
+              onChanged: onChanged,
+            ),
+          ],
+        );
+      case FieldKind.commodities:
+        // a number per commodity of the scenario - empty: 0 (supplies, demands) or 1 (capacity factors)
+        final values = (value as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+        final commodities = scenario?.commodities ?? const <Map<String, dynamic>>[];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FieldLabel(label),
+            if (commodities.isEmpty) Text(s('ui.commodities.none'), style: Ui.small),
+            Wrap(
+              spacing: Ui.gap,
+              runSpacing: 8,
+              children: [
+                for (final c in commodities)
+                  SizedBox(
+                    width: 150,
+                    child: NumberField(
+                      key: ValueKey('${spec.key}|${c['id']}'),
+                      label: Scenario.recordName(c),
+                      value: values[c['id']] as num?,
+                      strings: s,
+                      check: (v) => v != null && v < 0 ? Message('error.min', {'label': spec.label, 'min': 0}) : null,
+                      onChanged: (v) {
+                        final next = {...values};
+                        if (v == null) {
+                          next.remove(c['id']);
+                        } else {
+                          next[c['id'] as String] = v;
+                        }
+                        onChanged(next.isEmpty ? null : next);
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      case FieldKind.modes:
+        // modes allowed at the edge - no map: all modes of the scenario; the values of a mode at the edge are kept
+        final allowed = (value as Map?)?.cast<String, dynamic>();
+        final modes = scenario?.modes ?? const <Map<String, dynamic>>[];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FieldLabel(label),
+            if (modes.isEmpty) Text(s('ui.modes.none'), style: Ui.small),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final m in modes)
+                  FilterChip(
+                    label: Text(Scenario.recordName(m)),
+                    selected: allowed == null || allowed.containsKey(m['id']),
+                    onSelected: (on) {
+                      final next = <String, dynamic>{
+                        for (final x in modes)
+                          if (allowed == null || allowed.containsKey(x['id']))
+                            x['id'] as String: allowed?[x['id']] ?? {},
+                      };
+                      if (on) {
+                        next[m['id'] as String] = allowed?[m['id']] ?? <String, dynamic>{};
+                      } else {
+                        next.remove(m['id']);
+                      }
+                      onChanged(
+                        next.length == modes.length && next.values.every((v) => (v as Map).isEmpty) ? null : next,
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ],
+        );
       case FieldKind.number || FieldKind.integer || FieldKind.unlimited:
         return NumberField(
           label: label,
@@ -319,6 +418,9 @@ class SpecField extends StatelessWidget {
 }
 
 /// Fields in a grid with [columns] columns - booleans over the whole width.
+/// fields over the whole width of a FieldGrid
+const _wide = {FieldKind.boolean, FieldKind.commodities, FieldKind.modes};
+
 class FieldGrid extends StatelessWidget {
   final List<Widget> children;
   final int columns;
@@ -334,7 +436,7 @@ class FieldGrid extends StatelessWidget {
         runSpacing: Ui.gap,
         children: [
           for (final child in children)
-            SizedBox(width: child is SpecField && child.spec.kind == FieldKind.boolean ? c.maxWidth : w, child: child),
+            SizedBox(width: child is SpecField && _wide.contains(child.spec.kind) ? c.maxWidth : w, child: child),
         ],
       );
     },

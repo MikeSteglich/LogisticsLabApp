@@ -41,6 +41,9 @@ class SolutionAnalysis {
   SolutionAnalysis(this.uses, this.roles);
 
   /// null if the problem has no roles with targets or the solution no quantities of the nodes
+  /// The first role of the problem sends (tpp, flows: suppliers), the last receives (customers) - roles between
+  /// them (warehouses of a multi-stage WLP) are not rated. Connections: results.assignments (tpp) or results.edges
+  /// (network flows); values per commodity are added up.
   static SolutionAnalysis? of(
     Scenario scenario,
     ModuleSpec? spec,
@@ -49,25 +52,40 @@ class SolutionAnalysis {
   ) {
     final nodeResults = (results?['nodes'] as Map?)?.cast<String, dynamic>();
     if (spec == null || nodeResults == null || spec.roles.length < 2) return null;
-    final assignments = ((results?['assignments'] as List?) ?? const []).cast<Map<String, dynamic>>();
-    final roles = [for (final r in spec.roles) spec.nodeRole(r, parameters)];
+    final connections = connectionsOf(results);
+    final rated = [spec.roles.first, spec.roles.last];
+    final roles = [for (final r in rated) spec.nodeRole(r, parameters)];
     final uses = <NodeUse>[];
-    for (final (i, r) in spec.roles.indexed) {
+    for (final (i, r) in rated.indexed) {
       final role = roles[i];
       final sends = i == 0;
       for (final n in scenario.nodes) {
         if (!n.active || !n.roles.contains(role)) continue;
-        final target = r.mainField == null ? null : n[r.mainField!.key];
-        final actual = ((nodeResults[n.id] as Map?)?['flow'] as num?) ?? 0;
+        final target = r.mainField == null ? null : total(n[r.mainField!.key]);
+        final res = (nodeResults[n.id] as Map?)?.cast<String, dynamic>() ?? const {};
+        // the core gives unused supply and unmet demand of network flows - else the quantity through the node
+        final missing = total(res[sends ? 'unusedSupply' : 'unmetDemand']);
+        final actual = target != null && missing != null ? target - missing : (total(res['flow']) ?? 0);
         final partners = [
-          for (final a in assignments)
+          for (final a in connections)
             if ((sends ? a['from'] : a['to']) == n.id) ('${sends ? a['to'] : a['from']}', a['flow'] as num),
         ];
-        uses.add(NodeUse(n, role, sends, target is num ? target : null, actual, partners));
+        uses.add(NodeUse(n, role, sends, target, actual, partners));
       }
     }
     return SolutionAnalysis(uses, roles);
   }
+
+  /// a number or the sum of the values per commodity - null if there is none
+  static num? total(Object? v) => v is num
+      ? v
+      : v is Map
+      ? v.values.whereType<num>().fold<num>(0, (a, b) => a + b)
+      : null;
+
+  /// connections of a solution: from -> to with quantity (tpp: assignments, network flows: edges)
+  static List<Map<String, dynamic>> connectionsOf(Map<String, dynamic>? results) =>
+      ((results?['assignments'] ?? results?['edges']) as List? ?? const []).cast<Map<String, dynamic>>();
 
   NodeUse? use(String id) => uses.where((u) => u.node.id == id).firstOrNull;
 

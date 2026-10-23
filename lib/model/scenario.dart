@@ -216,6 +216,16 @@ class Scenario {
     return Network(name, nets[name] as Map<String, dynamic>);
   }
 
+  /// commodities (multicommodity) and modes of transport (multimodal) - records with id, name and values
+  List<Map<String, dynamic>> get commodities => _records('commodities');
+  List<Map<String, dynamic>> get modes => _records('modes');
+
+  List<Map<String, dynamic>> _records(String key) => ((json[key] ??= <dynamic>[]) as List).cast<Map<String, dynamic>>();
+
+  /// name of a commodity or mode - its id without name
+  static String recordName(Map<String, dynamic> r) =>
+      (r['name'] as String?)?.isNotEmpty == true ? r['name'] : '${r['id']}';
+
   Map<String, dynamic> get matrix => (json['matrix'] ??= <String, dynamic>{}) as Map<String, dynamic>;
   bool get usesRoads => (matrix['matrixSource'] ?? 'osm') == 'osm';
   String get travelmode => matrix['travelmode'] as String? ?? 'car';

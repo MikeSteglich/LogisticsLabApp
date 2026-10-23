@@ -143,8 +143,7 @@ class _NodeTable extends StatelessWidget {
       if (!n.roles.contains(c.role)) return '';
       final f = c.field;
       if (f == null) return '✓'; // role without a main value
-      final v = n[f.key] ?? f.defaultValue;
-      return v is num ? t.number(v) : (v == 'M' ? '∞' : '');
+      return s.fieldText(n[f.key] ?? f.defaultValue) ?? '';
     }
 
     Widget cell(String text, {int flex = 2, bool right = false, bool bold = false, Color? color}) => Expanded(
@@ -332,6 +331,7 @@ class _NodeMask extends StatelessWidget {
               children: [
                 for (final f in moduleFields)
                   SpecField(
+                    scenario: s.scenario,
                     spec: f,
                     value: n[f.key] ?? f.defaultValue,
                     strings: t,

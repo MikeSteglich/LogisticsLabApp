@@ -126,6 +126,23 @@ void main() {
     await settle(() => false, seconds: 4);
     await shot('6-partial');
 
+    // network flows: multimodal (split per mode), multi-stage WLP (open warehouses), commodities in the node mask
+    state.edit(() => state.node!['demand'] = 40);
+    state.chooseProblem('Lkw oder Bahn');
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('7-multimodal');
+    state.chooseProblem('Lager mehrstufig');
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('8-multistagewlp');
+    state.chooseProblem('Zwei Güter');
+    state.selectNode('B');
+    await shot('9-commodities');
+    state.chooseProblem('Transport direkt vom Werk');
+
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait
     await tester.pump();
     state.setTab(DataTab.nodes);

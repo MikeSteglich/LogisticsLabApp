@@ -231,13 +231,8 @@ class _EdgeTable extends StatelessWidget {
     final t = s.strings;
     final fields = s.spec?.edgeFields ?? const <FieldSpec>[];
     String name(String id) => s.scenario.node(id)?.name ?? id;
-    String value(Object? v) => v == null
-        ? ''
-        : v == 'M'
-        ? '∞'
-        : v is num
-        ? t.number(v)
-        : '$v';
+    // no modes at an edge: all modes of the scenario
+    String value(Object? v, FieldSpec f) => s.fieldText(v) ?? (f.kind == FieldKind.modes ? t('ui.modes.all') : '');
     Widget cell(String text, {int flex = 2, bool right = false, bool bold = false, Color? color}) => Expanded(
       flex: flex,
       child: Text(
@@ -294,7 +289,7 @@ class _EdgeTable extends StatelessWidget {
             child: row(
               [
                 cell('${name(e.from)} $arrow ${name(e.to)}', flex: 5, bold: i == s.selectedEdge),
-                for (final f in fields) cell(value(e[f.key]), right: true),
+                for (final f in fields) cell(value(e[f.key], f), right: true),
               ],
               selected: i == s.selectedEdge,
               background: i == s.selectedEdge ? Ui.accentLight : null,
@@ -368,7 +363,13 @@ class _EdgeMask extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SpecField(spec: f, value: e[f.key], strings: t, onChanged: (v) => s.edit(() => e[f.key] = v)),
+                      SpecField(
+                        scenario: s.scenario,
+                        spec: f,
+                        value: e[f.key],
+                        strings: t,
+                        onChanged: (v) => s.edit(() => e[f.key] = v),
+                      ),
                       // the value is kept, but the problem uses it only with its parameter
                       if (!f.isVisible(params) && f.requires != null)
                         Padding(

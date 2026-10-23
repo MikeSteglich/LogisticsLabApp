@@ -135,6 +135,7 @@ class _ParametersTab extends StatelessWidget {
     // fields are recreated for another problem or language
     final k = '${p.name}|${t.language}';
     Widget field(FieldSpec f, Map<String, dynamic> target) => SpecField(
+      scenario: s.scenario,
       key: ValueKey('$k|${f.key}'),
       spec: f,
       value: target[f.key] ?? f.defaultValue,
@@ -176,6 +177,127 @@ class _ParametersTab extends StatelessWidget {
         Text(t('ui.par.matrix'), style: Ui.title),
         const SizedBox(height: Ui.gap),
         FieldGrid(children: [for (final f in _matrixFields) field(f, s.scenario.matrix)]),
+        // commodities of a multi-commodity flow, modes of a multimodal flow - records of the scenario
+        if (spec.usesCommodities) ...[
+          const SizedBox(height: 20),
+          _Records(
+            state: s,
+            title: 'ui.commodities',
+            add: 'ui.commodities.add',
+            prefix: 'G',
+            records: s.scenario.commodities,
+            fields: _commodityFields,
+          ),
+        ],
+        if (spec.usesModes) ...[
+          const SizedBox(height: 20),
+          _Records(
+            state: s,
+            title: 'ui.modes',
+            add: 'ui.modes.add',
+            prefix: 'M',
+            records: s.scenario.modes,
+            fields: _modeFields,
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+const _commodityFields = [
+  FieldSpec('name', FieldKind.text),
+  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
+  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
+  FieldSpec('capacityFactor', FieldKind.number, min: 0, defaultValue: 1.0),
+];
+const _modeFields = [
+  FieldSpec('name', FieldKind.text),
+  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
+  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
+  FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0),
+  FieldSpec('minFlow', FieldKind.number, min: 0),
+  FieldSpec('capacity', FieldKind.unlimited, min: 0),
+];
+
+/// Records of the scenario (commodities, modes): one block per record, the id is given and stays - nodes and edges
+/// refer to it.
+class _Records extends StatelessWidget {
+  final AppState state;
+  final String title;
+  final String add;
+  final String prefix;
+  final List<Map<String, dynamic>> records;
+  final List<FieldSpec> fields;
+  const _Records({
+    required this.state,
+    required this.title,
+    required this.add,
+    required this.prefix,
+    required this.records,
+    required this.fields,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(t(title), style: Ui.title)),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.add, size: 16),
+              label: Text(t(add)),
+              onPressed: () => s.edit(() {
+                final ids = {for (final r in records) r['id']};
+                var i = records.length + 1;
+                while (ids.contains('$prefix$i')) {
+                  i++;
+                }
+                records.add({'id': '$prefix$i', 'name': '$prefix$i'});
+              }),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        for (final r in records)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Section(
+              padding: const EdgeInsets.fromLTRB(12, 8, 4, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: Text('${t('ui.col.id')} ${r['id']}', style: Ui.small)),
+                      IconButton(
+                        tooltip: t('ui.records.delete'),
+                        icon: const Icon(Icons.delete_outline, size: 18),
+                        onPressed: () => s.edit(() => records.remove(r)),
+                      ),
+                    ],
+                  ),
+                  FieldGrid(
+                    columns: 3,
+                    children: [
+                      for (final f in fields)
+                        SpecField(
+                          key: ValueKey('${identityHashCode(r)}|${f.key}|${t.language}'),
+                          spec: f,
+                          value: r[f.key],
+                          strings: t,
+                          onChanged: (v) => s.edit(() => v == null || v == '' ? r.remove(f.key) : r[f.key] = v),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
