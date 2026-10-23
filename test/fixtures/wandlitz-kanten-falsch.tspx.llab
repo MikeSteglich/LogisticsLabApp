@@ -1,0 +1,220 @@
+{
+  "format": "logisticsLab",
+  "version": 1,
+  "id": "wandlitz-kanten",
+  "name": "wandlitz-kanten",
+  "source": "TourenUndRouten/wandlitz-kanten.TSPX (TSP 5.4.0)",
+  "units": {
+    "distance": "m",
+    "time": "h"
+  },
+  "matrix": {
+    "travelmode": "car"
+  },
+  "nodes": [
+    {
+      "id": "RES",
+      "name": "Fischerstube",
+      "coordinates": [
+        52.77193,
+        13.43319
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Basdorfer Straße 1a",
+        "postcode": "16348",
+        "city": "Stolzenhagen",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "WE",
+      "name": "Wensickendorf",
+      "coordinates": [
+        52.75518,
+        13.37634
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Hauptstraße 9",
+        "postcode": "16515",
+        "city": "Wensickendorf",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "ST",
+      "name": "Stolzenhagen",
+      "coordinates": [
+        52.77789,
+        13.43805
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Dorfstraße 43",
+        "postcode": "16348",
+        "city": "Stolzenhagen",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "KL",
+      "name": "Klosterfelde",
+      "coordinates": [
+        52.79124,
+        13.48796
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Am Bahnhof 1",
+        "postcode": "16348",
+        "city": "Klosterfelde",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "ZE",
+      "name": "Zehlendorf",
+      "coordinates": [
+        52.78482,
+        13.39347
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Alte Dorfstraße 70",
+        "postcode": "16515",
+        "city": "Zehlendorf",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "BA",
+      "name": "Wandlitz (BA)",
+      "coordinates": [
+        52.73399,
+        13.44852
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Prenzlauer Chaussee 3",
+        "postcode": "16348",
+        "city": "Wandlitz",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "WA",
+      "name": "Wandlitz (WA)",
+      "coordinates": [
+        52.75902,
+        13.47358
+      ],
+      "roles": [],
+      "addressDetails": {
+        "street": "Prenzlauer Chaussee 187",
+        "postcode": "16348",
+        "city": "Wandlitz",
+        "country": "Germany"
+      }
+    },
+    {
+      "id": "KVL29",
+      "name": "Kreisverkehr L29",
+      "coordinates": [
+        52.76796,
+        13.47577
+      ],
+      "roles": []
+    },
+    {
+      "id": "KZST",
+      "name": "Kreuzung nach Stolzenhagen",
+      "coordinates": [
+        52.75121,
+        13.42731
+      ],
+      "roles": []
+    },
+    {
+      "id": "KVWA",
+      "name": "Kreisverkehr Wandlitz",
+      "coordinates": [
+        52.7421,
+        13.45789
+      ],
+      "roles": []
+    }
+  ],
+  "networks": {
+    "network": {
+      "directed": false,
+      "edges": [
+        {
+          "from": "WE",
+          "to": "KZST"
+        },
+        {
+          "from": "ST",
+          "to": "KL",
+          "directed": true
+        },
+        {
+          "from": "ST",
+          "to": "ZE"
+        },
+        {
+          "from": "KL",
+          "to": "KVL29"
+        },
+        {
+          "from": "ZE",
+          "to": "WE"
+        },
+        {
+          "from": "BA",
+          "to": "KVWA"
+        },
+        {
+          "from": "KVL29",
+          "to": "ST",
+          "directed": true
+        },
+        {
+          "from": "KVL29",
+          "to": "WA"
+        },
+        {
+          "from": "KZST",
+          "to": "RES",
+          "directed": true
+        },
+        {
+          "from": "KZST",
+          "to": "BA"
+        },
+        {
+          "from": "KVWA",
+          "to": "WA"
+        },
+        {
+          "from": "KVWA",
+          "to": "KZST"
+        }
+      ]
+    }
+  },
+  "vehicles": [],
+  "problems": [
+    {
+      "name": "wandlitz-kanten",
+      "type": "tsp",
+      "parameters": {
+        "matrixMode": "distances",
+        "startNode": "RES",
+        "endNode": "RES"
+      },
+      "network": "network",
+      "networkMode": "shortestPaths"
+    }
+  ]
+}

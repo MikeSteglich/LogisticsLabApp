@@ -100,4 +100,28 @@ void main() {
     await tester.pump();
     expect(e.json.containsKey('directed'), isFalse);
   });
+
+  testWidgets(
+    'no tour over a missing way - one-way edge to the start',
+    skip: Platform.environment['LOGLAB_STDIO'] == null,
+    (tester) async {
+      SharedPreferences.setMockInitialValues({'language': 'de'});
+      final state = (await tester.runAsync(AppState.create))!;
+      state.openScenario(Scenario.parse(File('test/fixtures/wandlitz-kanten-falsch.tspx.llab').readAsStringSync()));
+      state.scenario.matrix['matrixSource'] = 'beeline'; // no routes
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      // from the Fischerstube only a one-way edge leads to it: no way back
+      await tester.runAsync(state.solve);
+      expect(state.lastResult, 'error');
+      expect(state.message, contains('Fischerstube'));
+      // the edge both ways: a tour without impossible sections
+      final net = state.network!;
+      state.edit(() => net.edges.firstWhere((e) => e.to == 'RES')['directed'] = null);
+      await tester.runAsync(state.solve);
+      expect(state.message, isNull);
+      expect(state.connections.every((l) => l['value'] is num), isTrue);
+      expect(state.solution!.results!['summary']['tourLength'], lessThan(1e6));
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
+    },
+  );
 }

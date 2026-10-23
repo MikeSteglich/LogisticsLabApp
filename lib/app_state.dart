@@ -738,9 +738,11 @@ class AppState extends ChangeNotifier {
       if (cancelled.isCompleted) {
         lastResult = 'cancelled'; // the solver has been stopped by the cancel
       } else {
+        lastResult = 'error'; // refused by the core, e.g. a node without a way in the network
         message = e.outdated ? strings('ui.error.outdated') : '${strings('ui.status.error')}: $e';
       }
     } catch (e) {
+      lastResult = 'error';
       message = '${strings('ui.status.error')}: $e';
     } finally {
       status = null;
