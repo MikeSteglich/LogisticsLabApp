@@ -179,7 +179,7 @@ class _Logo extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('LogisticsLab', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                const Text(appName, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
                   child: Text(

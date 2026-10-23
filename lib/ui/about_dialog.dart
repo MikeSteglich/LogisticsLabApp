@@ -7,7 +7,9 @@ import '../app_state.dart';
 import 'logo.dart';
 import 'theme.dart';
 
-/// version of the app - the same as in pubspec.yaml (test/about_test.dart checks it)
+/// name and version of the app - the version is the same as in pubspec.yaml (test/about_test.dart checks it).
+/// The successor of LogisticsLab 5 starts at 1.0.0 - the name tells them apart.
+const appName = 'LogisticsLab Studio';
 const appVersion = '1.0.0';
 
 Future<void> showAbout(BuildContext context, AppState state) {
@@ -43,7 +45,7 @@ Future<void> showAbout(BuildContext context, AppState state) {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('LogisticsLab', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                        const Text(appName, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
                         Text(t('ui.about.version', {'version': appVersion}), style: Ui.small),
                         const SizedBox(height: 4),
                         Text(t('ui.about.tagline'), style: const TextStyle(fontSize: 13, color: Ui.textMuted)),

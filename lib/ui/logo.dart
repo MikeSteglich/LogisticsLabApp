@@ -1,4 +1,4 @@
-/// Logo of LogisticsLab: a supplier and three customers on a map, connected by routes.
+/// Logo of LogisticsLab Studio: a supplier and three customers on a map, connected by routes.
 ///
 /// Drawn in Dart, so the same picture is the app icon (tool/make_icons_test.dart), the logo of the about dialog and
 /// the mark in the header.

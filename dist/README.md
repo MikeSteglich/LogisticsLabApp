@@ -1,14 +1,14 @@
 # Distribution der Desktop-App
 
-`dist/buildDist.py` baut die Desktop-App von LogisticsLabApp für das System, auf dem das Skript läuft (macOS, Windows, Linux). Der lokale Rechenkern `logisticsLabStdio` von pyLogisticsLab wird in die App gelegt. Er kommt ohne Python aus, bringt CMPL und HiGHS mit, und die App startet ihn als Kindprozess. So läuft die App ohne weitere Installation und ohne Server.
+`dist/buildDist.py` baut die Desktop-App LogisticsLab Studio (Repository LogisticsLabApp) für das System, auf dem das Skript läuft (macOS, Windows, Linux). Der lokale Rechenkern `logisticsLabStdio` von pyLogisticsLab wird in die App gelegt. Er kommt ohne Python aus, bringt CMPL und HiGHS mit, und die App startet ihn als Kindprozess. So läuft die App ohne weitere Installation und ohne Server.
 
 ## Ergebnis
 
 | System  | in `dist/out/`                                                  | Rechenkern in der App                                      |
 |---------|-----------------------------------------------------------------|------------------------------------------------------------|
-| macOS   | `LogisticsLabApp-<version>-macos-<arch>.zip` (und `.dmg`)       | `LogisticsLab.app/Contents/Resources/logisticsLabStdio/`   |
-| Windows | `LogisticsLabApp-<version>-windows-<arch>.zip`                  | `LogisticsLab/logisticsLabStdio/` neben `LogisticsLab.exe` |
-| Linux   | `LogisticsLabApp-<version>-linux-<arch>.tar.gz`                 | `LogisticsLab/logisticsLabStdio/` neben `LogisticsLab`     |
+| macOS   | `LogisticsLabStudio-<version>-macos-<arch>.zip` (und `.dmg`)       | `LogisticsLab Studio.app/Contents/Resources/logisticsLabStdio/`   |
+| Windows | `LogisticsLabStudio-<version>-windows-<arch>.zip`                  | `LogisticsLabStudio/logisticsLabStdio/` neben `LogisticsLabStudio.exe` |
+| Linux   | `LogisticsLabStudio-<version>-linux-<arch>.tar.gz`                 | `LogisticsLabStudio/logisticsLabStdio/` neben `logisticslab-studio`     |
 
 Die App findet den Rechenkern dort selbst (`lib/backend/backend_local_io.dart`). Unter *Einstellungen → Rechnen* lässt sich ein anderes Programm oder ein Server eintragen. Konfiguration (`confs/`) und Logs findet der Rechenkern wie in seiner eigenen Distribution. Die Logs liegen im Verzeichnis des Benutzers, unter macOS in `~/Library/Logs/LogisticsLab`.
 

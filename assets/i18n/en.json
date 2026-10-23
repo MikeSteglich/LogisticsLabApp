@@ -247,7 +247,7 @@
   "ui.routes.loading": "Loading the roads … ({n})",
   "ui.routes.missing": "{n} edges without roads",
   "ui.routes.retry": "Load again",
-  "ui.about.menu": "About LogisticsLab",
+  "ui.about.menu": "About LogisticsLab Studio",
   "ui.about.version": "Version {version}",
   "ui.about.tagline": "Optimisation of logistics problems on maps of OpenStreetMap",
   "ui.about.credits": "Data and software",

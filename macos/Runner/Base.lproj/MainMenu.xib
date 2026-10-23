@@ -26,7 +26,7 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="APP_NAME" systemMenu="apple" id="uQy-DD-JDr">
                         <items>
-                            <menuItem title="About LogisticsLab" id="5kV-Vb-QxS">
+                            <menuItem title="About LogisticsLab Studio" id="5kV-Vb-QxS">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="showAbout:" target="-1" id="Exp-CZ-Vem"/>

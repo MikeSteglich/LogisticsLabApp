@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Baut die Desktop-Distribution von LogisticsLabApp fuer das System, auf dem das Skript laeuft
+# Baut die Desktop-Distribution von LogisticsLab Studio (Repository LogisticsLabApp) fuer das System, auf dem das Skript laeuft
 # (macOS, Windows, Linux) - mit dem lokalen Rechenkern logisticsLabStdio von pyLogisticsLab
 # (ohne Python, mit CMPL und HiGHS), den die App als Kindprozess startet.
 #
@@ -9,17 +9,17 @@
 #      (pyLogisticsLab/dist/buildStdio.py, Nuitka)
 #   2. die App mit flutter build <os> --release bauen
 #   3. logisticsLabStdio in die App legen - dort sucht die App ihn (lib/backend/backend_local_io.dart):
-#        macOS    LogisticsLab.app/Contents/Resources/logisticsLabStdio/
-#        Windows  LogisticsLab/logisticsLabStdio/      (neben LogisticsLab.exe)
-#        Linux    LogisticsLab/logisticsLabStdio/      (neben dem Programm LogisticsLab)
+#        macOS    LogisticsLab Studio.app/Contents/Resources/logisticsLabStdio/
+#        Windows  LogisticsLabStudio/logisticsLabStdio/  (neben LogisticsLabStudio.exe)
+#        Linux    LogisticsLabStudio/logisticsLabStdio/  (neben dem Programm logisticslab-studio)
 #   4. testen: der Rechenkern in der App loest ein Szenario ueber JSON-RPC (solveScenario), die fertige App
 #      startet (kurz ein Fenster), mit --app-test loest die App selbst mit diesem Rechenkern (Flutter-Test)
 #   5. (macOS) signieren - ohne --sign ad hoc, damit die geaenderte App startet -, .dmg, notarisieren
-#   6. packen: dist/out/LogisticsLabApp-<version>-<os>-<arch>.zip (.dmg, .tar.gz)
+#   6. packen: dist/out/LogisticsLabStudio-<version>-<os>-<arch>.zip (.dmg, .tar.gz)
 #
 # Ergebnis: dist/build/<os>-<arch>/LogisticsLabApp/
-#             macOS:          LogisticsLab.app
-#             Windows, Linux: LogisticsLab/ mit dem Programm, seinen Bibliotheken, data/ und logisticsLabStdio/
+#             macOS:          LogisticsLab Studio.app
+#             Windows, Linux: LogisticsLabStudio/ mit dem Programm, seinen Bibliotheken, data/ und logisticsLabStdio/
 #
 # Aufruf:  python3 dist/buildDist.py [Optionen]      (Optionen: --help)
 
@@ -40,8 +40,10 @@ PROJECT = DISTDIR.parent
 PROJECTS = PROJECT.parent
 RESOURCES = DISTDIR / "resources"
 
-APP_NAME = "LogisticsLab"
-DIST_NAME = "LogisticsLabApp"           # nicht LogisticsLab: so heisst schon die Python-Distribution von pyLogisticsLab
+APP_NAME = "LogisticsLab Studio"        # Name der App (macOS: LogisticsLab Studio.app, Volume des .dmg)
+DIST_NAME = "LogisticsLabStudio"        # Archive und Ordner unter Windows/Linux - ohne Leerzeichen
+# Programm in der App bzw. im Ordner (Windows, Linux: BINARY_NAME in CMakeLists.txt)
+PROGRAM = {"macos": "LogisticsLab Studio", "windows": "LogisticsLabStudio.exe", "linux": "logisticslab-studio"}
 STDIO = "logisticsLabStdio"
 EXAMPLE = PROJECT / "assets/examples/brandenburg.llab"
 OLD_FILE = PROJECT / "test/fixtures/Baukies-angebotsueberschuss.TPPX"     # import of old LogisticsLab files
@@ -204,9 +206,9 @@ def launch_test(t, app, seconds=8):
     (Signatur, fehlende Bibliotheken), die die Flutter-Tests nicht sehen. Oeffnet kurz ein Fenster."""
     log("Test: die fertige App startet")
     if t.is_mac:
-        exe = app / "Contents" / "MacOS" / APP_NAME
+        exe = app / "Contents" / "MacOS" / PROGRAM[t.os]
     else:
-        exe = app / (APP_NAME + (".exe" if t.is_win else ""))
+        exe = app / PROGRAM[t.os]
     proc = subprocess.Popen([str(exe)], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
     try:
         code = proc.wait(timeout=seconds)
@@ -423,7 +425,7 @@ def main():
     if stage.exists():
         shutil.rmtree(stage)
     stage.mkdir(parents=True)
-    app = stage / (out.name if t.is_mac else APP_NAME)
+    app = stage / (out.name if t.is_mac else DIST_NAME)
     if t.is_mac:
         run(["ditto", out, app])                      # erhaelt die Symlinks der Frameworks
     else:

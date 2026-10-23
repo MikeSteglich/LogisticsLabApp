@@ -1,4 +1,4 @@
-/// LogisticsLab - one app for the logistics optimisation problems of pyLogisticsLab (desktop, browser, tablet).
+/// LogisticsLab Studio - one app for the logistics optimisation problems of pyLogisticsLab (desktop, browser, tablet).
 library;
 
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ Future<void> main() async {
   runApp(LogisticsLabApp(state: state));
 }
 
-/// menu of macOS (macos/Runner/AppDelegate.swift): "About LogisticsLab" shows the about dialog of the app
+/// menu of macOS (macos/Runner/AppDelegate.swift): "About LogisticsLab Studio" shows the about dialog of the app
 const _menu = MethodChannel('logisticslab/menu');
 final _navigator = GlobalKey<NavigatorState>();
 
@@ -34,7 +34,7 @@ class LogisticsLabApp extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: state,
     builder: (context, _) => MaterialApp(
-      title: 'LogisticsLab',
+      title: appName,
       navigatorKey: _navigator,
       debugShowCheckedModeBanner: false,
       theme: buildTheme(),

@@ -16,7 +16,7 @@ class MainFlutterWindow: NSWindow {
     // one window - no tab bar of macOS (and no menu items for it)
     NSWindow.allowsAutomaticWindowTabbing = false
     self.tabbingMode = .disallowed
-    self.title = "LogisticsLab"
+    self.title = "LogisticsLab Studio"
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 

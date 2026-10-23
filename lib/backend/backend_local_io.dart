@@ -191,7 +191,7 @@ class LocalBackend implements Backend {
 /// Defaults for local computing:
 ///   1. LOGLAB_STDIO (program), LOGLAB_STDIO_ARGS (arguments separated by spaces), LOGLAB_STDIO_DIR (working
 ///      directory) - e.g. python, "-m logisticsLabCore.stdio" and the pyLogisticsLab directory for development
-///   2. the solver bundled with the app (dist/buildDist.py): LogisticsLab.app/Contents/Resources/logisticsLabStdio
+///   2. the solver bundled with the app (dist/buildDist.py): LogisticsLab Studio.app/Contents/Resources/logisticsLabStdio
 ///      on macOS, logisticsLabStdio/ next to the program on Windows and Linux
 BackendSettings defaultBackendSettings() {
   final env = Platform.environment;
@@ -210,7 +210,7 @@ BackendSettings defaultBackendSettings() {
 /// program of the solver bundled with the app or null
 String? bundledStdio() {
   final sep = Platform.pathSeparator;
-  final dir = File(Platform.resolvedExecutable).parent.path; // macOS: LogisticsLab.app/Contents/MacOS
+  final dir = File(Platform.resolvedExecutable).parent.path; // macOS: LogisticsLab Studio.app/Contents/MacOS
   final name = Platform.isWindows ? 'logisticsLabStdio.exe' : 'logisticsLabStdio';
   final candidates = [
     if (Platform.isMacOS) '${File(dir).parent.path}${sep}Resources${sep}logisticsLabStdio${sep}bin$sep$name',

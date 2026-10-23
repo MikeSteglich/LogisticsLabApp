@@ -1,11 +1,11 @@
 {
-    "name": "LogisticsLab",
-    "short_name": "LogisticsLab",
+    "name": "LogisticsLab Studio",
+    "short_name": "LL Studio",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "LogisticsLab - one app for logistics optimisation problems",
+    "description": "LogisticsLab Studio - one app for logistics optimisation problems",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

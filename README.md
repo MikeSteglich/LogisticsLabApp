@@ -1,6 +1,6 @@
-# LogisticsLabApp
+# LogisticsLab Studio
 
-LogisticsLabApp is the user interface of [pyLogisticsLab](https://github.com/MikeSteglich/pyLogisticsLab): one app for all of its logistics optimisation problems, on the desktop (macOS, Windows, Linux), in the web browser and on tablets. It is written in Flutter. A project of the Technical University of Applied Sciences Wildau.
+LogisticsLab Studio (repository LogisticsLabApp) is the user interface of [pyLogisticsLab](https://github.com/MikeSteglich/pyLogisticsLab): one app for all of its logistics optimisation problems, on the desktop (macOS, Windows, Linux), in the web browser and on tablets. It is written in Flutter. A project of the Technical University of Applied Sciences Wildau. It succeeds LogisticsLab 5 (version 5.4.3) as a new development, starting with version 1.0.0; the name *Studio* tells them apart, and the X files of LogisticsLab 5 can be imported.
 
 **Status: first prototype.** It works with the transportation problem (TPP). The other problem types appear in the problem chooser but are not implemented yet.
 
@@ -47,7 +47,7 @@ LOGLAB_STDIO=python LOGLAB_STDIO_ARGS="-m logisticsLabCore.stdio" LOGLAB_STDIO_D
 
 ## Distribution
 
-`dist/buildDist.py` builds the desktop app for the own system with the local core `logisticsLabStdio` inside (no Python, with CMPL and HiGHS): `LogisticsLab.app` (macOS, signed ad hoc or with a Developer ID, `.dmg`, notarisation), a folder `LogisticsLab/` on Windows and Linux. The app finds the core there by itself. See [dist/README.md](dist/README.md).
+`dist/buildDist.py` builds the desktop app for the own system with the local core `logisticsLabStdio` inside (no Python, with CMPL and HiGHS): `LogisticsLab Studio.app` (macOS, signed ad hoc or with a Developer ID, `.dmg`, notarisation), a folder `LogisticsLabStudio/` on Windows and Linux. The app finds the core there by itself. See [dist/README.md](dist/README.md).
 
 ```sh
 python3 dist/buildDist.py --build-stdio --stdio-python /opt/anaconda3/envs/nuitka/bin/python --dmg

@@ -247,7 +247,7 @@
   "ui.routes.loading": "Straßenverlauf wird geladen … ({n})",
   "ui.routes.missing": "{n} Kanten ohne Straßenverlauf",
   "ui.routes.retry": "Erneut laden",
-  "ui.about.menu": "Über LogisticsLab",
+  "ui.about.menu": "Über LogisticsLab Studio",
   "ui.about.version": "Version {version}",
   "ui.about.tagline": "Optimierung logistischer Probleme auf Karten von OpenStreetMap",
   "ui.about.credits": "Daten und Software",
