@@ -136,6 +136,7 @@ class AppState extends ChangeNotifier {
     final first = s.problems.where((p) => modules.containsKey(p.type)).firstOrNull ?? s.problems.firstOrNull;
     problemName = first?.name;
     selectedNode = s.nodes.firstOrNull?.id;
+    nodeFilter = null;
     tab = DataTab.nodes;
     placing = false;
     message = null;
@@ -154,6 +155,7 @@ class AppState extends ChangeNotifier {
     final before = _coordinates();
     change();
     if (_coordinates() != before) geometry++;
+    _keepSelectionVisible();
     dirty = true;
     revision++;
     notifyListeners();
@@ -163,7 +165,42 @@ class AppState extends ChangeNotifier {
 
   void chooseProblem(String name) {
     problemName = name;
+    if (nodeFilter != null && nodeFilter!.isNotEmpty && !problemRoles.contains(nodeFilter)) nodeFilter = null;
+    _keepSelectionVisible();
     notifyListeners();
+  }
+
+  //*********** filter of the node list ************
+
+  /// null: all nodes, '': nodes without a role in the problem, else a role of the problem
+  String? nodeFilter;
+
+  bool _passes(Node n, String? filter) => filter == null
+      ? true
+      : filter.isEmpty
+      ? !n.roles.any(problemRoles.contains)
+      : n.roles.contains(filter);
+
+  List<Node> nodesOf(String? filter) => [
+    for (final n in scenario.nodes)
+      if (_passes(n, filter)) n,
+  ];
+
+  List<Node> get filteredNodes => nodesOf(nodeFilter);
+
+  void setNodeFilter(String? filter) {
+    nodeFilter = filter;
+    // the selection stays in the list
+    final shown = filteredNodes;
+    if (node == null || !_passes(node!, filter)) selectedNode = shown.firstOrNull?.id;
+    notifyListeners();
+  }
+
+  /// a node whose roles changed moves into the list of its new role - the filter follows it
+  void _keepSelectionVisible() {
+    final n = node;
+    if (n == null || _passes(n, nodeFilter)) return;
+    nodeFilter = n.roles.where(problemRoles.contains).firstOrNull ?? '';
   }
 
   void newProblem(String type) {
@@ -178,6 +215,7 @@ class AppState extends ChangeNotifier {
   void selectNode(String? id) {
     selectedNode = id;
     placing = false;
+    _keepSelectionVisible(); // e.g. a node chosen on the map
     if (id != null && tab != DataTab.nodes) tab = DataTab.nodes;
     notifyListeners();
   }
@@ -194,8 +232,13 @@ class AppState extends ChangeNotifier {
 
   void addNode(LatLng position) {
     edit(() {
-      final roles = spec?.roles.map((r) => r.defaultRole).toList() ?? const <String>[];
-      selectedNode = scenario.addNode(position, roles: roles.isEmpty ? const ['customer'] : [roles.last]).id;
+      // the role of the list shown, else the last role of the problem (tpp: customer)
+      final role = nodeFilter != null && nodeFilter!.isNotEmpty
+          ? nodeFilter!
+          : problemRoles.length < nodeRoles.length
+          ? problemRoles.last
+          : 'customer';
+      selectedNode = scenario.addNode(position, roles: [role]).id;
       tab = DataTab.nodes;
     });
   }

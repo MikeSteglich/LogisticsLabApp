@@ -60,6 +60,8 @@ class NodesTab extends StatelessWidget {
           ],
         ),
         const SizedBox(height: Ui.gap),
+        _NodeFilter(state: s),
+        const SizedBox(height: 8),
         Section(
           padding: EdgeInsets.zero,
           child: _NodeTable(state: s),
@@ -85,14 +87,22 @@ class _NodeTable extends StatelessWidget {
     final spec = s.spec;
     final params = s.problem?.parameters ?? const <String, dynamic>{};
     // one column per role of the problem with its main value (tpp: supply, demand); without problem all roles
+    // all nodes: the main value of every role; one role: the fields of that role
+    final filter = s.nodeFilter;
     final roleColumns = [
       for (final r in spec?.roles ?? const <RoleSpec>[])
-        (role: spec!.nodeRole(r, params), field: r.mainField, label: t(r.mainField?.label ?? r.label)),
+        if (filter == null)
+          (role: spec!.nodeRole(r, params), field: r.mainField, label: t(r.mainField?.label ?? r.label))
+        else if (spec!.nodeRole(r, params) == filter)
+          for (final f in r.nodeFields.where((f) => f.isVisible(params) && f.kind != FieldKind.boolean))
+            (role: filter, field: f as FieldSpec?, label: t(f.label)),
     ];
     String roleValue(Node n, ({String role, FieldSpec? field, String label}) c) {
       if (!n.roles.contains(c.role)) return '';
-      final v = c.field == null ? null : n[c.field!.key];
-      return v is num ? t.number(v) : '✓';
+      final f = c.field;
+      if (f == null) return '✓'; // role without a main value
+      final v = n[f.key] ?? f.defaultValue;
+      return v is num ? t.number(v) : (v == 'M' ? '∞' : '');
     }
 
     Widget cell(String text, {int flex = 2, bool right = false, bool bold = false, Color? color}) => Expanded(
@@ -140,7 +150,7 @@ class _NodeTable extends StatelessWidget {
           for (final c in roleColumns) cell(c.label, right: true, bold: true, color: head),
           cell(t('ui.col.coords'), flex: 3, bold: true, color: head),
         ], background: Ui.surfaceAlt),
-        for (final n in s.scenario.nodes)
+        for (final n in s.filteredNodes)
           // nodes without a role in the problem are pale - their roles are for other problems of the scenario
           if (s.isRelevant(n) case final relevant)
             Semantics(
@@ -527,6 +537,42 @@ class _RoleChipsState extends State<_RoleChips> {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(t('ui.roles.others', {'roles': others.map((r) => t('role.$r')).join(', ')}), style: Ui.small),
+          ),
+      ],
+    );
+  }
+}
+
+/// Filter of the node list: all nodes, the nodes of one role of the problem, the nodes without a role in it.
+class _NodeFilter extends StatelessWidget {
+  final AppState state;
+  const _NodeFilter({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    final problemRoles = s.spec == null ? const <String>[] : s.problemRoles;
+    final options = <(String?, String)>[
+      (null, t('ui.filter.all')),
+      for (final r in problemRoles) (r, t('role.$r.plural')),
+      if (problemRoles.isNotEmpty && s.nodesOf('').isNotEmpty) ('', t('ui.filter.others')),
+    ];
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        for (final (f, label) in options)
+          ChoiceChip(
+            label: Text('$label  ${s.nodesOf(f).length}'),
+            selected: s.nodeFilter == f,
+            labelStyle: TextStyle(
+              color: s.nodeFilter == f ? Ui.accentDark : Ui.textMuted,
+              fontWeight: s.nodeFilter == f ? FontWeight.w600 : FontWeight.w400,
+              fontFeatures: Ui.tabular,
+            ),
+            side: BorderSide(color: s.nodeFilter == f ? Ui.accent : Ui.inputBorder),
+            onSelected: (_) => s.setNodeFilter(f),
           ),
       ],
     );

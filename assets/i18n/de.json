@@ -189,5 +189,12 @@
   "ui.geo.set": "Position gesetzt: {place}",
   "ui.roles.all": "Alle Rollen",
   "ui.roles.problem": "Nur Rollen dieses Problems",
-  "ui.roles.others": "Auch: {roles} – für andere Probleme"
+  "ui.roles.others": "Auch: {roles} – für andere Probleme",
+  "ui.filter.all": "Alle",
+  "ui.filter.others": "Sonstige",
+  "role.supplier.plural": "Anbieter",
+  "role.customer.plural": "Kunden",
+  "role.candidate.plural": "Kandidaten",
+  "role.depot.plural": "Depots",
+  "role.transit.plural": "Umschlagpunkte"
 }
