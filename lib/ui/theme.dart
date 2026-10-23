@@ -20,7 +20,7 @@ abstract final class Ui {
   static const error = Color(0xFFC0362C);
   static const mapBackground = Color(0xFFE9EDF1);
   static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
-  static const network = Color(0xFF6B7684); // edges of the network on the map
+  static const network = Color(0xFF808A97); // edges of the network on the map
   // colours of the roles on the map: suppliers blue (not the blue of the solution lines), customers green
   static const supplier = Color(0xFF2F6DB5);
   static const supplierDark = Color(0xFF1F4E87);
