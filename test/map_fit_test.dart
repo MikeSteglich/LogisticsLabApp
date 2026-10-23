@@ -42,8 +42,10 @@ void main() {
     }
 
     // open a file
-    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
-        name: 'brandenburg.llab');
+    state.openScenario(
+      Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
+      name: 'brandenburg.llab',
+    );
     await settle(tester);
     expectAllVisible('open');
     final zoomOpen = tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!.camera.zoom;

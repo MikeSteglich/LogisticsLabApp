@@ -46,7 +46,13 @@ class Edge {
   final Map<String, dynamic> json;
   Edge(this.json);
   String get from => json['from'] as String;
+  set from(String v) => json['from'] = v;
   String get to => json['to'] as String;
+  set to(String v) => json['to'] = v;
+
+  /// attribute of a problem type, e.g. capacity - null removes it from the file
+  Object? operator [](String key) => json[key];
+  void operator []=(String key, Object? v) => v == null ? json.remove(key) : json[key] = v;
 }
 
 class Network {
@@ -55,7 +61,21 @@ class Network {
   Network(this.name, this.json);
 
   bool get directed => json['directed'] as bool? ?? false;
+  set directed(bool v) => json['directed'] = v;
   List<Edge> get edges => [for (final e in (json['edges'] as List? ?? const [])) Edge(e as Map<String, dynamic>)];
+  List<dynamic> get _edges => (json['edges'] ??= <dynamic>[]) as List<dynamic>;
+
+  /// the connection from - to exists already (both directions for an undirected network)
+  bool hasEdge(String from, String to) =>
+      edges.any((e) => (e.from == from && e.to == to) || (!directed && e.from == to && e.to == from));
+
+  Edge addEdge(String from, String to) {
+    final e = Edge({'from': from, 'to': to});
+    _edges.add(e.json);
+    return e;
+  }
+
+  void removeEdgeAt(int i) => _edges.removeAt(i);
 }
 
 class Problem {
@@ -117,19 +137,71 @@ class Scenario {
     return n;
   }
 
-  void removeNode(String id) => (json['nodes'] as List).removeWhere((n) => n['id'] == id);
+  List<Map<String, dynamic>> get _vehicles => [
+    for (final v in (json['vehicles'] as List? ?? const [])) v as Map<String, dynamic>,
+  ];
 
-  /// renames a node in the edges and assignments too
+  /// parameters of the problems that name the node, e.g. startNode of a tsp - (problem, key)
+  List<(Problem, String)> _paramRefs(String id) => [
+    for (final p in problems)
+      for (final MapEntry(:key, :value) in p.parameters.entries)
+        if (value == id || (value is List && value.contains(id))) (p, key),
+  ];
+
+  /// where else the node is used - as message keys with arguments, for the question before deleting it
+  List<(String, Map<String, Object>)> usages(String id) => [
+    for (final net in networks.values)
+      if (net.edges.where((e) => e.from == id || e.to == id).length case final n when n > 0)
+        ('ui.use.edges', {'n': n, 'net': net.name}),
+    for (final v in _vehicles)
+      if (v['depot'] == id) ('ui.use.depot', {'vehicle': '${v['id']}'}),
+    for (final n in nodes)
+      if (n['assignedTo'] == id) ('ui.use.assigned', {'node': n.name}),
+    for (final (p, key) in _paramRefs(id)) ('ui.use.param', {'param': key, 'problem': p.name}),
+  ];
+
+  /// removes the node and every reference to it - edges, depots of vehicles, fixed assignments, parameters of the
+  /// problems (e.g. startNode); a reference to an unknown node makes the scenario invalid
+  void removeNode(String id) {
+    (json['nodes'] as List).removeWhere((n) => n['id'] == id);
+    for (final net in networks.values) {
+      net._edges.removeWhere((e) => e['from'] == id || e['to'] == id);
+    }
+    for (final v in _vehicles) {
+      if (v['depot'] == id) v.remove('depot');
+    }
+    for (final n in nodes) {
+      if (n['assignedTo'] == id) n['assignedTo'] = null;
+    }
+    for (final (p, key) in _paramRefs(id)) {
+      final v = p.parameters[key];
+      if (v is List) {
+        v.remove(id);
+      } else {
+        p.parameters.remove(key);
+      }
+    }
+  }
+
+  /// renames a node in all references too (see removeNode)
   void renameNode(String from, String to) {
+    final refs = _paramRefs(from);
     for (final n in nodes) {
       if (n.id == from) n.id = to;
       if (n['assignedTo'] == from) n['assignedTo'] = to;
     }
     for (final net in networks.values) {
       for (final e in net.edges) {
-        if (e.json['from'] == from) e.json['from'] = to;
-        if (e.json['to'] == from) e.json['to'] = to;
+        if (e.from == from) e.from = to;
+        if (e.to == from) e.to = to;
       }
+    }
+    for (final v in _vehicles) {
+      if (v['depot'] == from) v['depot'] = to;
+    }
+    for (final (p, key) in refs) {
+      final v = p.parameters[key];
+      p.parameters[key] = v is List ? [for (final x in v) x == from ? to : x] : to;
     }
   }
 
@@ -137,6 +209,12 @@ class Scenario {
     for (final MapEntry(:key, :value) in ((json['networks'] as Map?) ?? const {}).entries)
       key as String: Network(key, value as Map<String, dynamic>),
   };
+
+  Network addNetwork(String name, {bool directed = true}) {
+    final nets = (json['networks'] ??= <String, dynamic>{}) as Map<String, dynamic>;
+    nets[name] = <String, dynamic>{'directed': directed, 'edges': <dynamic>[]};
+    return Network(name, nets[name] as Map<String, dynamic>);
+  }
 
   Map<String, dynamic> get matrix => (json['matrix'] ??= <String, dynamic>{}) as Map<String, dynamic>;
   bool get usesRoads => (matrix['matrixSource'] ?? 'osm') == 'osm';

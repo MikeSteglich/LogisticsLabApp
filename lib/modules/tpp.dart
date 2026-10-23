@@ -32,8 +32,8 @@ final tppSpec = ModuleSpec(
   ],
   network: NetworkUse.optional,
   edgeFields: [
-    FieldSpec('capacity', FieldKind.unlimited, min: 0, visibleIf: (p) => isOn(p, 'useCapacities')),
-    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, visibleIf: (p) => isOn(p, 'useFixedCosts')),
+    FieldSpec('capacity', FieldKind.unlimited, min: 0, requires: 'useCapacities'),
+    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, requires: 'useFixedCosts'),
   ],
   summary: const [
     ResultColumn('totalCosts', unit: '€'),

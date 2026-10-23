@@ -53,7 +53,7 @@ class NodesTab extends StatelessWidget {
               message: t('ui.node.delete'),
               child: OutlinedButton(
                 style: OutlinedButton.styleFrom(minimumSize: const Size(40, 40), padding: EdgeInsets.zero),
-                onPressed: s.node == null ? null : s.deleteNode,
+                onPressed: s.node == null ? null : () => _deleteNode(context, s),
                 child: const Icon(Icons.delete_outline, size: 18),
               ),
             ),
@@ -74,6 +74,37 @@ class NodesTab extends StatelessWidget {
       ],
     );
   }
+}
+
+/// deletes the selected node - asks first if it is used elsewhere (edges, depot, parameters of problems)
+Future<void> _deleteNode(BuildContext context, AppState s) async {
+  final n = s.node;
+  if (n == null) return;
+  final uses = s.scenario.usages(n.id);
+  if (uses.isNotEmpty) {
+    final t = s.strings;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(t('ui.node.deleteUsed', {'node': n.name})),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final (key, args) in uses) Text('• ${t(key, args)}'),
+            const SizedBox(height: 12),
+            Text(t('ui.node.deleteRefs'), style: Ui.small),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(t('ui.cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(t('ui.node.delete'))),
+        ],
+      ),
+    );
+    if (ok != true) return;
+  }
+  s.deleteNode();
 }
 
 class _NodeTable extends StatelessWidget {

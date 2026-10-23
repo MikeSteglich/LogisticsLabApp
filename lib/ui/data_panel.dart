@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../modules/modules.dart';
+import 'network_tab.dart';
 import 'nodes_tab.dart';
 import 'solution_tab.dart';
 import 'theme.dart';
@@ -31,7 +32,7 @@ class DataPanel extends StatelessWidget {
     } else {
       body = switch (s.tab) {
         DataTab.nodes => NodesTab(state: s),
-        DataTab.network => _NetworkTab(state: s),
+        DataTab.network => NetworkTab(state: s),
         DataTab.parameters => _ParametersTab(state: s),
         DataTab.solution => SolutionTab(state: s, onSave: onSaveSolution),
       };
@@ -101,97 +102,6 @@ class _Note extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.all(16),
     child: Text(text, style: const TextStyle(color: Ui.textSecondary)),
-  );
-}
-
-//*************** network ************************************
-
-class _NetworkTab extends StatelessWidget {
-  final AppState state;
-  const _NetworkTab({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final s = state;
-    final t = s.strings;
-    final p = s.problem;
-    if (p == null) return _Note(t('ui.noProblem'));
-    final nets = s.scenario.networks;
-    final net = p.network == null ? null : nets[p.network];
-    String name(String id) => s.scenario.node(id)?.name ?? id;
-    String value(Object? v) => v == null
-        ? '–'
-        : v == 'M'
-        ? '∞'
-        : v is num
-        ? t.number(v)
-        : '$v';
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text(t('ui.tab.network'), style: Ui.title),
-        const SizedBox(height: Ui.gap),
-        FieldLabel(t('ui.net.forProblem')),
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: DropdownButtonFormField<String?>(
-            key: ValueKey('net-${p.name}'),
-            initialValue: nets.containsKey(p.network) ? p.network : null,
-            isExpanded: true,
-            items: [
-              DropdownMenuItem(value: null, child: Text(t('ui.net.none'))),
-              for (final n in nets.values)
-                DropdownMenuItem(value: n.name, child: Text('${n.name} · ${t('ui.net.edges', {'n': n.edges.length})}')),
-            ],
-            onChanged: (v) => s.edit(() => p.network = v),
-          ),
-        ),
-        const SizedBox(height: Ui.gap),
-        Text(t('ui.net.help'), style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
-        if (net != null) ...[
-          const SizedBox(height: 16),
-          Section(
-            padding: EdgeInsets.zero,
-            child: Table(
-              columnWidths: const {
-                0: FlexColumnWidth(2),
-                1: FlexColumnWidth(2),
-                2: FlexColumnWidth(1),
-                3: FlexColumnWidth(1),
-              },
-              children: [
-                _row([t('ui.net.from'), t('ui.net.to'), t('field.capacity'), t('field.fixedCost')], header: true),
-                for (final e in net.edges)
-                  _row([name(e.from), name(e.to), value(e.json['capacity']), value(e.json['fixedCost'])]),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  static TableRow _row(List<String> cells, {bool header = false}) => TableRow(
-    decoration: BoxDecoration(
-      color: header ? Ui.surfaceAlt : null,
-      border: header ? null : const Border(top: BorderSide(color: Color(0xFFEEF0F3))),
-    ),
-    children: [
-      for (final (i, c) in cells.indexed)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-          child: Text(
-            c,
-            textAlign: i >= 2 ? TextAlign.right : TextAlign.left,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: header ? FontWeight.w600 : FontWeight.w400,
-              color: header ? Ui.textSecondary : Ui.text,
-              fontFeatures: Ui.tabular,
-            ),
-          ),
-        ),
-    ],
   );
 }
 

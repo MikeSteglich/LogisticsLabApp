@@ -28,8 +28,10 @@ void main() {
 
     final state = (await tester.runAsync(AppState.create))!;
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
-    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
-        name: 'brandenburg.llab');
+    state.openScenario(
+      Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
+      name: 'brandenburg.llab',
+    );
     await tester.pumpWidget(LogisticsLabApp(state: state));
     await tester.pump();
 

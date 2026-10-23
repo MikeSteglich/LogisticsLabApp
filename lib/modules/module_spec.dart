@@ -48,6 +48,7 @@ class FieldSpec {
   final bool required;
   final num? min;
   final FieldCondition? visibleIf;
+  final String? requires; // boolean parameter that switches the field on, e.g. useCapacities
 
   const FieldSpec(
     this.key,
@@ -59,13 +60,15 @@ class FieldSpec {
     this.required = false,
     this.min,
     this.visibleIf,
+    this.requires,
   });
 
   String get label => labelKey ?? 'field.$key';
   String get help => '$label.help';
   String choiceLabel(String value) => 'choice.$key.$value';
 
-  bool isVisible(Map<String, dynamic> parameters) => visibleIf?.call(parameters) ?? true;
+  bool isVisible(Map<String, dynamic> parameters) =>
+      (requires == null || parameters[requires] == true) && (visibleIf?.call(parameters) ?? true);
 
   /// Message for a wrong value or null - the server checks again, this is only for the mask.
   /// The argument label is the message key of the field, the UI replaces it by its text.

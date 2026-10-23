@@ -137,6 +137,9 @@ class AppState extends ChangeNotifier {
     problemName = first?.name;
     selectedNode = s.nodes.firstOrNull?.id;
     nodeFilter = null;
+    selectedEdge = null;
+    drawingEdge = false;
+    edgeStart = null;
     tab = DataTab.nodes;
     placing = false;
     message = null;
@@ -165,9 +168,123 @@ class AppState extends ChangeNotifier {
 
   void chooseProblem(String name) {
     problemName = name;
+    selectedEdge = null;
+    drawingEdge = false;
     if (nodeFilter != null && nodeFilter!.isNotEmpty && !problemRoles.contains(nodeFilter)) nodeFilter = null;
     _keepSelectionVisible();
     notifyListeners();
+  }
+
+  //*********** network and edges ************
+
+  int? selectedEdge; // index in the edges of the network of the problem
+  bool drawingEdge = false; // map: the next two nodes tapped are the ends of a new edge
+  String? edgeStart;
+
+  Network? get network {
+    final name = problem?.network;
+    return name == null ? null : scenario.networks[name];
+  }
+
+  Edge? get edge {
+    final edges = network?.edges ?? const <Edge>[];
+    final i = selectedEdge;
+    return i == null || i >= edges.length ? null : edges[i];
+  }
+
+  /// new network of the problem - directed: the edges are only allowed from -> to
+  void newNetwork(String name, {bool directed = true}) {
+    final p = problem;
+    if (p == null || name.trim().isEmpty || scenario.networks.containsKey(name.trim())) return;
+    edit(() {
+      scenario.addNetwork(name.trim(), directed: directed);
+      p.network = name.trim();
+      selectedEdge = null;
+      tab = DataTab.network;
+    });
+  }
+
+  void chooseNetwork(String? name) => edit(() {
+    problem?.network = name;
+    selectedEdge = null;
+  });
+
+  /// false if the edge exists already or both ends are the same node
+  bool addEdge(String from, String to) {
+    final net = network;
+    if (net == null || from == to || net.hasEdge(from, to)) return false;
+    edit(() {
+      net.addEdge(from, to);
+      selectedEdge = net.edges.length - 1;
+      tab = DataTab.network;
+    });
+    return true;
+  }
+
+  /// the missing edges from every node of the first role of the problem to every node of the second
+  /// (tpp: suppliers -> customers) - returns the number of new edges
+  int addAllEdges() {
+    final net = network;
+    final roles = spec?.roles ?? const <RoleSpec>[];
+    if (net == null || roles.length < 2) return 0;
+    final params = problem!.parameters;
+    final from = [
+      for (final n in scenario.nodes)
+        if (n.roles.contains(spec!.nodeRole(roles[0], params))) n.id,
+    ];
+    final to = [
+      for (final n in scenario.nodes)
+        if (n.roles.contains(spec!.nodeRole(roles[1], params))) n.id,
+    ];
+    var count = 0;
+    edit(() {
+      for (final a in from) {
+        for (final b in to) {
+          if (a != b && !net.hasEdge(a, b)) {
+            net.addEdge(a, b);
+            count++;
+          }
+        }
+      }
+    });
+    return count;
+  }
+
+  void deleteEdge() {
+    final net = network;
+    final i = selectedEdge;
+    if (net == null || i == null || i >= net.edges.length) return;
+    edit(() {
+      net.removeEdgeAt(i);
+      final n = net.edges.length;
+      selectedEdge = n == 0 ? null : i.clamp(0, n - 1);
+    });
+  }
+
+  void selectEdge(int? i) {
+    selectedEdge = i;
+    notifyListeners();
+  }
+
+  void setDrawingEdge(bool v) {
+    drawingEdge = v && network != null;
+    edgeStart = null;
+    placing = false;
+    notifyListeners();
+  }
+
+  /// a node tapped on the map: selection, or an end of the edge being drawn
+  void tapNode(String id) {
+    if (!drawingEdge) return selectNode(id);
+    if (edgeStart == null) {
+      edgeStart = id;
+      notifyListeners();
+      return;
+    }
+    final start = edgeStart!;
+    drawingEdge = false;
+    edgeStart = null;
+    if (!addEdge(start, id)) notifyListeners();
   }
 
   //*********** filter of the node list ************

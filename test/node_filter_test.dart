@@ -22,8 +22,10 @@ void main() {
     addTearDown(tester.view.reset);
 
     final state = (await tester.runAsync(AppState.create))!;
-    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
-        name: 'brandenburg.llab');
+    state.openScenario(
+      Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()),
+      name: 'brandenburg.llab',
+    );
     await tester.pumpWidget(LogisticsLabApp(state: state));
     await tester.pump();
     List<String> ids() => [for (final n in state.filteredNodes) n.id];

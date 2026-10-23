@@ -99,6 +99,14 @@ void main() {
     state.setTab(DataTab.parameters);
     await shot('3-parameters');
 
+    // network of the problem with all connections, one edge selected (the solver runs - roads are loaded)
+    state.newNetwork('Direkt');
+    state.addAllEdges();
+    state.selectEdge(0);
+    state.edit(() => state.edge!['capacity'] = 40);
+    await settle(() => false, seconds: 6);
+    await shot('5-network');
+
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait
     await tester.pump();
     state.setTab(DataTab.nodes);

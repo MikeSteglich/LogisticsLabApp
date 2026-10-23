@@ -56,7 +56,6 @@ class _MapViewState extends State<MapView> {
   @override
   Widget build(BuildContext context) {
     final nodes = s.scenario.nodes;
-    final t = s.strings;
     _scheduleFit();
     return Stack(
       children: [
@@ -90,52 +89,83 @@ class _MapViewState extends State<MapView> {
             ),
           ],
         ),
-        if (s.placing)
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 220,
-            child: Align(
-              alignment: Alignment.topLeft,
-              child: _panel(
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.ads_click, size: 18, color: Ui.accent),
-                    const SizedBox(width: 8),
-                    Flexible(child: Text(t('ui.node.placeHint'), style: const TextStyle(fontSize: 13))),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      tooltip: t('ui.cancel'),
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () => s.setPlacing(false),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+        Positioned(
+          top: 12,
+          left: 12,
+          right: 220,
+          child: Align(alignment: Alignment.topLeft, child: _tools()),
+        ),
         Positioned(top: 12, right: 12, child: _layers()),
         Positioned(bottom: 36, right: 12, child: _zoom()),
       ],
     );
   }
 
+  /// hint while a position or an edge is set on the map, else the button "draw edge" (with a network)
+  Widget _tools() {
+    final t = s.strings;
+    final hint = s.placing
+        ? t('ui.node.placeHint')
+        : s.drawingEdge
+        ? t(s.edgeStart == null ? 'ui.edge.drawStart' : 'ui.edge.drawEnd')
+        : null;
+    if (hint == null) {
+      if (s.network == null) return const SizedBox.shrink();
+      return OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(backgroundColor: Ui.surface),
+        icon: const Icon(Icons.timeline, size: 16),
+        label: Text(t('ui.edge.draw')),
+        onPressed: () => s.setDrawingEdge(true),
+      );
+    }
+    return _panel(
+      Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(s.placing ? Icons.ads_click : Icons.timeline, size: 18, color: Ui.accent),
+          const SizedBox(width: 8),
+          Flexible(child: Text(hint, style: const TextStyle(fontSize: 13))),
+          const SizedBox(width: 4),
+          IconButton(
+            tooltip: t('ui.cancel'),
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: () => s.placing ? s.setPlacing(false) : s.setDrawingEdge(false),
+          ),
+        ],
+      ),
+    );
+  }
+
   //*********** layers ************
 
   List<Polyline> _networkLines() {
-    final net = s.problem?.network == null ? null : s.scenario.networks[s.problem!.network];
+    final net = s.network;
     if (net == null) return const [];
+    final edges = net.edges;
+    // the selected edge last - on top
+    final order = [
+      for (var i = 0; i < edges.length; i++)
+        if (i != s.selectedEdge) i,
+      ?s.edge == null ? null : s.selectedEdge,
+    ];
     return [
-      for (final e in net.edges)
-        if (s.scenario.node(e.from) case final a?)
-          if (s.scenario.node(e.to) case final b?)
-            Polyline(
-              points: s.edgePoints(a.position, b.position),
-              color: Ui.textSecondary.withValues(alpha: 0.7),
-              strokeWidth: 2,
-              pattern: const StrokePattern.dotted(),
-            ),
+      for (final i in order)
+        if (s.scenario.node(edges[i].from) case final a?)
+          if (s.scenario.node(edges[i].to) case final b?)
+            i == s.selectedEdge
+                ? Polyline(
+                    points: s.edgePoints(a.position, b.position),
+                    color: Ui.accent,
+                    strokeWidth: 5,
+                    strokeCap: StrokeCap.round,
+                    strokeJoin: StrokeJoin.round,
+                  )
+                : Polyline(
+                    points: s.edgePoints(a.position, b.position),
+                    color: Ui.textSecondary.withValues(alpha: 0.7),
+                    strokeWidth: 2,
+                    pattern: const StrokePattern.dotted(),
+                  ),
     ];
   }
 
@@ -195,7 +225,8 @@ class _MapViewState extends State<MapView> {
   ];
 
   Marker _symbol(Node n) {
-    final selected = n.id == s.selectedNode;
+    // the start of the edge being drawn is marked like the selection
+    final selected = s.drawingEdge ? n.id == s.edgeStart : n.id == s.selectedNode;
     // shape by the roles in the problem - a depot is no supplier of a tpp
     final roles = [
       for (final r in n.roles)
@@ -241,7 +272,7 @@ class _MapViewState extends State<MapView> {
         selected: selected,
         label: n.name,
         child: GestureDetector(
-          onTap: () => s.selectNode(n.id),
+          onTap: () => s.tapNode(n.id),
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: Center(
