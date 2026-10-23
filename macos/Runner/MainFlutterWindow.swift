@@ -13,6 +13,9 @@ class MainFlutterWindow: NSWindow {
       NSRect(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2, width: size.width, height: size.height),
       display: true)
     self.minSize = NSSize(width: 640, height: 480)
+    // one window - no tab bar of macOS (and no menu items for it)
+    NSWindow.allowsAutomaticWindowTabbing = false
+    self.tabbingMode = .disallowed
     self.title = "LogisticsLab"
 
     RegisterGeneratedPlugins(registry: flutterViewController)

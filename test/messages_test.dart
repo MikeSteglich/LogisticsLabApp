@@ -46,9 +46,20 @@ void main() {
     await tester.pump();
     expect(find.text('Importiere drogma.CLPX …'), findsOneWidget);
     work.complete(42);
+    await tester.pump(const Duration(seconds: 1)); // the dialog stays at least 0.6 s
     expect(await result, 42);
     await tester.pumpAndSettle();
     expect(find.byType(AlertDialog), findsNothing);
+
+    // a fast step: the dialog is still seen (at least 0.6 s)
+    final fast = busy(ctx, 'Importiere schnell …', () async => 1);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Importiere schnell …'), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pumpAndSettle();
+    expect(find.text('Importiere schnell …'), findsNothing);
+    expect(await fast, 1);
 
     // old formats of LogisticsLab 4 are recognised by the app
     expect(AppState.legacyFormats, contains('TPP'));
