@@ -227,5 +227,6 @@
   "ui.importing": "Importing {file} …",
   "ui.error.legacy": "{file}: {ext} is a format of LogisticsLab 4 (or older) with planar coordinates and an own matrix. It cannot be converted into a scenario – only TPPX, TSPX, CLPX, DLPX, NWFX and VRPX.",
   "ui.solve.cancelled": "Solving cancelled",
-  "ui.split.list": "Size of list and mask"
+  "ui.split.list": "Size of list and mask",
+  "ui.layer.labels": "Labels"
 }

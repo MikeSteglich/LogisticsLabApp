@@ -26,6 +26,7 @@ class _MapViewState extends State<MapView> {
   final _map = MapController();
   bool _showSolution = true;
   bool _showNetwork = true;
+  bool _showLabels = true;
   bool _ready = false;
   int _fitted = -1; // AppState.geometry of the last fit
   Timer? _fitTimer;
@@ -80,8 +81,7 @@ class _MapViewState extends State<MapView> {
               ),
             if (_showNetwork) PolylineLayer(polylines: _networkLines()),
             if (_showSolution) PolylineLayer(polylines: _solutionLines()),
-            if (_showSolution) MarkerLayer(markers: _flowLabels(), rotate: false),
-            MarkerLayer(markers: [for (final n in nodes) _label(n)], rotate: false),
+            if (_showLabels) _LabelLayer(labels: _labels(), obstacles: [for (final n in nodes) n.position]),
             MarkerLayer(markers: [for (final n in nodes) _symbol(n)], rotate: false),
             RichAttributionWidget(
               alignment: AttributionAlignment.bottomLeft,
@@ -202,36 +202,35 @@ class _MapViewState extends State<MapView> {
     ];
   }
 
-  List<Marker> _flowLabels() => [
-    for (final f in _flows())
-      Marker(
-        point: f.points[f.points.length ~/ 2],
-        width: 64,
-        height: 22,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-            decoration: BoxDecoration(
-              color: Ui.surface,
-              borderRadius: BorderRadius.circular(9),
-              border: Border.all(
-                color: f.selected ? Ui.highlight : (s.solutionIsStale ? Ui.textSecondary : Ui.accent),
-                width: f.selected ? 2 : 1,
-              ),
-            ),
-            child: Text(
-              s.strings.number(f.flow),
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: f.selected ? Ui.highlight : Ui.accentDark,
-                fontFeatures: Ui.tabular,
-              ),
-            ),
-          ),
-        ),
-      ),
-  ];
+  /// labels of the map in the order of their priority - those that would overlap are left out (_LabelLayer):
+  /// the selected node, the selected connection, the quantities of the solution, the nodes of the problem, the rest
+  List<_Label> _labels() {
+    final nodes = s.scenario.nodes;
+    final selected = nodes.where((n) => n.id == s.selectedNode);
+    final flows = _showSolution ? _flows() : const <({List<LatLng> points, num flow, bool selected})>[];
+    _Label flowLabel(({List<LatLng> points, num flow, bool selected}) f) => _Label(
+      f.points[f.points.length ~/ 2],
+      s.strings.number(f.flow),
+      const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: Ui.tabular),
+      centered: true,
+      color: f.selected ? Ui.highlight : Ui.accentDark,
+      border: f.selected ? Ui.highlight : (s.solutionIsStale ? Ui.textSecondary : Ui.accent),
+      borderWidth: f.selected ? 2 : 1,
+    );
+    _Label nodeLabel(Node n) => _Label(
+      n.position,
+      n.name,
+      const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      color: s.isRelevant(n) ? Ui.text : Ui.textSecondary,
+    );
+    return [
+      for (final n in selected) nodeLabel(n),
+      for (final f in flows.where((f) => f.selected)) flowLabel(f),
+      for (final f in flows.where((f) => !f.selected)) flowLabel(f),
+      for (final n in nodes.where((n) => n.id != s.selectedNode && s.isRelevant(n))) nodeLabel(n),
+      for (final n in nodes.where((n) => n.id != s.selectedNode && !s.isRelevant(n))) nodeLabel(n),
+    ];
+  }
 
   Marker _symbol(Node n) {
     // the start of the edge being drawn is marked like the selection
@@ -280,20 +279,24 @@ class _MapViewState extends State<MapView> {
         button: true,
         selected: selected,
         label: n.name,
-        child: GestureDetector(
-          onTap: () => s.tapNode(n.id),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: selected
-                    ? BoxDecoration(
-                        border: Border.all(color: Ui.accent, width: 3),
-                        borderRadius: BorderRadius.circular(6),
-                      )
-                    : null,
-                child: shape,
+        child: Tooltip(
+          message: n.name,
+          waitDuration: const Duration(milliseconds: 300),
+          child: GestureDetector(
+            onTap: () => s.tapNode(n.id),
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: selected
+                      ? BoxDecoration(
+                          border: Border.all(color: Ui.accent, width: 3),
+                          borderRadius: BorderRadius.circular(6),
+                        )
+                      : null,
+                  child: shape,
+                ),
               ),
             ),
           ),
@@ -301,32 +304,6 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
-
-  Marker _label(Node n) => Marker(
-    point: n.position,
-    width: 180,
-    height: 22,
-    alignment: Alignment.centerRight, // the label starts at the node
-    child: IgnorePointer(
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Container(
-          margin: const EdgeInsets.only(left: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(color: Ui.surface.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(4)),
-          child: Text(
-            n.name,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: s.isRelevant(n) ? Ui.text : Ui.textSecondary,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
 
   //*********** controls ************
 
@@ -362,6 +339,7 @@ class _MapViewState extends State<MapView> {
         children: [
           Text(t('ui.layers').toUpperCase(), style: Ui.sectionLabel),
           check(t('ui.layer.solution'), _showSolution, (v) => setState(() => _showSolution = v)),
+          check(t('ui.layer.labels'), _showLabels, (v) => setState(() => _showLabels = v)),
           if (s.problem?.network != null)
             check(t('ui.layer.network'), _showNetwork, (v) => setState(() => _showNetwork = v)),
           const SizedBox(height: 4),
@@ -427,4 +405,131 @@ class _EdgeIcon extends CustomPainter {
 
   @override
   bool shouldRepaint(_EdgeIcon old) => old.roads != roads;
+}
+
+/// label of the map - the name of a node (right of it) or a quantity of the solution (centred on the connection)
+class _Label {
+  final LatLng point;
+  final String text;
+  final TextStyle style;
+  final bool centered;
+  final Color color;
+  final Color? border;
+  final double borderWidth;
+
+  const _Label(
+    this.point,
+    this.text,
+    this.style, {
+    this.centered = false,
+    required this.color,
+    this.border,
+    this.borderWidth = 1,
+  });
+
+  static const _padding = EdgeInsets.symmetric(horizontal: 6, vertical: 2);
+  static const _gap = 14.0; // between the node and its name
+  static final _sizes = <String, Size>{};
+
+  /// size of the label with its padding and border - measured with the text style the label is shown with
+  Size size(TextStyle base, TextScaler scaler) =>
+      _sizes.putIfAbsent('${base.fontFamily}|${scaler.scale(10)}|${style.fontSize}|$text', () {
+        final p = TextPainter(
+          text: TextSpan(text: text, style: base.merge(style)),
+          textDirection: TextDirection.ltr,
+          textScaler: scaler,
+          maxLines: 1,
+        )..layout(maxWidth: 220);
+        final b = border == null ? 0.0 : 2 * borderWidth;
+        return Size(
+          (p.width + _padding.horizontal + b).ceilToDouble(),
+          (p.height + _padding.vertical + b).ceilToDouble(),
+        );
+      });
+
+  /// places of the label around its point: a quantity centred, a name right, left, above or below its node
+  List<Alignment> get places => centered
+      ? const [Alignment.center]
+      : const [Alignment.centerRight, Alignment.centerLeft, Alignment.topCenter, Alignment.bottomCenter];
+
+  static const _gapV = 10.0; // between the node and a name above or below it
+
+  /// place on the screen for the point of the label on the screen and one of [places]
+  Rect rect(Offset at, Size size, Alignment place) => switch (place) {
+    Alignment.centerRight => Rect.fromLTWH(at.dx + _gap, at.dy - size.height / 2, size.width, size.height),
+    Alignment.centerLeft => Rect.fromLTWH(at.dx - _gap - size.width, at.dy - size.height / 2, size.width, size.height),
+    Alignment.topCenter => Rect.fromLTWH(at.dx - size.width / 2, at.dy - _gapV - size.height, size.width, size.height),
+    Alignment.bottomCenter => Rect.fromLTWH(at.dx - size.width / 2, at.dy + _gapV, size.width, size.height),
+    _ => Rect.fromCenter(center: at, width: size.width, height: size.height),
+  };
+
+  /// marker for [place] - the alignment of flutter_map puts the whole widget on that side of the point
+  Marker marker(Size size, Alignment place) => Marker(
+    point: point,
+    width: place.x == 0 ? size.width : size.width + _gap,
+    height: place.y == 0 ? size.height : size.height + _gapV,
+    alignment: place,
+    child: IgnorePointer(
+      child: Align(
+        alignment: place,
+        child: Container(
+          width: size.width,
+          height: size.height,
+          alignment: Alignment.center,
+          padding: _padding,
+          decoration: BoxDecoration(
+            color: border == null ? Ui.surface.withValues(alpha: 0.85) : Ui.surface,
+            borderRadius: BorderRadius.circular(centered ? 9 : 4),
+            border: border == null ? null : Border.all(color: border!, width: borderWidth),
+          ),
+          child: Text(
+            text,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.clip,
+            style: style.copyWith(color: color),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// Labels without overlaps: in the order of their priority, a label is shown only if it does not overlap a label
+/// shown before or a node symbol - computed again with every move and zoom of the map.
+class _LabelLayer extends StatelessWidget {
+  final List<_Label> labels;
+  final List<LatLng> obstacles; // the node symbols
+  const _LabelLayer({required this.labels, required this.obstacles});
+
+  static const _symbol = 9.0; // half the size of a node symbol
+
+  @override
+  Widget build(BuildContext context) {
+    final camera = MapCamera.of(context);
+    final screen = Offset.zero & camera.nonRotatedSize;
+    final symbols = [
+      for (final p in obstacles)
+        Rect.fromCenter(center: camera.latLngToScreenOffset(p), width: 2 * _symbol, height: 2 * _symbol),
+    ];
+    final base = DefaultTextStyle.of(context).style;
+    final scaler = MediaQuery.textScalerOf(context);
+    final placed = <Rect>[];
+    final shown = <Marker>[];
+    for (final l in labels) {
+      final size = l.size(base, scaler);
+      final at = camera.latLngToScreenOffset(l.point);
+      // the first free place around the point
+      for (final place in l.places) {
+        final r = l.rect(at, size, place);
+        if (!screen.overlaps(r)) break; // outside - takes no room
+        final area = r.deflate(1);
+        if (placed.any(area.overlaps) || symbols.any(area.overlaps)) continue;
+        placed.add(r);
+        shown.add(l.marker(size, place));
+        break;
+      }
+    }
+    return MarkerLayer(markers: shown, rotate: false);
+  }
 }
