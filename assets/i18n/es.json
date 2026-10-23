@@ -368,5 +368,9 @@
   "ui.quit.discard": "No guardar",
   "ui.quit.save": "Guardar",
   "ui.map.zoomIn": "Acercar",
-  "ui.map.zoomOut": "Alejar"
+  "ui.map.zoomOut": "Alejar",
+  "ui.check.missing": "Falta {field} en: {nodes}",
+  "ui.check.wrong": "{field} no es válido en: {nodes}",
+  "ui.check.more": "{n} más",
+  "ui.check.noNodes": "No hay {role} en el problema – asigne el rol en la pestaña de nodos"
 }

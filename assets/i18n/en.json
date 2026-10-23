@@ -368,5 +368,9 @@
   "ui.quit.discard": "Don’t save",
   "ui.quit.save": "Save",
   "ui.map.zoomIn": "Zoom in",
-  "ui.map.zoomOut": "Zoom out"
+  "ui.map.zoomOut": "Zoom out",
+  "ui.check.missing": "{field} missing at: {nodes}",
+  "ui.check.wrong": "{field} is invalid at: {nodes}",
+  "ui.check.more": "{n} more",
+  "ui.check.noNodes": "No {role} in the problem – assign the role in the nodes tab"
 }

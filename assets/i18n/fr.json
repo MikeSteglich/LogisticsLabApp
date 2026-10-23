@@ -368,5 +368,9 @@
   "ui.quit.discard": "Ne pas enregistrer",
   "ui.quit.save": "Enregistrer",
   "ui.map.zoomIn": "Zoom avant",
-  "ui.map.zoomOut": "Zoom arrière"
+  "ui.map.zoomOut": "Zoom arrière",
+  "ui.check.missing": "{field} manque pour : {nodes}",
+  "ui.check.wrong": "{field} n’est pas valide pour : {nodes}",
+  "ui.check.more": "{n} autres",
+  "ui.check.noNodes": "Aucun(e) {role} dans le problème – attribuez le rôle dans l’onglet nœuds"
 }

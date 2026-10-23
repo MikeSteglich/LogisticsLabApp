@@ -368,5 +368,9 @@
   "ui.quit.discard": "Nicht speichern",
   "ui.quit.save": "Speichern",
   "ui.map.zoomIn": "Vergrößern",
-  "ui.map.zoomOut": "Verkleinern"
+  "ui.map.zoomOut": "Verkleinern",
+  "ui.check.missing": "{field} fehlt bei: {nodes}",
+  "ui.check.wrong": "{field} ist ungültig bei: {nodes}",
+  "ui.check.more": "{n} weitere",
+  "ui.check.noNodes": "Keine {role} im Problem – im Knoten-Tab die Rolle vergeben"
 }

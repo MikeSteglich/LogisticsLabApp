@@ -278,6 +278,43 @@ class AppState extends ChangeNotifier {
     if (solutionPart == id) solutionPart = null;
   });
 
+  /// missing or wrong values of the nodes of the problem (e.g. supply of a tpp) and roles without nodes - one
+  /// message per field, checked before solving
+  List<String> get nodeProblems {
+    final s = spec, p = problem;
+    if (s == null || p == null) return const [];
+    String names(List<Node> nodes) => [
+      for (final n in nodes.take(5)) n.name,
+      if (nodes.length > 5) strings('ui.check.more', {'n': nodes.length - 5}),
+    ].join(', ');
+    final out = <String>[];
+    for (final r in s.activeRoles(p.parameters)) {
+      final role = s.nodeRole(r, p.parameters);
+      final nodes = [
+        for (final n in scenario.nodes)
+          if (n.active && n.roles.contains(role)) n,
+      ];
+      if (nodes.isEmpty) {
+        out.add(strings('ui.check.noNodes', {'role': strings('role.$role.plural')}));
+        continue;
+      }
+      for (final f in r.nodeFields.where((f) => f.isVisible(p.parameters))) {
+        final missing = [
+          for (final n in nodes)
+            if (f.required && (n[f.key] ?? f.defaultValue) == null) n,
+        ];
+        final wrong = [
+          for (final n in nodes)
+            if ((n[f.key] ?? f.defaultValue) != null && f.validate(n[f.key] ?? f.defaultValue) != null) n,
+        ];
+        final label = strings(f.label);
+        if (missing.isNotEmpty) out.add(strings('ui.check.missing', {'field': label, 'nodes': names(missing)}));
+        if (wrong.isNotEmpty) out.add(strings('ui.check.wrong', {'field': label, 'nodes': names(wrong)}));
+      }
+    }
+    return out;
+  }
+
   /// nodes of the network of the problem in the order of the scenario
   List<String> get networkNodeIds => [
     for (final n in scenario.nodes)
@@ -770,6 +807,7 @@ class AppState extends ChangeNotifier {
     final missing = [
       if (spec?.network == NetworkUse.required && network == null) strings('ui.net.required'),
       for (final e in spec?.validateParameters(p.parameters) ?? const <Message>[]) strings.message(e),
+      ...nodeProblems,
     ];
     if (missing.isNotEmpty) {
       message = missing.join('\n');
