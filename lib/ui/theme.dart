@@ -21,6 +21,8 @@ abstract final class Ui {
   static const mapBackground = Color(0xFFE9EDF1);
   static const pale = Color(0xFFA3ABB5); // nodes without a role in the problem
   static const network = Color(0xFF6B7684); // edges of the network on the map
+  static const served = Color(0xFF3DA672); // part of the supply shipped / of the demand met (map)
+  static const symbolLine = Color(0xFF3B424B); // outline of the node symbols with a solution
   static const highlight = Color(0xFFC25A0E); // connection of the solution selected in the table
   static const highlightLight = Color(0xFFFBEEE4);
 

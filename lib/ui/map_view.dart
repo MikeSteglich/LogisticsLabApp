@@ -281,20 +281,20 @@ class _MapViewState extends State<MapView> {
               height: 16,
               decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
             )
-          // level from the bottom - full: everything shipped, empty: not used
+          // green level from the bottom - full: everything shipped, empty: not used
           : Container(
               width: 16,
               height: 16,
               decoration: BoxDecoration(
                 color: Ui.surface,
                 borderRadius: BorderRadius.circular(2),
-                border: Border.all(color: use.unused ? Ui.pale : color, width: 2),
+                border: Border.all(color: use.unused ? Ui.pale : Ui.symbolLine, width: 2),
               ),
               alignment: Alignment.bottomCenter,
               child: FractionallySizedBox(
                 heightFactor: use.share ?? 1,
                 widthFactor: 1,
-                child: ColoredBox(color: color),
+                child: const ColoredBox(color: Ui.served),
               ),
             );
     } else if (roles.contains('customer')) {
@@ -313,8 +313,8 @@ class _MapViewState extends State<MapView> {
               size: const Size(18, 18),
               painter: _PiePainter(
                 share: use.share ?? 1,
-                fill: color,
-                ring: use.notFull ? Ui.warning : color,
+                fill: Ui.served,
+                ring: use.notFull ? Ui.warning : Ui.symbolLine,
                 ringWidth: use.notFull ? 3 : 2,
               ),
             );
