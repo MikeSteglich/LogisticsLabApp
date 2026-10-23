@@ -9,6 +9,7 @@ import '../backend/backend.dart';
 import 'messages.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
+import 'solution_tab.dart' show PartChooser;
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -64,6 +65,11 @@ class NodesTab extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         _NodeFilter(state: s),
+        // multi-commodity: the values of one commodity (supply, demand, capacity factor)
+        if (s.spec?.usesCommodities == true && s.solutionParts.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          PartChooser(state: s),
+        ],
       ],
     );
     return ListAndMask(
@@ -117,6 +123,13 @@ Future<void> _deleteNode(BuildContext context, AppState s) async {
   s.deleteNode();
 }
 
+/// short labels of the values per commodity if one commodity is shown
+const _perCommodity = {
+  'supplies': 'field.supply',
+  'demands': 'field.demand',
+  'capacityFactors': 'field.capacityFactor',
+};
+
 class _NodeTable extends StatelessWidget {
   final AppState state;
   final GlobalKey selectedKey;
@@ -131,6 +144,7 @@ class _NodeTable extends StatelessWidget {
     // one column per role of the problem with its main value (tpp: supply, demand); without problem all roles
     // all nodes: the main value of every role; one role: the fields of that role
     final filter = s.nodeFilter;
+    final part = spec?.usesCommodities == true ? s.solutionPart : null;
     final roleColumns = [
       for (final r in spec?.activeRoles(params) ?? const <RoleSpec>[])
         if (filter == null)
@@ -143,7 +157,13 @@ class _NodeTable extends StatelessWidget {
       if (!n.roles.contains(c.role)) return '';
       final f = c.field;
       if (f == null) return '✓'; // role without a main value
-      return s.fieldText(n[f.key] ?? f.defaultValue) ?? '';
+      final v = n[f.key] ?? f.defaultValue;
+      if (f.kind == FieldKind.commodities && part != null) {
+        // one commodity - empty: 0 (supply, demand) or 1 (capacity factor)
+        final x = (v as Map?)?[part] as num?;
+        return x == null ? '' : t.number(x);
+      }
+      return s.fieldText(v) ?? '';
     }
 
     Widget cell(String text, {int flex = 2, bool right = false, bool bold = false, Color? color}) => Expanded(
@@ -188,7 +208,16 @@ class _NodeTable extends StatelessWidget {
           cell(t('ui.col.id'), flex: 1, bold: true, color: head),
           cell(t('ui.col.name'), flex: 3, bold: true, color: head),
           if (roleColumns.isEmpty) cell(t('ui.col.roles'), bold: true, color: head),
-          for (final c in roleColumns) cell(c.label, right: true, bold: true, color: head),
+          for (final c in roleColumns)
+            cell(
+              // one commodity (named in the chooser): the short label - supply instead of supply per commodity
+              c.field?.kind == FieldKind.commodities && part != null
+                  ? t(_perCommodity[c.field!.key] ?? c.label)
+                  : c.label,
+              right: true,
+              bold: true,
+              color: head,
+            ),
           cell(t('ui.col.coords'), flex: 3, bold: true, color: head),
         ], background: Ui.surfaceAlt),
         for (final n in s.filteredNodes)

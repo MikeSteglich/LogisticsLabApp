@@ -108,14 +108,8 @@ class _Note extends StatelessWidget {
 //*************** parameters ************************************
 
 const _matrixFields = [
+  // road network from OSM: always by car (travelmode car of a new scenario) - other modes are of no use here
   FieldSpec('matrixSource', FieldKind.choice, choices: ['osm', 'beeline'], defaultValue: 'osm', required: true),
-  FieldSpec(
-    'travelmode',
-    FieldKind.choice,
-    choices: ['car', 'foot', 'wheelchair'],
-    defaultValue: 'car',
-    required: true,
-  ),
   FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
   FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
 ];

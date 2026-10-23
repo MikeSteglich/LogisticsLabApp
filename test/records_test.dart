@@ -49,4 +49,28 @@ void main() {
     expect(state.scenario.commodities.map((c) => c['id']), ['food']);
     expect(refersTo('parcels'), isFalse);
   });
+
+  testWidgets('node list per commodity', (tester) async {
+    MapView.showTiles = false;
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = (await tester.runAsync(AppState.create))!;
+    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
+    state.scenario.matrix['matrixSource'] = 'beeline'; // no routes
+    state.chooseProblem('Zwei Güter');
+    state.setTab(DataTab.nodes);
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    // all: the sums - Berlin 25 + 15
+    expect(find.text('40'), findsWidgets);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Pakete'));
+    await tester.pump();
+    expect(state.solutionPart, 'parcels');
+    expect(find.text('Nachfrage je Gut'), findsNothing); // short: the commodity is in the chooser
+    expect(find.text('Nachfrage'), findsOneWidget);
+    expect(find.text('15'), findsWidgets); // Berlin
+    expect(find.text('40'), findsWidgets); // plant: parcels 40
+  });
 }

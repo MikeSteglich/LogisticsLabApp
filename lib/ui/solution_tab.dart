@@ -166,31 +166,7 @@ class SolutionTab extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           // one commodity or mode: quantities and utilization of it - the map follows
-          if (parts.isNotEmpty) ...[
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(t(spec.usesModes ? 'ui.sol.perMode' : 'ui.sol.perCommodity'), style: Ui.small),
-                for (final (id, label) in [
-                  (null, t('ui.filter.all')),
-                  for (final p in parts) (p['id'] as String?, Scenario.recordName(p)),
-                ])
-                  ChoiceChip(
-                    label: Text(label),
-                    selected: s.solutionPart == id,
-                    labelStyle: TextStyle(
-                      color: s.solutionPart == id ? Ui.accentDark : Ui.textMuted,
-                      fontWeight: s.solutionPart == id ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                    side: BorderSide(color: s.solutionPart == id ? Ui.accent : Ui.inputBorder),
-                    onSelected: (_) => s.setSolutionPart(id),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          ],
+          if (parts.isNotEmpty) ...[PartChooser(state: s), const SizedBox(height: 8)],
           Section(
             padding: EdgeInsets.zero,
             child: Table(
@@ -485,6 +461,40 @@ class _NodeUsesState extends State<_NodeUses> {
             ],
           ),
         ),
+      ],
+    );
+  }
+}
+
+/// all commodities or modes together, or one of them - the solution and the node list share the choice
+class PartChooser extends StatelessWidget {
+  final AppState state;
+  const PartChooser({super.key, required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text(t(s.spec?.usesModes == true ? 'ui.sol.perMode' : 'ui.sol.perCommodity'), style: Ui.small),
+        for (final (id, label) in [
+          (null, t('ui.filter.all')),
+          for (final p in s.solutionParts) (p['id'] as String?, Scenario.recordName(p)),
+        ])
+          ChoiceChip(
+            label: Text(label),
+            selected: s.solutionPart == id,
+            labelStyle: TextStyle(
+              color: s.solutionPart == id ? Ui.accentDark : Ui.textMuted,
+              fontWeight: s.solutionPart == id ? FontWeight.w600 : FontWeight.w400,
+            ),
+            side: BorderSide(color: s.solutionPart == id ? Ui.accent : Ui.inputBorder),
+            onSelected: (_) => s.setSolutionPart(id),
+          ),
       ],
     );
   }
