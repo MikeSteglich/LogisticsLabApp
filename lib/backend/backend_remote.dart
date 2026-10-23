@@ -107,6 +107,15 @@ class RemoteBackend implements Backend {
   }
 
   @override
+  Future<GeoHit?> reverse(LatLng position) async {
+    final (code, body) = await _post('reverse', {
+      'coordinate': [position.latitude, position.longitude],
+    });
+    if (code != 200) throw _error(code, body);
+    return GeoHit.fromReverse(body);
+  }
+
+  @override
   Future<(Map<String, dynamic>, String)> convert(String fileName, String content) async {
     final (code, body) = await _post('convert', {'fileName': fileName, 'content': content});
     if (code != 200) throw _error(code, body);

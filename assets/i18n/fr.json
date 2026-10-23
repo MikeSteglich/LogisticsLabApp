@@ -362,5 +362,9 @@
   "ui.legend.networkNodes": "Nœuds du réseau",
   "ui.edge.allNodesHint": "Relie tous les nœuds actifs entre eux – dans les deux sens dans un réseau orienté",
   "ui.node.addOnMap": "Ajouter des nœuds",
-  "ui.node.addHint": "Cliquez sur la carte – chaque clic ajoute un nœud"
+  "ui.node.addHint": "Cliquez sur la carte – chaque clic ajoute un nœud",
+  "ui.quit.title": "Enregistrer les modifications de « {file} » ?",
+  "ui.quit.text": "Le scénario n’est pas enregistré. Sans enregistrement, les modifications sont perdues.",
+  "ui.quit.discard": "Ne pas enregistrer",
+  "ui.quit.save": "Enregistrer"
 }

@@ -362,5 +362,9 @@
   "ui.legend.networkNodes": "Nodes of the network",
   "ui.edge.allNodesHint": "Connects all active nodes with each other – both directions in a directed network",
   "ui.node.addOnMap": "Add nodes",
-  "ui.node.addHint": "Click into the map – every click adds a node"
+  "ui.node.addHint": "Click into the map – every click adds a node",
+  "ui.quit.title": "Save the changes to “{file}”?",
+  "ui.quit.text": "The scenario is not saved. Without saving the changes are lost.",
+  "ui.quit.discard": "Don’t save",
+  "ui.quit.save": "Save"
 }

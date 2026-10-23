@@ -158,6 +158,14 @@ class LocalBackend implements Backend {
       GeoHit.fromAnswer(await _call('coordinates', GeoHit.request(address, near, limit)) as Map<String, dynamic>);
 
   @override
+  Future<GeoHit?> reverse(LatLng position) async => GeoHit.fromReverse(
+    await _call('reverse', {
+          'coordinate': [position.latitude, position.longitude],
+        }).timeout(requestTimeout)
+        as Map<String, dynamic>,
+  );
+
+  @override
   Future<(Map<String, dynamic>, String)> convert(String fileName, String content) async {
     final r =
         await _call('convert', {'fileName': fileName, 'content': content}).timeout(

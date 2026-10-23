@@ -362,5 +362,9 @@
   "ui.legend.networkNodes": "Nodos de la red",
   "ui.edge.allNodesHint": "Conecta todos los nodos activos entre sí – en ambos sentidos en una red dirigida",
   "ui.node.addOnMap": "Añadir nodos",
-  "ui.node.addHint": "Haga clic en el mapa – cada clic añade un nodo"
+  "ui.node.addHint": "Haga clic en el mapa – cada clic añade un nodo",
+  "ui.quit.title": "¿Guardar los cambios de «{file}»?",
+  "ui.quit.text": "El escenario no está guardado. Sin guardar se pierden los cambios.",
+  "ui.quit.discard": "No guardar",
+  "ui.quit.save": "Guardar"
 }

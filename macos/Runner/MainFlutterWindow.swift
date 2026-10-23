@@ -1,7 +1,7 @@
 import Cocoa
 import FlutterMacOS
 
-class MainFlutterWindow: NSWindow {
+class MainFlutterWindow: NSWindow, NSWindowDelegate {
   override func awakeFromNib() {
     let flutterViewController = FlutterViewController()
     self.contentViewController = flutterViewController
@@ -31,6 +31,16 @@ class MainFlutterWindow: NSWindow {
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 
+    // the close button quits the app like Cmd+Q - the app asks about unsaved changes first
+    self.delegate = self
+
     super.awakeFromNib()
+  }
+
+  /// the window closes with the app: the request goes to the app (AppLifecycleListener.onExitRequested), which
+  /// may keep it open
+  func windowShouldClose(_ sender: NSWindow) -> Bool {
+    NSApp.terminate(sender)
+    return false
   }
 }

@@ -362,5 +362,9 @@
   "ui.legend.networkNodes": "Knoten des Netzes",
   "ui.edge.allNodesHint": "Verbindet alle aktiven Knoten miteinander – im gerichteten Netz in beide Richtungen",
   "ui.node.addOnMap": "Knoten setzen",
-  "ui.node.addHint": "In die Karte klicken – jeder Klick legt einen Knoten an"
+  "ui.node.addHint": "In die Karte klicken – jeder Klick legt einen Knoten an",
+  "ui.quit.title": "Änderungen an „{file}“ speichern?",
+  "ui.quit.text": "Das Szenario ist nicht gespeichert. Ohne Speichern gehen die Änderungen verloren.",
+  "ui.quit.discard": "Nicht speichern",
+  "ui.quit.save": "Speichern"
 }

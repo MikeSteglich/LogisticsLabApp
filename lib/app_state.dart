@@ -685,6 +685,26 @@ class AppState extends ChangeNotifier {
       return;
     }
     clickedGeometry = geometry;
+    final id = selectedNode;
+    if (id != null && reverseGeocoding) addressOf(id, p);
+  }
+
+  /// tests without a core switch it off
+  static bool reverseGeocoding = true;
+
+  /// the address of a node set on the map, in the background - only into an empty address field; without an
+  /// answer (offline, older core) the address stays empty
+  Future<void> addressOf(String id, LatLng position) async {
+    try {
+      final hit = await (await _getBackend()).reverse(position);
+      final n = scenario.node(id);
+      if (hit == null || hit.address.isEmpty || n == null || (n.address ?? '').isNotEmpty) return;
+      if (n.position != position) return; // moved again meanwhile
+      edit(() {
+        n.address = hit.address;
+        n.json['addressDetails'] = hit.addressDetails;
+      });
+    } catch (_) {}
   }
 
   //*********** computing ************

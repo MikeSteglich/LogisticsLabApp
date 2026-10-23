@@ -53,6 +53,27 @@ class GeoHit {
 
   String _s(String k) => (json[k] as String?)?.trim() ?? '';
 
+  /// address of a place without its name and country, e.g. "Hochschulring 1, 15745 Wildau"
+  String get address => [_s('street'), '${_s('postcode')} ${_s('city')}'.trim()].where((p) => p.isNotEmpty).join(', ');
+
+  /// details of the address as in the scenario (addressDetails)
+  Map<String, dynamic> get addressDetails => {
+    for (final (k, v) in [
+      ('street', _s('street')),
+      ('postcode', _s('postcode')),
+      ('city', _s('city')),
+      ('country', _s('countrycode').toUpperCase()),
+    ])
+      if (v.isNotEmpty) k: v,
+  };
+
+  /// the first hit of a reverse geocoding - null without one
+  static GeoHit? fromReverse(Map<String, dynamic> answer) {
+    final results = answer['results'] as List?;
+    if (results == null || results.isEmpty || results.first is! Map) return null;
+    return GeoHit.fromJson((results.first as Map).cast<String, dynamic>());
+  }
+
   /// e.g. "TH Wildau, Hochschulring 1, 15745 Wildau, Germany"
   String get label => [
     _s('name'),
@@ -95,6 +116,9 @@ abstract class Backend {
 
   /// places of an address (OSM geocoding) - hits near [near] first
   Future<List<GeoHit>> geocode(String address, {LatLng? near, int limit = 5});
+
+  /// address of a place (OSM reverse geocoding) - null if there is none
+  Future<GeoHit?> reverse(LatLng position);
 
   /// scenario (llab) of an old LogisticsLab file (TPPX, TSPX, CLPX, DLPX, NWFX, VRPX) - the extension of
   /// [fileName] is the format; returns the scenario and its file name (e.g. drogma.clpx.llab)

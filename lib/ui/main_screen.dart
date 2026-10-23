@@ -1,6 +1,8 @@
 /// Main screen: header with problem chooser and toolbar, map and data area with a draggable divider, status bar.
 library;
 
+import 'dart:ui' show AppExitResponse;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -43,35 +45,39 @@ class MainScreen extends StatelessWidget {
       const SingleActivator(LogicalKeyboardKey.enter, meta: true): () => solve(context, state),
       const SingleActivator(LogicalKeyboardKey.enter, control: true): () => solve(context, state),
     };
-    return CallbackShortcuts(
-      bindings: shortcuts,
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Header(state: state, files: files),
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, c) {
-                      final wide = c.maxWidth >= 900;
-                      return SplitView(
-                        axis: wide ? Axis.horizontal : Axis.vertical,
-                        ratio: state.splitRatio,
-                        semanticLabel: state.strings('ui.split'),
-                        onChanged: state.setSplitRatio,
-                        onChangeEnd: (v) => state.setSplitRatio(v, save: true),
-                        onReset: () => state.setSplitRatio(AppState.defaultSplitRatio, save: true),
-                        first: MapView(state: state),
-                        second: DataPanel(state: state, onSaveSolution: files.saveSolution),
-                      );
-                    },
+    return _ExitGuard(
+      state: state,
+      files: files,
+      child: CallbackShortcuts(
+        bindings: shortcuts,
+        child: Focus(
+          autofocus: true,
+          child: Scaffold(
+            body: SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(state: state, files: files),
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, c) {
+                        final wide = c.maxWidth >= 900;
+                        return SplitView(
+                          axis: wide ? Axis.horizontal : Axis.vertical,
+                          ratio: state.splitRatio,
+                          semanticLabel: state.strings('ui.split'),
+                          onChanged: state.setSplitRatio,
+                          onChangeEnd: (v) => state.setSplitRatio(v, save: true),
+                          onReset: () => state.setSplitRatio(AppState.defaultSplitRatio, save: true),
+                          first: MapView(state: state),
+                          second: DataPanel(state: state, onSaveSolution: files.saveSolution),
+                        );
+                      },
+                    ),
                   ),
-                ),
-                _StatusBar(state: state),
-              ],
+                  _StatusBar(state: state),
+                ],
+              ),
             ),
           ),
         ),
@@ -401,4 +407,61 @@ class _StatusBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// asks before the app is closed with unsaved changes - Cmd+Q, the menu and the close button of the window
+class _ExitGuard extends StatefulWidget {
+  final AppState state;
+  final FileOps files;
+  final Widget child;
+  const _ExitGuard({required this.state, required this.files, required this.child});
+
+  @override
+  State<_ExitGuard> createState() => _ExitGuardState();
+}
+
+class _ExitGuardState extends State<_ExitGuard> {
+  late final AppLifecycleListener _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = AppLifecycleListener(onExitRequested: _exitRequested);
+  }
+
+  @override
+  void dispose() {
+    _listener.dispose();
+    super.dispose();
+  }
+
+  Future<AppExitResponse> _exitRequested() async {
+    final s = widget.state;
+    if (!s.dirty || !mounted) return AppExitResponse.exit;
+    final t = s.strings;
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(t('ui.quit.title', {'file': s.fileName ?? t('ui.untitled')})),
+        content: Text(t('ui.quit.text')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, 'cancel'), child: Text(t('ui.cancel'))),
+          TextButton(onPressed: () => Navigator.pop(c, 'discard'), child: Text(t('ui.quit.discard'))),
+          FilledButton(onPressed: () => Navigator.pop(c, 'save'), child: Text(t('ui.quit.save'))),
+        ],
+      ),
+    );
+    switch (choice) {
+      case 'discard':
+        return AppExitResponse.exit;
+      case 'save':
+        await widget.files.save();
+        return s.dirty ? AppExitResponse.cancel : AppExitResponse.exit; // not saved: the app stays
+      default:
+        return AppExitResponse.cancel;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
