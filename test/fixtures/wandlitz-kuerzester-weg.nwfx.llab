@@ -1,0 +1,254 @@
+{
+  "format": "logisticsLab",
+  "version": 1,
+  "id": "wandlitz-kuerzester-weg",
+  "name": "wandlitz-kuerzester-weg",
+  "source": "TourenUndRouten/wandlitz-kuerzester-weg.NWFX (NWF 5.3.0)",
+  "units": {
+    "distance": "km",
+    "time": "h"
+  },
+  "matrix": {
+    "travelmode": "car"
+  },
+  "nodes": [
+    {
+      "id": "WA",
+      "name": "Wandlitz",
+      "coordinates": [
+        52.75453,
+        13.47295
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "WE",
+      "name": "Wensickendorf",
+      "coordinates": [
+        52.75518,
+        13.37634
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "ST",
+      "name": "Stolzenhagen",
+      "coordinates": [
+        52.778,
+        13.43832
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "KL",
+      "name": "Klosterfelde",
+      "coordinates": [
+        52.79124,
+        13.48796
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "ZE",
+      "name": "Zehlendorf",
+      "coordinates": [
+        52.78482,
+        13.39347
+      ],
+      "roles": [
+        "customer"
+      ],
+      "demand": 1
+    },
+    {
+      "id": "BA",
+      "name": "Basdorf",
+      "coordinates": [
+        52.73249,
+        13.44746
+      ],
+      "roles": [
+        "supplier"
+      ],
+      "supply": 1
+    },
+    {
+      "id": "KVWA",
+      "name": "Wandlitz Kreisverkehr",
+      "coordinates": [
+        52.7421,
+        13.45788
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "KVB27",
+      "name": "Kreisverkehr B273",
+      "coordinates": [
+        52.74642,
+        13.43271
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "KOCBS",
+      "name": "Kreisverkehr B273",
+      "coordinates": [
+        52.75121,
+        13.42732
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "KVL29",
+      "name": "Kreisverkehr L29",
+      "coordinates": [
+        52.76795,
+        13.47576
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    },
+    {
+      "id": "ST2",
+      "name": "Stolzenhagen 2",
+      "coordinates": [
+        52.77109,
+        13.43242
+      ],
+      "roles": [
+        "transit"
+      ],
+      "maxCap": 1
+    }
+  ],
+  "networks": {
+    "network": {
+      "directed": true,
+      "edges": [
+        {
+          "from": "WA",
+          "to": "KVWA"
+        },
+        {
+          "from": "WA",
+          "to": "KVL29"
+        },
+        {
+          "from": "WE",
+          "to": "ZE"
+        },
+        {
+          "from": "WE",
+          "to": "KOCBS"
+        },
+        {
+          "from": "ST",
+          "to": "ZE"
+        },
+        {
+          "from": "ST",
+          "to": "KVL29"
+        },
+        {
+          "from": "KL",
+          "to": "KVL29"
+        },
+        {
+          "from": "ZE",
+          "to": "WE"
+        },
+        {
+          "from": "ZE",
+          "to": "ST"
+        },
+        {
+          "from": "BA",
+          "to": "KVWA"
+        },
+        {
+          "from": "KVWA",
+          "to": "WA"
+        },
+        {
+          "from": "KVWA",
+          "to": "BA"
+        },
+        {
+          "from": "KVWA",
+          "to": "KVB27"
+        },
+        {
+          "from": "KVB27",
+          "to": "KVWA"
+        },
+        {
+          "from": "KVB27",
+          "to": "KOCBS"
+        },
+        {
+          "from": "KOCBS",
+          "to": "WE"
+        },
+        {
+          "from": "KOCBS",
+          "to": "KVB27"
+        },
+        {
+          "from": "KOCBS",
+          "to": "ST2"
+        },
+        {
+          "from": "KVL29",
+          "to": "WA"
+        },
+        {
+          "from": "KVL29",
+          "to": "ST"
+        },
+        {
+          "from": "KVL29",
+          "to": "KL"
+        },
+        {
+          "from": "ST2",
+          "to": "KOCBS"
+        }
+      ]
+    }
+  },
+  "vehicles": [],
+  "problems": [
+    {
+      "name": "wandlitz-kuerzester-weg",
+      "type": "mincostflow",
+      "parameters": {
+        "matrixMode": "distances"
+      },
+      "network": "network"
+    }
+  ]
+}

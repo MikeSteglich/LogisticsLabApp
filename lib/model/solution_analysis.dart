@@ -79,7 +79,8 @@ class SolutionAnalysis {
     num? used(Map<String, dynamic> res) => part == null
         ? res['utilization'] as num?
         : (res['utilizations'] as Map?)?[part] as num? ?? (res['utilization'] != null ? 0 : null);
-    if (spec == null || results == null) return null;
+    // ways and tours have no quantities of the nodes
+    if (spec == null || results == null || results['routes'] != null) return null;
     final nodeResults = (results['nodes'] as Map?)?.cast<String, dynamic>() ?? const {};
     if (results['nodes'] == null && networkNodes.isEmpty) return null;
     final specRoles = spec.activeRoles(parameters);

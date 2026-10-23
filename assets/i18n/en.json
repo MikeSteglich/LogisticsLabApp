@@ -350,5 +350,11 @@
   "ui.net.directedDefault": "Edges without their own direction are directed (from → to)",
   "ui.edge.direction.label": "Direction",
   "ui.edge.directed": "directed  from → to",
-  "ui.edge.undirected": "undirected  ↔"
+  "ui.edge.undirected": "undirected  ↔",
+  "module.shortestpath": "Shortest path",
+  "module.shortestpath.short": "SP",
+  "module.shortestpath.description": "Shortest path from a start to an end in the network",
+  "result.pathLength": "Length of the path",
+  "result.nrOfLegs": "Sections",
+  "ui.tsp.end": "End"
 }

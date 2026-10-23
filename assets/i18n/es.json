@@ -350,5 +350,11 @@
   "ui.net.directedDefault": "Aristas sin dirección propia dirigidas (de → a)",
   "ui.edge.direction.label": "Dirección",
   "ui.edge.directed": "dirigida  de → a",
-  "ui.edge.undirected": "no dirigida  ↔"
+  "ui.edge.undirected": "no dirigida  ↔",
+  "module.shortestpath": "Camino más corto",
+  "module.shortestpath.short": "CMC",
+  "module.shortestpath.description": "Camino más corto de un inicio a un destino en la red",
+  "result.pathLength": "Longitud del camino",
+  "result.nrOfLegs": "Tramos",
+  "ui.tsp.end": "Destino"
 }

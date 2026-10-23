@@ -146,6 +146,11 @@ class AppState extends ChangeNotifier {
   /// the other stops like customers (circle)
   List<String> symbolRoles(Node n) {
     if (spec?.allNodes == true) return [n.id == problem?.parameters['startNode'] ? 'supplier' : 'customer'];
+    // shortest way: start like a supplier, end like a customer, the other nodes of the network are transit
+    if (spec?.type == 'shortestpath') {
+      final p = problem!.parameters;
+      return n.id == p['startNode'] ? ['supplier'] : (n.id == p['endNode'] ? ['customer'] : const []);
+    }
     return [
       for (final r in n.roles)
         if (problemRoles.contains(r)) r,
@@ -413,7 +418,8 @@ class AppState extends ChangeNotifier {
 
   /// transport problems (tpp, network flows): the edges lead from the suppliers over the transshipment nodes to the
   /// customers
-  bool get isTransport => spec != null && (spec!.type == 'tpp' || spec!.group == ModuleGroup.network);
+  bool get isTransport =>
+      spec != null && (spec!.type == 'tpp' || (spec!.group == ModuleGroup.network && spec!.type != 'shortestpath'));
 
   /// stage of a node in a transport problem: 0 sends (supplier, source), 1 passes through (transshipment node,
   /// warehouse), 2 receives (customer, sink) - null: sends and receives

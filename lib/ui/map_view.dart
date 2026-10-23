@@ -669,7 +669,7 @@ class _MapViewState extends State<MapView> {
   Widget _legend() {
     final t = s.strings;
     // a tsp: start and stops
-    final tsp = s.spec?.allNodes == true;
+    final tsp = s.spec?.allNodes == true || s.spec?.type == 'shortestpath';
     final roles = tsp
         ? const ['supplier', 'customer']
         : s.problemRoles.where((r) => r == 'supplier' || r == 'candidate' || r == 'customer');
@@ -706,7 +706,13 @@ class _MapViewState extends State<MapView> {
                 transform: role == 'candidate' ? Matrix4.rotationZ(0.785) : null,
                 transformAlignment: Alignment.center,
               ),
-              tsp ? t(role == 'supplier' ? 'ui.tsp.start' : 'ui.tsp.stops') : t('role.$role.plural'),
+              tsp
+                  ? t(
+                      role == 'supplier'
+                          ? 'ui.tsp.start'
+                          : (s.spec?.type == 'shortestpath' ? 'ui.tsp.end' : 'ui.tsp.stops'),
+                    )
+                  : t('role.$role.plural'),
             ),
           item(
             CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),

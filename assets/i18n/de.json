@@ -350,5 +350,11 @@
   "ui.net.directedDefault": "Kanten ohne eigene Richtung gerichtet (von → nach)",
   "ui.edge.direction.label": "Richtung",
   "ui.edge.directed": "gerichtet  von → nach",
-  "ui.edge.undirected": "ungerichtet  ↔"
+  "ui.edge.undirected": "ungerichtet  ↔",
+  "module.shortestpath": "Kürzester Weg",
+  "module.shortestpath.short": "KW",
+  "module.shortestpath.description": "Kürzester Weg von einem Start zu einem Ziel im Netz",
+  "result.pathLength": "Länge des Wegs",
+  "result.nrOfLegs": "Abschnitte",
+  "ui.tsp.end": "Ziel"
 }

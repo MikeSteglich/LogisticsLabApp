@@ -175,6 +175,18 @@ void main() {
     await shot('10-tsp-path');
     state.setTab(DataTab.parameters);
     await shot('10b-tsp-parameters');
+    // shortest path in the network supply
+    state.newProblem('shortestpath');
+    state.chooseNetwork('supply');
+    state.edit(
+      () => state.problem!.parameters
+        ..['startNode'] = 'W'
+        ..['endNode'] = 'C',
+    );
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('11-shortest-path');
     state.chooseProblem('Transport direkt vom Werk');
 
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait

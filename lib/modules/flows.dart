@@ -159,4 +159,30 @@ final multiStageWlpSpec = ModuleSpec(
   objective: _objVal,
 );
 
-final flowSpecs = [minCostFlowSpec, maxFlowSpec, multiCommoditySpec, multimodalSpec, multiStageWlpSpec];
+final flowSpecs = [
+  minCostFlowSpec,
+  maxFlowSpec,
+  multiCommoditySpec,
+  multimodalSpec,
+  multiStageWlpSpec,
+  shortestPathSpec,
+];
+
+/// shortest way from a start to an end node in the network - each edge directed or not
+final shortestPathSpec = ModuleSpec(
+  type: 'shortestpath',
+  group: ModuleGroup.network,
+  network: NetworkUse.required,
+  edgeDirections: true,
+  roles: const [],
+  parameters: const [
+    FieldSpec('startNode', FieldKind.node, required: true),
+    FieldSpec('endNode', FieldKind.node, required: true),
+    FieldSpec('matrixMode', FieldKind.choice, choices: ['distances', 'times', 'costs'], defaultValue: 'distances'),
+  ],
+  objective: (_) => 'pathLength',
+  summary: const [
+    ResultColumn('pathLength', unit: '€'),
+    ResultColumn('nrOfLegs'),
+  ],
+);

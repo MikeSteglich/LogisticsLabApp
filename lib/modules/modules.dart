@@ -18,7 +18,7 @@ const problemTypesByGroup = {
   ModuleGroup.transport: ['tpp'],
   ModuleGroup.location: ['wlp', 'pmedian', 'pcentre', 'scp', 'mcp', 'contpmedian', 'contpcentre'],
   ModuleGroup.routing: ['tsp', 'cpp', 'vrp'],
-  ModuleGroup.network: ['mincostflow', 'maxflow', 'multicommodity', 'multimodal', 'multistagewlp'],
+  ModuleGroup.network: ['shortestpath', 'mincostflow', 'maxflow', 'multicommodity', 'multimodal', 'multistagewlp'],
 };
 
 Map<ModuleGroup, List<ModuleSpec>> modulesByGroup() => {

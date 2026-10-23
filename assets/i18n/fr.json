@@ -350,5 +350,11 @@
   "ui.net.directedDefault": "Arcs sans sens propre orientés (de → à)",
   "ui.edge.direction.label": "Sens",
   "ui.edge.directed": "orienté  de → à",
-  "ui.edge.undirected": "non orienté  ↔"
+  "ui.edge.undirected": "non orienté  ↔",
+  "module.shortestpath": "Plus court chemin",
+  "module.shortestpath.short": "PCC",
+  "module.shortestpath.description": "Plus court chemin d’un départ à une arrivée dans le réseau",
+  "result.pathLength": "Longueur du chemin",
+  "result.nrOfLegs": "Tronçons",
+  "ui.tsp.end": "Arrivée"
 }
