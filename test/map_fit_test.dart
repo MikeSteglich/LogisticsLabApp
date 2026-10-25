@@ -62,4 +62,26 @@ void main() {
     await settle(tester);
     expectAllVisible('added');
   });
+
+  testWidgets('a problem in a small area fills the map - zoom up to street level', (tester) async {
+    MapView.showTiles = false;
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = (await tester.runAsync(AppState.create))!;
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    // a few streets in Eichwalde - about 600 m across
+    final s = Scenario.empty();
+    s.addProblem('tsp', 'Runde', {'startNode': 'N1'});
+    for (final p in const [LatLng(52.3720, 13.6150), LatLng(52.3745, 13.6200), LatLng(52.3700, 13.6230)]) {
+      s.addNode(p, roles: const []);
+    }
+    state.openScenario(s);
+    await settle(tester);
+    final zoom = tester.widget<FlutterMap>(find.byType(FlutterMap)).mapController!.camera.zoom;
+    expect(zoom, greaterThan(14));
+    expect(zoom, lessThanOrEqualTo(18));
+  });
 }

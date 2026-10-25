@@ -50,6 +50,9 @@ class _MapViewState extends State<MapView> {
     super.dispose();
   }
 
+  /// closest zoom when the map shows a problem - street level: a problem in a small area fills the map too
+  static const _fitMaxZoom = 18.0;
+
   /// shows the nodes of the problem (all nodes without problem or relevant nodes)
   void _fitProblem() {
     final relevant = [
@@ -58,7 +61,7 @@ class _MapViewState extends State<MapView> {
     ];
     final points = relevant.isNotEmpty ? relevant : [for (final n in s.scenario.nodes) n.position];
     if (!_ready || points.isEmpty) return;
-    _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: 14));
+    _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: _fitMaxZoom));
   }
 
   /// shows all nodes - after opening a file and whenever nodes or their coordinates change
@@ -66,7 +69,7 @@ class _MapViewState extends State<MapView> {
     _fitted = s.geometry;
     final points = [for (final n in s.scenario.nodes) n.position];
     if (!_ready || points.isEmpty || !mounted) return;
-    _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: 14));
+    _map.fitCamera(CameraFit.coordinates(coordinates: points, padding: const EdgeInsets.all(56), maxZoom: _fitMaxZoom));
   }
 
   void _scheduleFit() {
@@ -304,7 +307,7 @@ class _MapViewState extends State<MapView> {
           points: f.points,
           // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
           color: f.selected ? Ui.highlight : (stale ? Ui.accent.withValues(alpha: 0.4) : Ui.accent),
-          strokeWidth: f.selected ? 6 : (f.repeated ? 6 : 3.5),
+          strokeWidth: f.repeated ? 8 : (f.selected ? 6 : 3.5),
           strokeCap: StrokeCap.round,
           strokeJoin: StrokeJoin.round,
         ),
@@ -314,7 +317,7 @@ class _MapViewState extends State<MapView> {
             hitValue: f.index,
             points: f.points,
             color: Colors.white,
-            strokeWidth: 2,
+            strokeWidth: 3,
             strokeCap: StrokeCap.round,
             strokeJoin: StrokeJoin.round,
           ),
@@ -792,11 +795,11 @@ class _MapViewState extends State<MapView> {
           if (_showSolution && s.connections.any((c) => c['passes'] != null))
             item(
               Container(
-                width: 18,
-                height: 6,
-                decoration: BoxDecoration(color: Ui.accent, borderRadius: BorderRadius.circular(3)),
+                width: 20,
+                height: 8,
+                decoration: BoxDecoration(color: Ui.accent, borderRadius: BorderRadius.circular(4)),
                 alignment: Alignment.center,
-                child: Container(height: 2, color: Colors.white),
+                child: Container(height: 3, color: Colors.white),
               ),
               t('ui.sol.repeated'),
             ),
