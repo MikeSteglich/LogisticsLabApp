@@ -461,5 +461,9 @@
   "ui.use.deliveryTo": "point de livraison de {node}",
   "ui.check.deliveryTo": "Point de livraison sans le rôle livraison pour : {nodes}",
   "field.delivered": "Quantité livrée",
-  "field.delivered.help": "Somme des quantités livrées ici – saisie aux points de collecte"
+  "field.delivered.help": "Somme des quantités livrées ici – saisie aux points de collecte",
+  "field.stopTime": "Temps d’arrêt",
+  "field.stopTime.help": "Temps fixe par arrêt (s’arrêter, se garer, aller à la porte) – une seule fois, même si plusieurs quantités sont livrées",
+  "field.serviceTimePerUnit": "Temps de service par unité",
+  "field.serviceTimePerUnit.help": "Temps par unité livrée, p. ex. par colis ou par personne qui descend"
 }

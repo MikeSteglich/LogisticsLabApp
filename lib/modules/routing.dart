@@ -84,7 +84,10 @@ final pdpSpec = ModuleSpec(
     RoleSpec('destinations', 'delivery', [
       // the amounts of the pickups delivered here - entered at the pickups
       const FieldSpec('delivered', FieldKind.number, computed: true),
-      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
+      // service: a stop time per visit and a time per unit delivered - several quantities at one stop share the
+      // stop time
+      const FieldSpec('serviceTime', FieldKind.number, labelKey: 'field.stopTime', unit: '@time', min: 0),
+      const FieldSpec('serviceTimePerUnit', FieldKind.number, unit: '@time', min: 0),
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
     ], main: 'delivered'),
   ],

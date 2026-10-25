@@ -461,5 +461,9 @@
   "ui.use.deliveryTo": "delivery node of {node}",
   "ui.check.deliveryTo": "Delivery node without the role delivery at: {nodes}",
   "field.delivered": "Delivered amount",
-  "field.delivered.help": "Sum of the amounts brought here – entered at the pickups"
+  "field.delivered.help": "Sum of the amounts brought here – entered at the pickups",
+  "field.stopTime": "Stop time",
+  "field.stopTime.help": "Fixed time per stop (stopping, parking, walking to the door) – once, even if several quantities are delivered here",
+  "field.serviceTimePerUnit": "Service time per unit",
+  "field.serviceTimePerUnit.help": "Time per unit delivered, e.g. per parcel or per person getting off"
 }

@@ -461,5 +461,9 @@
   "ui.use.deliveryTo": "Zustellort von {node}",
   "ui.check.deliveryTo": "Zustellort ohne Rolle Zustellort bei: {nodes}",
   "field.delivered": "Liefermenge",
-  "field.delivered.help": "Summe der Abholmengen, die hierher gebracht werden – eingegeben wird sie beim Abholort"
+  "field.delivered.help": "Summe der Abholmengen, die hierher gebracht werden – eingegeben wird sie beim Abholort",
+  "field.stopTime": "Stoppzeit",
+  "field.stopTime.help": "Feste Zeit je Halt (Halten, Parken, Weg zur Tür) – einmal, auch wenn mehrere Mengen hier zugestellt werden",
+  "field.serviceTimePerUnit": "Servicezeit je Einheit",
+  "field.serviceTimePerUnit.help": "Zeit je zugestellter Einheit, z. B. je Sendung oder je aussteigender Person"
 }

@@ -461,5 +461,9 @@
   "ui.use.deliveryTo": "punto de entrega de {node}",
   "ui.check.deliveryTo": "Punto de entrega sin el rol entrega en: {nodes}",
   "field.delivered": "Cantidad entregada",
-  "field.delivered.help": "Suma de las cantidades que se traen aquí – se introduce en las recogidas"
+  "field.delivered.help": "Suma de las cantidades que se traen aquí – se introduce en las recogidas",
+  "field.stopTime": "Tiempo de parada",
+  "field.stopTime.help": "Tiempo fijo por parada (detenerse, aparcar, ir a la puerta) – una vez, aunque se entreguen varias cantidades",
+  "field.serviceTimePerUnit": "Tiempo de servicio por unidad",
+  "field.serviceTimePerUnit.help": "Tiempo por unidad entregada, p. ej. por envío o por persona que baja"
 }

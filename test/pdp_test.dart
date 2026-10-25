@@ -90,6 +90,14 @@ void main() {
     (tester) async {
       final state = await _state(tester);
       await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      // two quantities to Berlin: one stop with one stop time and the time per unit
+      state.edit(() {
+        state.scenario.node('P')!.roles = ['customer', 'pickup'];
+        state.scenario.node('P')!['amount'] = 10;
+        state.scenario.node('P')!['deliveryTo'] = 'B';
+        state.scenario.node('D2')!['deliveryTo'] = 'F';
+        state.scenario.node('B')!['serviceTimePerUnit'] = 0.5;
+      });
       // the tours named after the name of the vehicle - not its id
       state.edit(() => state.scenario.vehicles.single['name'] = 'Sprinter');
       await tester.runAsync(state.solve);
@@ -109,6 +117,8 @@ void main() {
         final legs = (r['legs'] as List).cast<Map>();
         expect(legs.every((l) => (l['load'] as num) <= (r['capacity'] as num)), isTrue);
         expect(legs.last['load'], 0); // back at the depot empty
+        // several quantities at one node one after another: one stop
+        expect(legs.any((l) => l['from'] == l['to']), isFalse);
       }
       // every pickup on a tour
       expect({for (final r in routes) ...(r['nodes'] as List)}.containsAll(pairs.keys), isTrue);
