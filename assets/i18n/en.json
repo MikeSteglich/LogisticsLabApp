@@ -378,5 +378,9 @@
   "ui.check.twoNodes": "At least two active nodes are needed",
   "ui.check.costRates": "Costs as the measure need costs per km or per hour – in the parameters tab under matrix",
   "ui.check.nodeParam": "{field}: the node {node} does not exist or is inactive",
-  "ui.sol.via": "via {nodes}"
+  "ui.sol.via": "via {nodes}",
+  "ui.about.authors": "Authors",
+  "ui.about.author": "Author",
+  "ui.about.coAuthor": "Co-author",
+  "ui.about.licenses": "All licences"
 }

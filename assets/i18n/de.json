@@ -378,5 +378,9 @@
   "ui.check.twoNodes": "Es braucht mindestens zwei aktive Knoten",
   "ui.check.costRates": "Bewertung nach Kosten braucht Kosten je km oder je Stunde – im Parameter-Tab unter Matrix",
   "ui.check.nodeParam": "{field}: den Knoten {node} gibt es nicht oder er ist inaktiv",
-  "ui.sol.via": "über {nodes}"
+  "ui.sol.via": "über {nodes}",
+  "ui.about.authors": "Autoren",
+  "ui.about.author": "Autor",
+  "ui.about.coAuthor": "Ko-Autor",
+  "ui.about.licenses": "Alle Lizenzen"
 }

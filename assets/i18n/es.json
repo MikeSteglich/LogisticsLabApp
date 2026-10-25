@@ -378,5 +378,9 @@
   "ui.check.twoNodes": "Se necesitan al menos dos nodos activos",
   "ui.check.costRates": "Los costes como medida necesitan costes por km o por hora – en la pestaña de parámetros, matriz",
   "ui.check.nodeParam": "{field}: el nodo {node} no existe o está inactivo",
-  "ui.sol.via": "por {nodes}"
+  "ui.sol.via": "por {nodes}",
+  "ui.about.authors": "Autores",
+  "ui.about.author": "Autor",
+  "ui.about.coAuthor": "Coautor",
+  "ui.about.licenses": "Todas las licencias"
 }

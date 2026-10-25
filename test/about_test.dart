@@ -58,6 +58,16 @@ void main() {
     expect(find.textContaining('Photon (komoot)'), findsOneWidget);
     expect(find.textContaining('Katrin Kampe'), findsOneWidget);
     expect(find.textContaining('LogisticsLab 5'), findsOneWidget);
+    // authors and licences
+    expect(find.text('Mike Steglich'), findsOneWidget);
+    expect(find.text('Claude (Anthropic)'), findsOneWidget);
+    expect(find.textContaining('HiGHS, MIT'), findsOneWidget);
+    expect(find.textContaining('GPL-3.0'), findsWidgets);
+    await tester.tap(find.text('Alle Lizenzen'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LicensePage), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Schließen'));
     await tester.pumpAndSettle();
     expect(find.text('Version $appVersion'), findsNothing);

@@ -55,14 +55,32 @@ Future<void> showAbout(BuildContext context, AppState state) {
                 ],
               ),
               const SizedBox(height: 20),
+              Text(t('ui.about.authors').toUpperCase(), style: Ui.sectionLabel),
+              const SizedBox(height: 8),
+              credit(t('ui.about.author'), 'Mike Steglich'),
+              credit(t('ui.about.coAuthor'), 'Claude (Anthropic)'),
+              const SizedBox(height: 14),
               Text(t('ui.about.credits').toUpperCase(), style: Ui.sectionLabel),
               const SizedBox(height: 8),
               credit(t('ui.about.mapData'), '© ${t('ui.osm.contributors')}, ODbL – openstreetmap.org/copyright'),
               credit(t('ui.about.tiles'), 'OpenStreetMap Foundation – tile.openstreetmap.org'),
-              credit(t('ui.about.routing'), 'openrouteservice (HeiGIT, Heidelberg) – ${t('ui.about.thServers')}'),
-              credit(t('ui.about.geocoding'), 'Photon (komoot), Nominatim (OpenStreetMap Foundation)'),
-              credit(t('ui.about.optimisation'), 'CMPL (TH Wildau), HiGHS, Google OR-Tools'),
-              credit(t('ui.about.software'), 'Flutter, flutter_map (Fleaflet), pyLogisticsLab'),
+              // the software with its licence
+              credit(
+                t('ui.about.routing'),
+                'openrouteservice (HeiGIT, Heidelberg), GPL-3.0 – ${t('ui.about.thServers')}',
+              ),
+              credit(
+                t('ui.about.geocoding'),
+                'Photon (komoot), Apache-2.0 · Nominatim (OpenStreetMap Foundation), GPL',
+              ),
+              credit(
+                t('ui.about.optimisation'),
+                'CMPL (TH Wildau), GPL-3.0 · HiGHS, MIT · Google OR-Tools, Apache-2.0',
+              ),
+              credit(
+                t('ui.about.software'),
+                'Flutter, BSD-3-Clause · flutter_map (Fleaflet), BSD-3-Clause · pyLogisticsLab',
+              ),
               const SizedBox(height: 14),
               Text(t('ui.about.thanksTitle').toUpperCase(), style: Ui.sectionLabel),
               const SizedBox(height: 8),
@@ -78,7 +96,19 @@ Future<void> showAbout(BuildContext context, AppState state) {
           ),
         ),
       ),
-      actions: [FilledButton(onPressed: () => Navigator.pop(c), child: Text(t('ui.close')))],
+      actions: [
+        // the licences of all packages of the app - collected by Flutter
+        TextButton(
+          onPressed: () => showLicensePage(
+            context: c,
+            applicationName: appName,
+            applicationVersion: appVersion,
+            applicationIcon: const Padding(padding: EdgeInsets.all(8), child: Logo(size: 48)),
+          ),
+          child: Text(t('ui.about.licenses')),
+        ),
+        FilledButton(onPressed: () => Navigator.pop(c), child: Text(t('ui.close'))),
+      ],
     ),
   );
 }
