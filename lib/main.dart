@@ -7,7 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'app_state.dart';
+import 'help/help.dart';
 import 'ui/about_dialog.dart';
+import 'ui/help_dialog.dart';
 import 'ui/main_screen.dart';
 import 'ui/theme.dart';
 
@@ -33,6 +35,27 @@ void _setWindowTitle(String title) {
 
 final _navigator = GlobalKey<NavigatorState>();
 
+/// the help topics of the language for the search of the help menu of macOS (macos/Runner/AppDelegate.swift)
+String? _helpLanguage;
+
+void _sendHelpTopics(AppState state) {
+  final language = state.strings.language;
+  if (kIsWeb || language == _helpLanguage) return;
+  _helpLanguage = language;
+  HelpBook.load(language)
+      .then(
+        (book) => _menu.invokeMethod('helpTopics', {
+          // titles of the help menu and of its item in the language of the app
+          'menu': state.strings('ui.help.menu'),
+          'item': state.strings('ui.help.title'),
+          'topics': [
+            for (final t in book.topics) {'id': t.id, 'title': t.title, 'text': '${t.title} ${t.keywords} ${t.plain}'},
+          ],
+        }),
+      )
+      .catchError((_) => null); // no handler: other systems
+}
+
 /// e.g. "brandenburg.llab • - LogisticsLab Studio"
 String windowTitle(AppState s) => '${s.fileName ?? s.strings('ui.untitled')}${s.dirty ? ' •' : ''} – $appName';
 
@@ -41,7 +64,15 @@ class LogisticsLabApp extends StatelessWidget {
   LogisticsLabApp({super.key, required this.state}) {
     _menu.setMethodCallHandler((call) async {
       final context = _navigator.currentContext;
-      if (call.method == 'about' && context != null) await showAbout(context, state);
+      if (context == null) return;
+      switch (call.method) {
+        case 'about':
+          await showAbout(context, state);
+        // help menu of macOS: a topic of its search, all topics of a search or the help
+        case 'help':
+          final args = (call.arguments as Map?)?.cast<String, dynamic>() ?? const {};
+          await showHelp(context, state, topic: args['topic'] as String?, query: args['query'] as String?);
+      }
     });
   }
 
@@ -50,6 +81,7 @@ class LogisticsLabApp extends StatelessWidget {
     listenable: state,
     builder: (context, _) {
       _setWindowTitle(windowTitle(state));
+      _sendHelpTopics(state);
       return MaterialApp(
         // file - app, a dot for unsaved changes
         title: windowTitle(state),

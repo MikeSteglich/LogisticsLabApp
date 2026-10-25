@@ -1,0 +1,86 @@
+[
+ {
+  "id": "start",
+  "title": "Getting started",
+  "keywords": "start beginning scenario problem open new solve example",
+  "body": "A scenario contains nodes, networks and any number of problems. At the top left you choose the problem you are editing and solving.\n\n- **Open** loads an .llab file, **New** starts an empty scenario. The ⋯ menu offers an **example** and the **import** of old LogisticsLab files.\n- In the **Nodes** tab you create the places and give them their role in the problem, in the **Network** tab the edges, in the **Parameters** tab the settings of the problem.\n- **Solve** (⌘↩) computes the problem. The result appears in the **Solution** tab and on the map.\n\nBefore solving, the app checks that all necessary data is there and names missing values together with the node."
+ },
+ {
+  "id": "nodes",
+  "title": "Creating and editing nodes",
+  "keywords": "node place location create delete address coordinates map click active inactive geocoding",
+  "body": "- **On the map:** choose the “Add nodes” icon at the top left. Every click into the map then adds a node until ✕ ends the mode. The address is fetched automatically where possible.\n- **In the list:** “+ Node” creates a node, the next click into the map sets its position.\n- **From an address to coordinates:** enter the address and choose “Look up coordinates”.\n- The list only shows the nodes, you edit them in the form below. ↑ and ↓ change the node, Enter moves to the next field of the form.\n- Inactive nodes stay in the scenario but are left out of every problem."
+ },
+ {
+  "id": "roles",
+  "title": "Roles",
+  "keywords": "role supplier customer transshipment candidate depot filter other",
+  "body": "The role says what a node is in the current problem, for example supplier or customer in a transportation problem.\n\n- A node has exactly one role per problem. A second click on the chip removes it.\n- Roles for other problems of the scenario (for example depot) are kept, “All roles” shows them.\n- The filters above the list show the nodes of one role. Transshipment nodes are nodes of the network without a role in the problem.\n- A new node gets the role of the selected filter."
+ },
+ {
+  "id": "network",
+  "title": "Networks and edges",
+  "keywords": "network edge edges draw connections direction directed undirected capacity fixed costs",
+  "body": "Network flows and the shortest path need a network, for the transportation problem and the TSP it is optional. In the **Network** tab you choose the network of the problem or create a new one.\n\n- **Draw edge:** click the start node and then the end node on the map.\n- **Create all connections:** for transportation problems from the suppliers (via the transshipment nodes) to the customers, for the TSP and the shortest path all nodes with each other.\n- **Direction:** in transportation problems the edges lead from the suppliers to the customers, edges drawn the wrong way round are turned. For the TSP and the shortest path each edge is directed or undirected.\n- Values of the edges such as capacity or fixed costs are in the form. Some only take effect once the matching parameter is switched on."
+ },
+ {
+  "id": "tpp",
+  "title": "Transportation problem (TPP)",
+  "keywords": "transportation problem tpp objective costs contribution quantity bottleneck ranges capacity fixed costs single source block cost rate",
+  "body": "Suppliers deliver directly to customers. You choose the objective in the Parameters tab:\n\n- **Minimise costs:** the usual variant.\n- **Maximise contribution:** revenue per unit at the customer minus cost per unit at the supplier minus transport costs.\n- **Maximise quantity:** the largest quantity delivered, supply and demand are upper bounds.\n- **Minimise bottleneck:** the largest cost rate of the connections used becomes as small as possible.\n\nOptional are ranges for supply and demand, capacities and fixed costs of the connections (via a network), single sourcing and blocking connections by the smallest or largest cost rate. The supply may be smaller than the demand."
+ },
+ {
+  "id": "flows",
+  "title": "Network flows",
+  "keywords": "network flow min cost flow max flow maximum flow source sink multicommodity commodities multimodal modes warehouses multi-stage balance shortages",
+  "body": "Quantities flow over the edges of a network.\n\n- **Min cost flow:** from supply to demand at minimal cost. Edges have capacities and minimum flows, nodes a throughput.\n- **Max flow:** the largest quantity from a source to a sink – or from all suppliers to all customers, then supply and demand are the limits.\n- **Multicommodity:** several commodities share the capacities. You create the commodities in the Parameters tab.\n- **Multimodal:** the allowed modes of transport per edge, each with its own costs and capacities.\n- **Multi-stage warehouses:** open warehouses (candidates) in the network and distribute the quantities through them.\n\nThe balance “automatic” allows shortages, “exact” requires supply and demand to be equal."
+ },
+ {
+  "id": "tsp",
+  "title": "Round trip and passage (TSP)",
+  "keywords": "tsp round trip passage tour start end open end open start shortest paths auxiliary nodes",
+  "body": "The shortest tour through all active nodes. The kind of tour can be a round trip (back to the start), a passage (from the start to the end), an open end, an open start or completely open.\n\nWithout a network the distances of the matrix apply. With a network the tour follows the shortest paths in the network – auxiliary nodes such as junctions and directed edges block or allow ways. If there is no possible tour, the app names the section without a way."
+ },
+ {
+  "id": "shortestpath",
+  "title": "Shortest path",
+  "keywords": "shortest path route start end network dijkstra",
+  "body": "The shortest path from a start to an end in the network, valued by distance, time or costs. Edges can be directed one by one. If no path reaches the end, the app says so. The solution shows the sections with their length and the total so far."
+ },
+ {
+  "id": "solution",
+  "title": "Reading the solution",
+  "keywords": "solution result objective key figure connections utilisation commodity mode stale llsol save",
+  "body": "- The key figure of the objective has a blue frame.\n- The table shows the connections with quantity, cost rate, costs and utilisation, for tours the sections with length and “so far”. A click highlights the connection on the map in orange.\n- For multicommodity and multimodal problems “Commodity:” or “Mode:” shows a single one.\n- The node list shows target, actual, share or utilisation and the partners. Filters find, for example, unmet demand or fully used nodes.\n- When the data changes, the solution is marked as out of date. “Save as .llsol” stores the solution."
+ },
+ {
+  "id": "map",
+  "title": "Map",
+  "keywords": "map layers legend colours centre zoom labels hover",
+  "body": "- Top left: add nodes and draw edges. Top right: layers (network, solution, labels). Bottom right: centre the problem and zoom.\n- Colours: suppliers blue, customers green, candidates violet, transshipment nodes grey diamonds. Used edges are blue, unused ones petrol, the selected connection orange.\n- The mouse pointer over an edge or a node shows its values. Labels that would overlap are hidden."
+ },
+ {
+  "id": "matrix",
+  "title": "Distances and costs",
+  "keywords": "matrix distance time costs osm road network straight line cost per km cost per hour valuation",
+  "body": "In the Parameters tab under **Matrix** you choose the road network (OSM) or straight lines and enter the cost per km and per hour. The matrix applies to all problems of the scenario.\n\nThe **valuation** of a problem (distances, travel times, costs) decides what is optimised. “Costs” needs a cost per km or per hour."
+ },
+ {
+  "id": "files",
+  "title": "Files and import",
+  "keywords": "file llab llsol save open import logisticslab 5 tppx clpx dlpx nwfx tspx vrpx quit",
+  "body": "- **.llab** is the scenario, **.llsol** a saved solution.\n- **Import:** files of LogisticsLab 5 (TPPX, CLPX, DLPX, NWFX, TSPX, VRPX) are converted. Files of LogisticsLab 4 are not supported.\n- When you quit with unsaved changes, the app asks whether to save them."
+ },
+ {
+  "id": "computing",
+  "title": "Computing: local or server",
+  "keywords": "compute local server settings internet cancel solver",
+  "body": "In the settings (gear icon) you choose whether to compute locally with the bundled solver or on a LogisticsLab server.\n\nRoad distances, routes and the address search use the servers of TH Wildau and OpenStreetMap services and need an internet connection. A running solve can be cancelled."
+ },
+ {
+  "id": "keyboard",
+  "title": "Keyboard",
+  "keywords": "keyboard keys shortcut arrow keys enter",
+  "body": "- ⌘O open, ⌘S save, ⌘↩ solve, ⌘? or F1 help.\n- ↑ and ↓ change the entry in the node, edge and solution lists.\n- Enter completes an input and moves to the next field.\n\nOn Windows and Linux use Ctrl instead of ⌘."
+ }
+]

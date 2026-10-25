@@ -1,0 +1,86 @@
+[
+ {
+  "id": "start",
+  "title": "Premiers pas",
+  "keywords": "début scénario problème ouvrir nouveau résoudre exemple",
+  "body": "Un scénario contient des nœuds, des réseaux et un nombre quelconque de problèmes. En haut à gauche, vous choisissez le problème que vous modifiez et résolvez.\n\n- **Ouvrir** charge un fichier .llab, **Nouveau** commence un scénario vide. Le menu ⋯ propose un **exemple** et l’**importation** d’anciens fichiers LogisticsLab.\n- Dans l’onglet **Nœuds**, vous créez les lieux et leur attribuez leur rôle dans le problème, dans l’onglet **Réseau** les arcs, dans l’onglet **Paramètres** les réglages du problème.\n- **Résoudre** (⌘↩) calcule le problème. Le résultat apparaît dans l’onglet **Solution** et sur la carte.\n\nAvant de résoudre, l’application vérifie que toutes les données nécessaires sont présentes et nomme les valeurs manquantes avec le nœud concerné."
+ },
+ {
+  "id": "nodes",
+  "title": "Créer et modifier des nœuds",
+  "keywords": "nœud lieu emplacement créer supprimer adresse coordonnées carte clic actif inactif géocodage",
+  "body": "- **Sur la carte :** choisissez l’icône « Ajouter des nœuds » en haut à gauche. Chaque clic sur la carte ajoute alors un nœud, jusqu’à ce que ✕ termine le mode. L’adresse est récupérée automatiquement si possible.\n- **Dans la liste :** « + Nœud » crée un nœud, le clic suivant sur la carte fixe sa position.\n- **De l’adresse aux coordonnées :** saisissez l’adresse et choisissez « Chercher les coordonnées ».\n- La liste ne fait qu’afficher les nœuds, on les modifie dans le formulaire en dessous. ↑ et ↓ changent de nœud, Entrée passe au champ suivant du formulaire.\n- Les nœuds inactifs restent dans le scénario, mais ne sont pris en compte dans aucun problème."
+ },
+ {
+  "id": "roles",
+  "title": "Rôles",
+  "keywords": "rôle fournisseur demandeur transbordement candidat dépôt filtre autres",
+  "body": "Le rôle indique ce qu’est un nœud dans le problème actuel, par exemple fournisseur ou demandeur dans un problème de transport.\n\n- Un nœud a exactement un rôle par problème. Un second clic sur la puce le retire.\n- Les rôles des autres problèmes du scénario (par exemple dépôt) sont conservés, « Tous les rôles » les affiche.\n- Les filtres au-dessus de la liste montrent les nœuds d’un rôle. Les nœuds de transbordement sont des nœuds du réseau sans rôle dans le problème.\n- Un nouveau nœud reçoit le rôle du filtre choisi."
+ },
+ {
+  "id": "network",
+  "title": "Réseaux et arcs",
+  "keywords": "réseau arc arcs tracer liaisons sens orienté non orienté capacité coûts fixes",
+  "body": "Les flots dans les réseaux et le plus court chemin ont besoin d’un réseau ; pour le problème de transport et le TSP, il est facultatif. Dans l’onglet **Réseau**, vous choisissez le réseau du problème ou en créez un nouveau.\n\n- **Tracer un arc :** cliquez sur la carte d’abord sur le nœud de départ, puis sur le nœud d’arrivée.\n- **Créer toutes les liaisons :** pour les problèmes de transport, des fournisseurs (via les nœuds de transbordement) vers les demandeurs ; pour le TSP et le plus court chemin, tous les nœuds entre eux.\n- **Sens :** dans les problèmes de transport, les arcs vont des fournisseurs vers les demandeurs ; ceux tracés à l’envers sont retournés. Pour le TSP et le plus court chemin, chaque arc est orienté ou non orienté.\n- Les valeurs des arcs, comme la capacité ou les coûts fixes, se trouvent dans le formulaire. Certaines ne s’appliquent que lorsque le paramètre correspondant est activé."
+ },
+ {
+  "id": "tpp",
+  "title": "Problème de transport (TPP)",
+  "keywords": "problème de transport tpp objectif coûts marge quantité goulet plages capacité coûts fixes source unique bloquer taux de coût",
+  "body": "Les fournisseurs livrent directement les demandeurs. L’objectif se choisit dans l’onglet Paramètres :\n\n- **Minimiser les coûts :** la variante habituelle.\n- **Maximiser la marge :** recette par unité chez le demandeur moins coût par unité chez le fournisseur moins coûts de transport.\n- **Maximiser la quantité :** la plus grande quantité livrée ; l’offre et la demande sont des bornes supérieures.\n- **Minimiser le goulet :** le plus grand taux de coût des liaisons utilisées devient aussi petit que possible.\n\nSont facultatifs les plages d’offre et de demande, les capacités et coûts fixes des liaisons (via un réseau), l’approvisionnement unique et le blocage des liaisons selon le plus petit ou le plus grand taux de coût. L’offre peut être inférieure à la demande."
+ },
+ {
+  "id": "flows",
+  "title": "Flots dans les réseaux",
+  "keywords": "flot dans les réseaux flot à coût minimal flot maximal source puits multiproduit produits multimodal modes entrepôts plusieurs niveaux équilibre pénuries",
+  "body": "Les quantités circulent sur les arcs d’un réseau.\n\n- **Flot à coût minimal :** de l’offre à la demande à coût minimal. Les arcs ont des capacités et des flots minimaux, les nœuds un débit.\n- **Flot maximal :** la plus grande quantité d’une source vers un puits – ou de tous les fournisseurs vers tous les demandeurs, l’offre et la demande sont alors les limites.\n- **Multiproduit :** plusieurs produits se partagent les capacités. Les produits se créent dans l’onglet Paramètres.\n- **Multimodal :** les modes de transport autorisés par arc, chacun avec ses propres coûts et capacités.\n- **Entrepôts à plusieurs niveaux :** ouvrir des entrepôts (candidats) dans le réseau et y faire passer les quantités.\n\nL’équilibre « automatique » autorise les pénuries, « exact » exige que l’offre et la demande soient égales."
+ },
+ {
+  "id": "tsp",
+  "title": "Tournée et traversée (TSP)",
+  "keywords": "tsp tournée traversée parcours départ arrivée fin ouverte départ ouvert plus courts chemins nœuds auxiliaires",
+  "body": "La tournée la plus courte par tous les nœuds actifs. Le type de tournée peut être une tournée (retour au départ), une traversée (du départ à l’arrivée), une fin ouverte, un départ ouvert ou entièrement ouvert.\n\nSans réseau, ce sont les distances de la matrice qui s’appliquent. Avec un réseau, la tournée suit les plus courts chemins du réseau : les nœuds auxiliaires comme les carrefours et les arcs orientés bloquent ou autorisent des chemins. S’il n’existe aucune tournée possible, l’application indique le tronçon sans chemin."
+ },
+ {
+  "id": "shortestpath",
+  "title": "Plus court chemin",
+  "keywords": "plus court chemin itinéraire départ arrivée réseau dijkstra",
+  "body": "Le plus court chemin d’un départ à une arrivée dans le réseau, évalué par la distance, le temps ou les coûts. Les arcs peuvent être orientés un par un. Si aucun chemin n’atteint l’arrivée, l’application le signale. La solution montre les tronçons avec leur longueur et le cumul."
+ },
+ {
+  "id": "solution",
+  "title": "Lire la solution",
+  "keywords": "solution résultat objectif indicateur liaisons utilisation produit mode périmée llsol enregistrer",
+  "body": "- L’indicateur de l’objectif a un cadre bleu.\n- Le tableau montre les liaisons avec quantité, taux de coût, coûts et utilisation ; pour les tournées, les tronçons avec longueur et « cumulé ». Un clic met la liaison en évidence en orange sur la carte.\n- Pour les problèmes multiproduits et multimodaux, « Produit : » ou « Mode : » en affiche un seul.\n- La liste des nœuds montre la cible, le réel, la part ou l’utilisation et les partenaires. Les filtres trouvent par exemple la demande non couverte ou les nœuds pleinement utilisés.\n- Si les données changent, la solution est marquée comme périmée. « Enregistrer en .llsol » sauvegarde la solution."
+ },
+ {
+  "id": "map",
+  "title": "Carte",
+  "keywords": "carte calques légende couleurs centrer zoom étiquettes survol",
+  "body": "- En haut à gauche : ajouter des nœuds et tracer des arcs. En haut à droite : calques (réseau, solution, étiquettes). En bas à droite : centrer le problème et zoom.\n- Couleurs : fournisseurs en bleu, demandeurs en vert, candidats en violet, nœuds de transbordement en losanges gris. Les arcs utilisés sont bleus, les arcs non utilisés pétrole, la liaison choisie orange.\n- Le pointeur sur un arc ou un nœud affiche ses valeurs. Les étiquettes qui se chevaucheraient sont masquées."
+ },
+ {
+  "id": "matrix",
+  "title": "Distances et coûts",
+  "keywords": "matrice distance temps coûts osm réseau routier ligne droite coût par km coût par heure évaluation",
+  "body": "Dans l’onglet Paramètres, sous **Matrice**, vous choisissez le réseau routier (OSM) ou la ligne droite et saisissez le coût par km et par heure. La matrice vaut pour tous les problèmes du scénario.\n\nL’**évaluation** d’un problème (distances, temps de trajet, coûts) détermine ce qui est optimisé. « Coûts » exige un coût par km ou par heure."
+ },
+ {
+  "id": "files",
+  "title": "Fichiers et importation",
+  "keywords": "fichier llab llsol enregistrer ouvrir importer logisticslab 5 tppx clpx dlpx nwfx tspx vrpx quitter",
+  "body": "- **.llab** est le scénario, **.llsol** une solution enregistrée.\n- **Importation :** les fichiers de LogisticsLab 5 (TPPX, CLPX, DLPX, NWFX, TSPX, VRPX) sont convertis. Les fichiers de LogisticsLab 4 ne sont pas pris en charge.\n- En quittant avec des modifications non enregistrées, l’application demande s’il faut les enregistrer."
+ },
+ {
+  "id": "computing",
+  "title": "Calcul : local ou serveur",
+  "keywords": "calcul local serveur réglages internet annuler noyau de calcul",
+  "body": "Dans les réglages (roue dentée), vous choisissez si le calcul se fait localement avec le noyau de calcul fourni ou sur un serveur LogisticsLab.\n\nLes distances routières, les itinéraires et la recherche d’adresses utilisent les serveurs de la TH Wildau et des services OpenStreetMap et nécessitent une connexion internet. Un calcul en cours peut être annulé."
+ },
+ {
+  "id": "keyboard",
+  "title": "Clavier",
+  "keywords": "clavier touches raccourci flèches entrée",
+  "body": "- ⌘O ouvrir, ⌘S enregistrer, ⌘↩ résoudre, ⌘? ou F1 aide.\n- ↑ et ↓ changent l’entrée dans les listes des nœuds, des arcs et de la solution.\n- Entrée termine une saisie et passe au champ suivant.\n\nSous Windows et Linux, utilisez Ctrl au lieu de ⌘."
+ }
+]

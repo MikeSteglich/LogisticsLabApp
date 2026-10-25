@@ -19,6 +19,8 @@ import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/backend/backend.dart';
 import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
+import 'package:logisticslab_app/ui/help_dialog.dart';
+import 'package:logisticslab_app/ui/main_screen.dart';
 import 'package:logisticslab_app/ui/map_view.dart';
 
 final shots = Platform.environment['LOGLAB_SHOTS'];
@@ -187,6 +189,13 @@ void main() {
     state.setTab(DataTab.solution);
     await settle(() => false, seconds: 4);
     await shot('11-shortest-path');
+    // help window with a search
+    showHelp(tester.element(find.byType(MainScreen)), state, query: 'Rundreise');
+    await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 200)));
+    await tester.pumpAndSettle();
+    await shot('12-help');
+    Navigator.of(tester.element(find.byType(MainScreen))).pop();
+    await tester.pumpAndSettle();
     state.chooseProblem('Transport direkt vom Werk');
 
     tester.view.physicalSize = const Size(820, 1180); // tablet portrait

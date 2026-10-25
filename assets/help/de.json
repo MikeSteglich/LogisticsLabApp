@@ -1,0 +1,86 @@
+[
+ {
+  "id": "start",
+  "title": "Erste Schritte",
+  "keywords": "anfang einstieg szenario problem öffnen neu lösen beispiel",
+  "body": "Ein Szenario enthält Knoten, Netze und beliebig viele Probleme. Oben links wählst du das Problem, das gerade bearbeitet und gelöst wird.\n\n- **Öffnen** lädt eine .llab-Datei, **Neu** beginnt ein leeres Szenario. Im Menü ⋯ gibt es ein **Beispiel** und den **Import** alter LogisticsLab-Dateien.\n- Im Tab **Knoten** legst du die Orte an und vergibst ihre Rolle im Problem, im Tab **Netz** die Kanten, im Tab **Parameter** die Einstellungen des Problems.\n- **Lösen** (⌘↩) rechnet das Problem. Das Ergebnis erscheint im Tab **Lösung** und auf der Karte.\n\nVor dem Lösen prüft die App, ob alle nötigen Daten vorhanden sind, und nennt fehlende Werte mit dem Namen des Knotens."
+ },
+ {
+  "id": "nodes",
+  "title": "Knoten anlegen und bearbeiten",
+  "keywords": "knoten ort standort anlegen löschen adresse koordinaten karte klick aktiv inaktiv geocoding",
+  "body": "- **Auf der Karte:** das Symbol „Knoten setzen“ oben links wählen. Danach legt jeder Klick in die Karte einen Knoten an, bis ✕ den Modus beendet. Die Adresse wird nach Möglichkeit automatisch geholt.\n- **In der Liste:** „+ Knoten“ legt einen Knoten an, seine Position setzt der nächste Klick in die Karte.\n- **Von der Adresse zu Koordinaten:** Adresse eintragen und „Koordinaten suchen“ wählen.\n- Die Liste ist nur Anzeige, bearbeitet wird in der Maske darunter. ↑ und ↓ wechseln den Knoten, Enter springt in der Maske zum nächsten Feld.\n- Inaktive Knoten bleiben im Szenario, werden aber in keinem Problem berücksichtigt."
+ },
+ {
+  "id": "roles",
+  "title": "Rollen",
+  "keywords": "rolle anbieter nachfrager umladeknoten kandidat depot filter sonstige",
+  "body": "Die Rolle sagt, was ein Knoten im aktuellen Problem ist, zum Beispiel Anbieter oder Nachfrager beim Transportproblem.\n\n- Je Problem hat ein Knoten genau eine Rolle. Ein zweiter Klick auf den Chip nimmt sie wieder weg.\n- Rollen für andere Probleme des Szenarios (zum Beispiel Depot) bleiben erhalten, „Alle Rollen“ zeigt sie.\n- Die Filter über der Liste zeigen die Knoten einer Rolle. Umladeknoten sind Knoten des Netzes ohne Rolle im Problem.\n- Ein neuer Knoten bekommt die Rolle des gewählten Filters."
+ },
+ {
+  "id": "network",
+  "title": "Netze und Kanten",
+  "keywords": "netz kante kanten zeichnen verbindungen richtung gerichtet ungerichtet kapazität fixkosten",
+  "body": "Netzflüsse und der kürzeste Weg brauchen ein Netz, beim Transportproblem und beim TSP ist es optional. Im Tab **Netz** wählst du das Netz des Problems oder legst ein neues an.\n\n- **Kante zeichnen:** auf der Karte erst den Startknoten, dann den Zielknoten anklicken.\n- **Alle Verbindungen anlegen:** bei Transportproblemen von den Anbietern (über die Umladeknoten) zu den Nachfragern, beim TSP und beim kürzesten Weg alle Knoten miteinander.\n- **Richtung:** Bei Transportproblemen führen die Kanten von den Anbietern zu den Nachfragern, falsch herum gezeichnete werden umgedreht. Beim TSP und beim kürzesten Weg ist jede Kante einzeln gerichtet oder ungerichtet.\n- Werte der Kanten wie Kapazität oder Fixkosten stehen in der Maske. Manche wirken erst, wenn der passende Parameter eingeschaltet ist."
+ },
+ {
+  "id": "tpp",
+  "title": "Transportproblem (TPP)",
+  "keywords": "transportproblem tpp zielfunktion kosten deckungsbeitrag menge engpass spannen kapazität fixkosten einzelbelieferung sperren kostensatz",
+  "body": "Anbieter beliefern Nachfrager direkt. Die Zielfunktion wählst du im Tab Parameter:\n\n- **Kosten minimieren:** die übliche Variante.\n- **Deckungsbeitrag maximieren:** Erlös je Einheit beim Nachfrager minus Kosten je Einheit beim Anbieter minus Transportkosten.\n- **Menge maximieren:** die größte Liefermenge, Angebot und Nachfrage gelten als Obergrenzen.\n- **Engpass minimieren:** der größte Kostensatz der genutzten Verbindungen wird so klein wie möglich.\n\nOptional sind Spannen für Angebot und Nachfrage, Kapazitäten und Fixkosten der Verbindungen (über ein Netz), Einzelbelieferung und das Sperren von Verbindungen nach kleinstem oder größtem Kostensatz. Das Angebot darf kleiner als die Nachfrage sein."
+ },
+ {
+  "id": "flows",
+  "title": "Netzflüsse",
+  "keywords": "netzfluss min-cost-flow max-flow maximaler fluss quelle senke mehrgüter güter multimodal verkehrsträger lager mehrstufig ausgleich fehlmengen",
+  "body": "Mengen fließen über die Kanten eines Netzes.\n\n- **Min-Cost-Flow:** vom Angebot zur Nachfrage mit minimalen Kosten. Kanten haben Kapazitäten und Mindestflüsse, Knoten einen Durchsatz.\n- **Max-Flow:** die größte Menge von einer Quelle zu einer Senke – oder von allen Anbietern zu allen Nachfragern, dann begrenzen Angebot und Nachfrage.\n- **Mehrgüter:** mehrere Güter teilen sich die Kapazitäten. Die Güter legst du im Tab Parameter an.\n- **Multimodal:** je Kante die erlaubten Verkehrsträger, jeder mit eigenen Kosten und Kapazitäten.\n- **Lager mehrstufig:** Lager (Kandidaten) im Netz öffnen und die Mengen über sie verteilen.\n\nDer Ausgleich „automatisch“ erlaubt Fehlmengen, „exakt“ verlangt, dass Angebot und Nachfrage gleich sind."
+ },
+ {
+  "id": "tsp",
+  "title": "Rundreise und Durchfahrt (TSP)",
+  "keywords": "tsp rundreise durchfahrt tour start ziel offen offenes ende offener anfang kürzeste wege hilfsknoten",
+  "body": "Die kürzeste Tour durch alle aktiven Knoten. Als Art der Tour gibt es Rundreise (zurück zum Start), Durchfahrt (vom Start zum Ziel), offenes Ende, offenen Anfang und komplett offen.\n\nOhne Netz gelten die Entfernungen der Matrix. Mit Netz fährt die Tour über die kürzesten Wege im Netz – Hilfsknoten wie Kreuzungen und gerichtete Kanten sperren oder erlauben Wege. Gibt es keine mögliche Tour, nennt die App den Abschnitt ohne Weg."
+ },
+ {
+  "id": "shortestpath",
+  "title": "Kürzester Weg",
+  "keywords": "kürzester weg route start ziel netz dijkstra",
+  "body": "Der kürzeste Weg von einem Start zu einem Ziel im Netz, bewertet nach Distanz, Zeit oder Kosten. Kanten können einzeln gerichtet sein. Erreicht kein Weg das Ziel, meldet die App das. Die Lösung zeigt die Abschnitte mit ihrer Länge und der Summe bis dahin."
+ },
+ {
+  "id": "solution",
+  "title": "Lösung lesen",
+  "keywords": "lösung ergebnis zielfunktion kennzahl verbindungen auslastung gut verkehrsträger veraltet llsol speichern",
+  "body": "- Die Kennzahl der Zielfunktion ist blau umrahmt.\n- Die Tabelle zeigt die Verbindungen mit Menge, Kostensatz, Kosten und Auslastung, bei Touren die Abschnitte mit Länge und „bis hier“. Ein Klick hebt die Verbindung auf der Karte orange hervor.\n- Bei Mehrgüter- und multimodalen Problemen wählt „Gut:“ bzw. „Verkehrsträger:“ die Sicht auf ein einzelnes.\n- Die Knotenliste zeigt Soll, Ist, Anteil oder Auslastung und die Partner. Filter finden zum Beispiel nicht gedeckten Bedarf oder voll ausgelastete Knoten.\n- Ändern sich die Daten, wird die Lösung als veraltet markiert. „Als .llsol speichern“ sichert die Lösung."
+ },
+ {
+  "id": "map",
+  "title": "Karte",
+  "keywords": "karte ebenen legende farben zentrieren zoom beschriftung hover",
+  "body": "- Oben links: Knoten setzen und Kante zeichnen. Oben rechts: Ebenen (Netz, Lösung, Beschriftungen). Unten rechts: Problem zentrieren und Zoom.\n- Farben: Anbieter blau, Nachfrager grün, Kandidaten violett, Umladeknoten graue Rauten. Genutzte Kanten sind blau, ungenutzte petrol, die gewählte Verbindung orange.\n- Der Mauszeiger über einer Kante oder einem Knoten zeigt dessen Werte. Beschriftungen, die sich überlappen würden, werden ausgeblendet."
+ },
+ {
+  "id": "matrix",
+  "title": "Entfernungen und Kosten",
+  "keywords": "matrix entfernung distanz zeit kosten osm straßennetz luftlinie kosten je km kosten je stunde bewertung",
+  "body": "Im Tab Parameter unter **Matrix** wählst du Straßennetz (OSM) oder Luftlinie und trägst Kosten je km und je Stunde ein. Die Matrix gilt für alle Probleme des Szenarios.\n\nDie **Bewertung** eines Problems (Distanzen, Zeiten, Kosten) legt fest, was optimiert wird. „Kosten“ braucht Kosten je km oder je Stunde."
+ },
+ {
+  "id": "files",
+  "title": "Dateien und Import",
+  "keywords": "datei llab llsol speichern öffnen import logisticslab 5 tppx clpx dlpx nwfx tspx vrpx beenden",
+  "body": "- **.llab** ist das Szenario, **.llsol** eine gespeicherte Lösung.\n- **Import:** Dateien von LogisticsLab 5 (TPPX, CLPX, DLPX, NWFX, TSPX, VRPX) werden umgewandelt. Dateien von LogisticsLab 4 werden nicht unterstützt.\n- Beim Beenden mit ungespeicherten Änderungen fragt die App, ob gespeichert werden soll."
+ },
+ {
+  "id": "computing",
+  "title": "Rechnen: lokal oder Server",
+  "keywords": "rechnen lokal server einstellungen internet abbrechen rechenkern",
+  "body": "In den Einstellungen (Zahnrad) wählst du, ob lokal mit dem mitgelieferten Rechenkern oder auf einem LogisticsLab-Server gerechnet wird.\n\nStraßenentfernungen, Routen und die Adresssuche nutzen die Server der TH Wildau und Dienste von OpenStreetMap und brauchen eine Internetverbindung. Ein laufendes Lösen lässt sich abbrechen."
+ },
+ {
+  "id": "keyboard",
+  "title": "Tastatur",
+  "keywords": "tastatur tasten kürzel shortcut pfeiltasten enter",
+  "body": "- ⌘O öffnen, ⌘S speichern, ⌘↩ lösen, ⌘? oder F1 Hilfe.\n- ↑ und ↓ wechseln in der Knoten-, Kanten- und Lösungsliste den Eintrag.\n- Enter schließt eine Eingabe ab und springt zum nächsten Feld.\n\nUnter Windows und Linux gilt Strg statt ⌘."
+ }
+]

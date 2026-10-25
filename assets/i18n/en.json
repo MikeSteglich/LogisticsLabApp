@@ -382,5 +382,9 @@
   "ui.about.authors": "Authors",
   "ui.about.author": "Author",
   "ui.about.coAuthor": "Co-author",
-  "ui.about.licenses": "All licences"
+  "ui.about.licenses": "All licences",
+  "ui.help.menu": "Help",
+  "ui.help.title": "LogisticsLab Studio – Help",
+  "ui.help.search": "Search the help",
+  "ui.help.none": "No topic found"
 }

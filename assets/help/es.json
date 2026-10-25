@@ -1,0 +1,86 @@
+[
+ {
+  "id": "start",
+  "title": "Primeros pasos",
+  "keywords": "inicio escenario problema abrir nuevo resolver ejemplo",
+  "body": "Un escenario contiene nodos, redes y cualquier número de problemas. Arriba a la izquierda eliges el problema que estás editando y resolviendo.\n\n- **Abrir** carga un archivo .llab, **Nuevo** empieza un escenario vacío. El menú ⋯ ofrece un **ejemplo** y la **importación** de archivos antiguos de LogisticsLab.\n- En la pestaña **Nodos** creas los lugares y les asignas su rol en el problema, en la pestaña **Red** las aristas, en la pestaña **Parámetros** los ajustes del problema.\n- **Resolver** (⌘↩) calcula el problema. El resultado aparece en la pestaña **Solución** y en el mapa.\n\nAntes de resolver, la aplicación comprueba que estén todos los datos necesarios y nombra los valores que faltan junto con el nodo."
+ },
+ {
+  "id": "nodes",
+  "title": "Crear y editar nodos",
+  "keywords": "nodo lugar ubicación crear borrar dirección coordenadas mapa clic activo inactivo geocodificación",
+  "body": "- **En el mapa:** elige el icono «Añadir nodos» arriba a la izquierda. Después, cada clic en el mapa añade un nodo hasta que ✕ termina el modo. La dirección se obtiene automáticamente cuando es posible.\n- **En la lista:** «+ Nodo» crea un nodo, el siguiente clic en el mapa fija su posición.\n- **De la dirección a las coordenadas:** introduce la dirección y elige «Buscar coordenadas».\n- La lista solo muestra los nodos, se editan en el formulario de abajo. ↑ y ↓ cambian de nodo, Intro pasa al siguiente campo del formulario.\n- Los nodos inactivos permanecen en el escenario, pero no se tienen en cuenta en ningún problema."
+ },
+ {
+  "id": "roles",
+  "title": "Roles",
+  "keywords": "rol proveedor demandante transbordo candidato depósito filtro otros",
+  "body": "El rol indica qué es un nodo en el problema actual, por ejemplo proveedor o demandante en un problema de transporte.\n\n- Un nodo tiene exactamente un rol por problema. Un segundo clic en el chip lo quita.\n- Los roles de otros problemas del escenario (por ejemplo depósito) se conservan, «Todos los roles» los muestra.\n- Los filtros sobre la lista muestran los nodos de un rol. Los nodos de transbordo son nodos de la red sin rol en el problema.\n- Un nodo nuevo recibe el rol del filtro elegido."
+ },
+ {
+  "id": "network",
+  "title": "Redes y aristas",
+  "keywords": "red arista aristas dibujar conexiones dirección dirigida no dirigida capacidad costes fijos",
+  "body": "Los flujos en redes y el camino más corto necesitan una red; en el problema de transporte y en el TSP es opcional. En la pestaña **Red** eliges la red del problema o creas una nueva.\n\n- **Dibujar arista:** haz clic en el mapa primero en el nodo de inicio y luego en el de destino.\n- **Crear todas las conexiones:** en los problemas de transporte, de los proveedores (por los nodos de transbordo) a los demandantes; en el TSP y el camino más corto, todos los nodos entre sí.\n- **Dirección:** en los problemas de transporte las aristas van de los proveedores a los demandantes; las dibujadas al revés se invierten. En el TSP y el camino más corto cada arista es dirigida o no dirigida.\n- Los valores de las aristas, como la capacidad o los costes fijos, están en el formulario. Algunos solo actúan cuando el parámetro correspondiente está activado."
+ },
+ {
+  "id": "tpp",
+  "title": "Problema de transporte (TPP)",
+  "keywords": "problema de transporte tpp objetivo costes margen cantidad cuello de botella rangos capacidad costes fijos fuente única bloquear tasa de coste",
+  "body": "Los proveedores abastecen directamente a los demandantes. El objetivo se elige en la pestaña Parámetros:\n\n- **Minimizar costes:** la variante habitual.\n- **Maximizar el margen:** ingreso por unidad en el demandante menos coste por unidad en el proveedor menos costes de transporte.\n- **Maximizar la cantidad:** la mayor cantidad suministrada; la oferta y la demanda son límites superiores.\n- **Minimizar el cuello de botella:** la mayor tasa de coste de las conexiones usadas se hace lo más pequeña posible.\n\nSon opcionales los rangos de oferta y demanda, las capacidades y los costes fijos de las conexiones (mediante una red), el abastecimiento único y el bloqueo de conexiones por la tasa de coste mínima o máxima. La oferta puede ser menor que la demanda."
+ },
+ {
+  "id": "flows",
+  "title": "Flujos en redes",
+  "keywords": "flujo en redes flujo de coste mínimo flujo máximo fuente sumidero multiproducto productos multimodal medios almacenes varias etapas equilibrio faltantes",
+  "body": "Las cantidades fluyen por las aristas de una red.\n\n- **Flujo de coste mínimo:** de la oferta a la demanda con coste mínimo. Las aristas tienen capacidades y flujos mínimos, los nodos un caudal.\n- **Flujo máximo:** la mayor cantidad de una fuente a un sumidero, o de todos los proveedores a todos los demandantes; entonces la oferta y la demanda son los límites.\n- **Multiproducto:** varios productos comparten las capacidades. Los productos se crean en la pestaña Parámetros.\n- **Multimodal:** los medios de transporte permitidos por arista, cada uno con sus propios costes y capacidades.\n- **Almacenes en varias etapas:** abrir almacenes (candidatos) en la red y distribuir las cantidades a través de ellos.\n\nEl equilibrio «automático» permite faltantes, «exacto» exige que la oferta y la demanda sean iguales."
+ },
+ {
+  "id": "tsp",
+  "title": "Ruta circular y de paso (TSP)",
+  "keywords": "tsp ruta circular paso recorrido inicio destino final abierto inicio abierto caminos más cortos nodos auxiliares",
+  "body": "El recorrido más corto por todos los nodos activos. El tipo de ruta puede ser circular (de vuelta al inicio), de paso (del inicio al destino), con final abierto, con inicio abierto o totalmente abierto.\n\nSin red se usan las distancias de la matriz. Con red, la ruta sigue los caminos más cortos de la red: los nodos auxiliares, como cruces, y las aristas dirigidas bloquean o permiten caminos. Si no hay ninguna ruta posible, la aplicación indica el tramo sin camino."
+ },
+ {
+  "id": "shortestpath",
+  "title": "Camino más corto",
+  "keywords": "camino más corto ruta inicio destino red dijkstra",
+  "body": "El camino más corto de un inicio a un destino en la red, valorado por distancia, tiempo o costes. Las aristas pueden ser dirigidas una a una. Si ningún camino llega al destino, la aplicación lo indica. La solución muestra los tramos con su longitud y el total acumulado."
+ },
+ {
+  "id": "solution",
+  "title": "Leer la solución",
+  "keywords": "solución resultado objetivo indicador conexiones utilización producto medio desactualizada llsol guardar",
+  "body": "- El indicador del objetivo tiene un marco azul.\n- La tabla muestra las conexiones con cantidad, tasa de coste, costes y utilización; en los recorridos, los tramos con longitud y «acumulado». Un clic resalta la conexión en naranja en el mapa.\n- En los problemas multiproducto y multimodales, «Producto:» o «Medio:» muestra uno solo.\n- La lista de nodos muestra el objetivo, el valor real, la proporción o la utilización y los socios. Los filtros encuentran, por ejemplo, la demanda no cubierta o los nodos plenamente utilizados.\n- Si cambian los datos, la solución se marca como desactualizada. «Guardar como .llsol» guarda la solución."
+ },
+ {
+  "id": "map",
+  "title": "Mapa",
+  "keywords": "mapa capas leyenda colores centrar zoom etiquetas puntero",
+  "body": "- Arriba a la izquierda: añadir nodos y dibujar aristas. Arriba a la derecha: capas (red, solución, etiquetas). Abajo a la derecha: centrar el problema y zoom.\n- Colores: proveedores en azul, demandantes en verde, candidatos en violeta, nodos de transbordo como rombos grises. Las aristas usadas son azules, las no usadas petróleo y la conexión elegida naranja.\n- El puntero sobre una arista o un nodo muestra sus valores. Las etiquetas que se solaparían se ocultan."
+ },
+ {
+  "id": "matrix",
+  "title": "Distancias y costes",
+  "keywords": "matriz distancia tiempo costes osm red de carreteras línea recta coste por km coste por hora valoración",
+  "body": "En la pestaña Parámetros, en **Matriz**, eliges la red de carreteras (OSM) o la línea recta e introduces el coste por km y por hora. La matriz vale para todos los problemas del escenario.\n\nLa **valoración** de un problema (distancias, tiempos de viaje, costes) decide qué se optimiza. «Costes» necesita un coste por km o por hora."
+ },
+ {
+  "id": "files",
+  "title": "Archivos e importación",
+  "keywords": "archivo llab llsol guardar abrir importar logisticslab 5 tppx clpx dlpx nwfx tspx vrpx salir",
+  "body": "- **.llab** es el escenario, **.llsol** una solución guardada.\n- **Importar:** los archivos de LogisticsLab 5 (TPPX, CLPX, DLPX, NWFX, TSPX, VRPX) se convierten. Los archivos de LogisticsLab 4 no son compatibles.\n- Al salir con cambios sin guardar, la aplicación pregunta si deben guardarse."
+ },
+ {
+  "id": "computing",
+  "title": "Cálculo: local o servidor",
+  "keywords": "calcular local servidor ajustes internet cancelar núcleo de cálculo",
+  "body": "En los ajustes (rueda dentada) eliges si se calcula localmente con el núcleo de cálculo incluido o en un servidor de LogisticsLab.\n\nLas distancias por carretera, las rutas y la búsqueda de direcciones usan los servidores de la TH Wildau y servicios de OpenStreetMap y necesitan conexión a internet. Un cálculo en curso se puede cancelar."
+ },
+ {
+  "id": "keyboard",
+  "title": "Teclado",
+  "keywords": "teclado teclas atajo flechas intro",
+  "body": "- ⌘O abrir, ⌘S guardar, ⌘↩ resolver, ⌘? o F1 ayuda.\n- ↑ y ↓ cambian la entrada en las listas de nodos, aristas y solución.\n- Intro termina una entrada y pasa al siguiente campo.\n\nEn Windows y Linux se usa Ctrl en lugar de ⌘."
+ }
+]

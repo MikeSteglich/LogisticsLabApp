@@ -12,6 +12,7 @@ import '../modules/modules.dart';
 import 'data_panel.dart';
 import 'file_ops.dart';
 import 'about_dialog.dart';
+import 'help_dialog.dart';
 import 'logo.dart';
 import 'map_view.dart';
 import 'messages.dart';
@@ -44,6 +45,10 @@ class MainScreen extends StatelessWidget {
       const SingleActivator(LogicalKeyboardKey.keyS, control: true): files.save,
       const SingleActivator(LogicalKeyboardKey.enter, meta: true): () => solve(context, state),
       const SingleActivator(LogicalKeyboardKey.enter, control: true): () => solve(context, state),
+      // help: cmd/ctrl + ? (the key of the keyboard layout) and F1
+      const CharacterActivator('?', meta: true): () => showHelp(context, state),
+      const CharacterActivator('?', control: true): () => showHelp(context, state),
+      const SingleActivator(LogicalKeyboardKey.f1): () => showHelp(context, state),
     };
     return _ExitGuard(
       state: state,
@@ -136,6 +141,7 @@ class _Header extends StatelessWidget {
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
                   const Divider(),
+                  MenuItemButton(onPressed: () => showHelp(context, s), child: Text(t('ui.help.menu'))),
                   MenuItemButton(onPressed: () => showAbout(context, s), child: Text(t('ui.about.menu'))),
                 ],
               ),

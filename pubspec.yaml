@@ -67,6 +67,7 @@ flutter:
     - assets/i18n/
     - assets/examples/
     - assets/icon/
+    - assets/help/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
