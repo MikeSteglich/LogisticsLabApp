@@ -9,7 +9,7 @@
   "id": "nodes",
   "title": "Knoten anlegen und bearbeiten",
   "keywords": "knoten ort standort anlegen löschen adresse koordinaten karte klick aktiv inaktiv geocoding",
-  "body": "- **Auf der Karte:** das Symbol „Knoten setzen“ oben links wählen. Danach legt jeder Klick in die Karte einen Knoten an, bis ✕ den Modus beendet. Die Adresse wird nach Möglichkeit automatisch geholt.\n- **In der Liste:** „+ Knoten“ legt einen Knoten an, seine Position setzt der nächste Klick in die Karte.\n- **Von der Adresse zu Koordinaten:** Adresse eintragen und „Koordinaten suchen“ wählen.\n- Die Liste ist nur Anzeige, bearbeitet wird in der Maske darunter. ↑ und ↓ wechseln den Knoten, Enter springt in der Maske zum nächsten Feld.\n- Inaktive Knoten bleiben im Szenario, werden aber in keinem Problem berücksichtigt."
+  "body": "- **Auf der Karte:** das Symbol „Knoten setzen“ oben links wählen. Danach legt jeder Klick in die Karte einen Knoten an, bis ✕ den Modus beendet. Die Adresse wird nach Möglichkeit automatisch geholt.\n- **In der Liste:** „+ Knoten“ legt einen Knoten an, seine Position setzt der nächste Klick in die Karte.\n- **Von der Adresse zu Koordinaten:** Adresse eintragen und „Koordinaten suchen“ wählen.\n- Die Liste ist nur Anzeige, bearbeitet wird in der Maske darunter. ↑ und ↓ wechseln den Knoten, Enter springt in der Maske zum nächsten Feld.\n- Inaktive Knoten bleiben im Szenario, werden aber in keinem Problem berücksichtigt.\n- Die **ID** vergibt das Programm automatisch. Sie ist nur ein Schlüssel für Kanten, Dateien und Importe und steht deshalb nicht in der Liste, sondern in der Maske neben dem Namen; dort lässt sie sich ändern, etwa für den Abgleich mit Excel."
  },
  {
   "id": "roles",

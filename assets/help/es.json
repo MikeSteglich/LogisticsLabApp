@@ -9,7 +9,7 @@
   "id": "nodes",
   "title": "Crear y editar nodos",
   "keywords": "nodo lugar ubicación crear borrar dirección coordenadas mapa clic activo inactivo geocodificación",
-  "body": "- **En el mapa:** elige el icono «Añadir nodos» arriba a la izquierda. Después, cada clic en el mapa añade un nodo hasta que ✕ termina el modo. La dirección se obtiene automáticamente cuando es posible.\n- **En la lista:** «+ Nodo» crea un nodo, el siguiente clic en el mapa fija su posición.\n- **De la dirección a las coordenadas:** introduce la dirección y elige «Buscar coordenadas».\n- La lista solo muestra los nodos, se editan en el formulario de abajo. ↑ y ↓ cambian de nodo, Intro pasa al siguiente campo del formulario.\n- Los nodos inactivos permanecen en el escenario, pero no se tienen en cuenta en ningún problema."
+  "body": "- **En el mapa:** elige el icono «Añadir nodos» arriba a la izquierda. Después, cada clic en el mapa añade un nodo hasta que ✕ termina el modo. La dirección se obtiene automáticamente cuando es posible.\n- **En la lista:** «+ Nodo» crea un nodo, el siguiente clic en el mapa fija su posición.\n- **De la dirección a las coordenadas:** introduce la dirección y elige «Buscar coordenadas».\n- La lista solo muestra los nodos, se editan en el formulario de abajo. ↑ y ↓ cambian de nodo, Intro pasa al siguiente campo del formulario.\n- Los nodos inactivos permanecen en el escenario, pero no se tienen en cuenta en ningún problema.\n- El programa asigna el **ID** automáticamente. Solo es una clave para aristas, archivos e importaciones, por eso no aparece en la lista sino en el formulario junto al nombre; allí se puede cambiar, por ejemplo para cuadrar con Excel."
  },
  {
   "id": "roles",

@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:logisticslab_app/ui/theme.dart';
 import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
@@ -37,7 +38,11 @@ void main() {
     final last = state.scenario.nodes.last;
     state.selectNode(last.id);
     await tester.pumpAndSettle();
-    expect(visible(find.text('${last.id} · ${last.name}')), isTrue, reason: 'title of the mask');
+    expect(
+      visible(find.byWidgetPredicate((w) => w is Text && w.data == last.name && w.style == Ui.title)),
+      isTrue,
+      reason: 'title of the mask',
+    );
     expect(visible(find.text('Koordinaten suchen')), isTrue, reason: 'button in the mask');
     final row = find.descendant(of: find.byType(Section).first, matching: find.text(last.name));
     expect(visible(row.first), isTrue, reason: 'selected row scrolled into view');

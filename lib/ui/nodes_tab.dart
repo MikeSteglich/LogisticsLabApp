@@ -191,6 +191,9 @@ class _NodeTable extends StatelessWidget {
       return s.fieldText(v) ?? '';
     }
 
+    // time windows: wider - "08:00 – 12:00"
+    bool wide(({String role, FieldSpec? field, String label}) c) =>
+        c.role.isEmpty || c.field?.kind == FieldKind.timeWindow;
     Widget cell(String text, {int flex = 2, bool right = false, bool bold = false, Color? color}) => Expanded(
       flex: flex,
       child: Text(
@@ -230,15 +233,16 @@ class _NodeTable extends StatelessWidget {
     return Column(
       children: [
         row([
-          cell(t('ui.col.id'), flex: 1, bold: true, color: head),
-          cell(t('ui.col.name'), flex: 3, bold: true, color: head),
+          cell(t('ui.col.name'), flex: 4, bold: true, color: head),
           if (roleColumns.isEmpty) cell(t('ui.col.roles'), bold: true, color: head),
           for (final c in roleColumns)
             cell(
               // one commodity (named in the chooser): the short label - supply instead of supply per commodity
               c.field?.kind == FieldKind.commodities && part != null
                   ? t(_perCommodity[c.field!.key] ?? c.label)
-                  : c.label,
+                  // short: without the explanation in brackets
+                  : c.label.replaceAll(RegExp(r'\s*\(.*\)'), ''),
+              flex: wide(c) ? 3 : 2,
               right: true,
               bold: true,
               color: head,
@@ -254,10 +258,10 @@ class _NodeTable extends StatelessWidget {
               selected: n.id == s.selectedNode,
               child: row(
                 [
-                  cell(n.id, flex: 1, bold: true, color: relevant ? Ui.text : Ui.textSecondary),
-                  cell(n.name, flex: 3, color: relevant ? Ui.text : Ui.textSecondary),
+                  // the name - the ID is only a key (edges, files), it is in the mask
+                  cell(n.name, flex: 4, color: relevant ? Ui.text : Ui.textSecondary),
                   if (roleColumns.isEmpty) cell(n.roles.map((r) => t('role.$r')).join(', '), color: Ui.textMuted),
-                  for (final c in roleColumns) cell(roleValue(n, c), right: true),
+                  for (final c in roleColumns) cell(roleValue(n, c), flex: wide(c) ? 3 : 2, right: true),
                   cell(
                     '${t.fixed(n.position.latitude, 4)} / ${t.fixed(n.position.longitude, 4)}',
                     flex: 3,
@@ -300,15 +304,27 @@ class _NodeMask extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.end,
             spacing: 8,
             children: [
-              Text('${n.id} · ${n.name}', style: Ui.title),
+              Text(n.name, style: Ui.title),
               Text(t('ui.node.detail'), style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
             ],
           ),
           const SizedBox(height: 14),
-          FieldGrid(
+          // the name; the ID small beside it - given automatically, a key for edges, files and imports
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _IdField(node: n, taken: idTaken, state: s),
-              TextValueField(label: t('ui.col.name'), value: n.name, onChanged: (v) => s.edit(() => n.name = v)),
+              Expanded(
+                flex: 3,
+                child: TextValueField(
+                  label: t('ui.col.name'),
+                  value: n.name,
+                  onChanged: (v) => s.edit(() => n.name = v),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _IdField(node: n, taken: idTaken, state: s),
+              ),
             ],
           ),
           const SizedBox(height: 14),
