@@ -160,7 +160,7 @@ class _ParametersTab extends StatelessWidget {
                 });
               },
             ),
-            for (final f in spec.visibleParameters(values)) field(f, values),
+            ..._pairedNodes([for (final f in spec.visibleParameters(values)) f], (f) => field(f, values)),
           ],
         ),
         if (errors.isNotEmpty) ...[
@@ -199,6 +199,26 @@ class _ParametersTab extends StatelessWidget {
       ],
     );
   }
+}
+
+/// the parameter fields in the grid of two columns - two node fields in a row (start and end, source and sink)
+/// side by side: an empty cell before them if they would start in the right column (the name of the problem is
+/// the first cell)
+List<Widget> _pairedNodes(List<FieldSpec> fields, Widget Function(FieldSpec) field) {
+  final out = <Widget>[];
+  var cells = 1; // the name of the problem
+  for (final (i, f) in fields.indexed) {
+    final pair = f.kind == FieldKind.node && i + 1 < fields.length && fields[i + 1].kind == FieldKind.node;
+    if (pair && cells.isOdd) {
+      out.add(const SizedBox.shrink());
+      cells++;
+    }
+    out.add(field(f));
+    // a wide field (switch, values per commodity) takes a whole row - after it a new row begins
+    final wide = const {FieldKind.boolean, FieldKind.commodities, FieldKind.modes}.contains(f.kind);
+    cells += wide ? (cells.isOdd ? 3 : 2) : 1;
+  }
+  return out;
 }
 
 const _commodityFields = [
