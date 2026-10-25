@@ -710,9 +710,9 @@ class _MapViewState extends State<MapView> {
   Widget _legend() {
     final t = s.strings;
     // a tsp: start and stops
-    final tsp = s.spec?.allNodes == true || s.spec?.type == 'shortestpath';
+    final tsp = s.spec?.allNodes == true || s.spec?.type == 'shortestpath' || s.spec?.type == 'cpp';
     final roles = tsp
-        ? const ['supplier', 'customer']
+        ? (s.spec?.type == 'cpp' ? const ['supplier'] : const ['supplier', 'customer'])
         : s.problemRoles.where((r) => r == 'supplier' || r == 'candidate' || r == 'customer');
     Widget item(Widget mark, String text, {Color color = Ui.textMuted}) => Row(
       mainAxisSize: MainAxisSize.min,
@@ -769,7 +769,9 @@ class _MapViewState extends State<MapView> {
                 transform: Matrix4.rotationZ(0.785),
                 transformAlignment: Alignment.center,
               ),
-              t(s.spec?.type == 'shortestpath' ? 'ui.legend.networkNodes' : 'role.transit.plural'),
+              t(
+                const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
+              ),
             ),
           item(
             CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),

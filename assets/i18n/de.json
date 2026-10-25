@@ -386,5 +386,10 @@
   "ui.help.menu": "Hilfe",
   "ui.help.title": "LogisticsLab Studio – Hilfe",
   "ui.help.search": "In der Hilfe suchen",
-  "ui.help.none": "Kein Thema gefunden"
+  "ui.help.none": "Kein Thema gefunden",
+  "module.cpp.description": "Kürzeste Tour vom Start über jede Kante des Netzes und zurück",
+  "result.edgesLength": "Länge aller Kanten",
+  "result.extraLength": "Zusätzliche Wege",
+  "result.nrOfEdges": "Kanten",
+  "result.nrOfRepeats": "Mehrfach befahren"
 }

@@ -21,7 +21,7 @@
   "id": "network",
   "title": "Netze und Kanten",
   "keywords": "netz kante kanten zeichnen verbindungen richtung gerichtet ungerichtet kapazität fixkosten",
-  "body": "Netzflüsse und der kürzeste Weg brauchen ein Netz, beim Transportproblem und beim TSP ist es optional. Im Tab **Netz** wählst du das Netz des Problems oder legst ein neues an.\n\n- **Kante zeichnen:** auf der Karte erst den Startknoten, dann den Zielknoten anklicken.\n- **Alle Verbindungen anlegen:** bei Transportproblemen von den Anbietern (über die Umladeknoten) zu den Nachfragern, beim TSP und beim kürzesten Weg alle Knoten miteinander.\n- **Richtung:** Bei Transportproblemen führen die Kanten von den Anbietern zu den Nachfragern, falsch herum gezeichnete werden umgedreht. Beim TSP und beim kürzesten Weg ist jede Kante einzeln gerichtet oder ungerichtet.\n- Werte der Kanten wie Kapazität oder Fixkosten stehen in der Maske. Manche wirken erst, wenn der passende Parameter eingeschaltet ist."
+  "body": "Netzflüsse, der kürzeste Weg und das Briefträgerproblem brauchen ein Netz, beim Transportproblem und beim TSP ist es optional. Im Tab **Netz** wählst du das Netz des Problems oder legst ein neues an.\n\n- **Kante zeichnen:** auf der Karte erst den Startknoten, dann den Zielknoten anklicken.\n- **Alle Verbindungen anlegen:** bei Transportproblemen von den Anbietern (über die Umladeknoten) zu den Nachfragern, beim TSP, beim kürzesten Weg und beim Briefträgerproblem alle Knoten miteinander.\n- **Richtung:** Bei Transportproblemen führen die Kanten von den Anbietern zu den Nachfragern, falsch herum gezeichnete werden umgedreht. Beim TSP, beim kürzesten Weg und beim Briefträgerproblem ist jede Kante einzeln gerichtet oder ungerichtet.\n- Werte der Kanten wie Kapazität oder Fixkosten stehen in der Maske. Manche wirken erst, wenn der passende Parameter eingeschaltet ist."
  },
  {
   "id": "tpp",
@@ -46,6 +46,12 @@
   "title": "Kürzester Weg",
   "keywords": "kürzester weg route start ziel netz dijkstra",
   "body": "Der kürzeste Weg von einem Start zu einem Ziel im Netz, bewertet nach Distanz, Zeit oder Kosten. Kanten können einzeln gerichtet sein. Erreicht kein Weg das Ziel, meldet die App das. Die Lösung zeigt die Abschnitte mit ihrer Länge und der Summe bis dahin."
+ },
+ {
+  "id": "cpp",
+  "title": "Briefträgerproblem (CPP)",
+  "keywords": "briefträgerproblem cpp chinese postman kante kanten befahren straßenreinigung winterdienst müllabfuhr rundweg",
+  "body": "Die kürzeste Tour, die vom Start aus jede Kante des Netzes mindestens einmal befährt und zum Start zurückkehrt – typisch für Straßenreinigung, Winterdienst oder Müllabfuhr.\n\n- Das Netz ist Pflicht. Jede Kante kann einzeln gerichtet (Einbahnstraße) oder ungerichtet sein.\n- Kanten, die nicht anders erreichbar sind, werden mehrfach befahren. Die Lösung zeigt die Länge aller Kanten, die zusätzlichen Wege und wie oft Kanten mehrfach befahren werden.\n- Führt von einem Knoten kein Weg zurück zum Start, meldet die App das vor dem Lösen."
  },
  {
   "id": "solution",

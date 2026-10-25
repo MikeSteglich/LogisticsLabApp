@@ -21,7 +21,7 @@
   "id": "network",
   "title": "Réseaux et arcs",
   "keywords": "réseau arc arcs tracer liaisons sens orienté non orienté capacité coûts fixes",
-  "body": "Les flots dans les réseaux et le plus court chemin ont besoin d’un réseau ; pour le problème de transport et le TSP, il est facultatif. Dans l’onglet **Réseau**, vous choisissez le réseau du problème ou en créez un nouveau.\n\n- **Tracer un arc :** cliquez sur la carte d’abord sur le nœud de départ, puis sur le nœud d’arrivée.\n- **Créer toutes les liaisons :** pour les problèmes de transport, des fournisseurs (via les nœuds de transbordement) vers les demandeurs ; pour le TSP et le plus court chemin, tous les nœuds entre eux.\n- **Sens :** dans les problèmes de transport, les arcs vont des fournisseurs vers les demandeurs ; ceux tracés à l’envers sont retournés. Pour le TSP et le plus court chemin, chaque arc est orienté ou non orienté.\n- Les valeurs des arcs, comme la capacité ou les coûts fixes, se trouvent dans le formulaire. Certaines ne s’appliquent que lorsque le paramètre correspondant est activé."
+  "body": "Les flots dans les réseaux, le plus court chemin et le postier chinois ont besoin d’un réseau ; pour le problème de transport et le TSP, il est facultatif. Dans l’onglet **Réseau**, vous choisissez le réseau du problème ou en créez un nouveau.\n\n- **Tracer un arc :** cliquez sur la carte d’abord sur le nœud de départ, puis sur le nœud d’arrivée.\n- **Créer toutes les liaisons :** pour les problèmes de transport, des fournisseurs (via les nœuds de transbordement) vers les demandeurs ; pour le TSP, le plus court chemin et le postier chinois, tous les nœuds entre eux.\n- **Sens :** dans les problèmes de transport, les arcs vont des fournisseurs vers les demandeurs ; ceux tracés à l’envers sont retournés. Pour le TSP, le plus court chemin et le postier chinois, chaque arc est orienté ou non orienté.\n- Les valeurs des arcs, comme la capacité ou les coûts fixes, se trouvent dans le formulaire. Certaines ne s’appliquent que lorsque le paramètre correspondant est activé."
  },
  {
   "id": "tpp",
@@ -46,6 +46,12 @@
   "title": "Plus court chemin",
   "keywords": "plus court chemin itinéraire départ arrivée réseau dijkstra",
   "body": "Le plus court chemin d’un départ à une arrivée dans le réseau, évalué par la distance, le temps ou les coûts. Les arcs peuvent être orientés un par un. Si aucun chemin n’atteint l’arrivée, l’application le signale. La solution montre les tronçons avec leur longueur et le cumul."
+ },
+ {
+  "id": "cpp",
+  "title": "Postier chinois (CPP)",
+  "keywords": "postier chinois cpp arc arcs parcourir nettoyage des rues viabilité hivernale collecte des déchets",
+  "body": "La tournée la plus courte qui, depuis le départ, parcourt chaque arc du réseau au moins une fois et revient au départ – typique du nettoyage des rues, de la viabilité hivernale ou de la collecte des déchets.\n\n- Le réseau est obligatoire. Chaque arc peut être orienté (sens unique) ou non orienté.\n- Les arcs qu’on ne peut pas atteindre autrement sont parcourus plusieurs fois. La solution montre la longueur de tous les arcs, les trajets supplémentaires et combien de fois des arcs sont parcourus à nouveau.\n- Si aucun chemin ne ramène d’un nœud au départ, l’application le signale avant de résoudre."
  },
  {
   "id": "solution",

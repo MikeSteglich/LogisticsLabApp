@@ -21,7 +21,7 @@
   "id": "network",
   "title": "Networks and edges",
   "keywords": "network edge edges draw connections direction directed undirected capacity fixed costs",
-  "body": "Network flows and the shortest path need a network, for the transportation problem and the TSP it is optional. In the **Network** tab you choose the network of the problem or create a new one.\n\n- **Draw edge:** click the start node and then the end node on the map.\n- **Create all connections:** for transportation problems from the suppliers (via the transshipment nodes) to the customers, for the TSP and the shortest path all nodes with each other.\n- **Direction:** in transportation problems the edges lead from the suppliers to the customers, edges drawn the wrong way round are turned. For the TSP and the shortest path each edge is directed or undirected.\n- Values of the edges such as capacity or fixed costs are in the form. Some only take effect once the matching parameter is switched on."
+  "body": "Network flows, the shortest path and the Chinese postman need a network, for the transportation problem and the TSP it is optional. In the **Network** tab you choose the network of the problem or create a new one.\n\n- **Draw edge:** click the start node and then the end node on the map.\n- **Create all connections:** for transportation problems from the suppliers (via the transshipment nodes) to the customers, for the TSP, the shortest path and the Chinese postman all nodes with each other.\n- **Direction:** in transportation problems the edges lead from the suppliers to the customers, edges drawn the wrong way round are turned. For the TSP, the shortest path and the Chinese postman each edge is directed or undirected.\n- Values of the edges such as capacity or fixed costs are in the form. Some only take effect once the matching parameter is switched on."
  },
  {
   "id": "tpp",
@@ -46,6 +46,12 @@
   "title": "Shortest path",
   "keywords": "shortest path route start end network dijkstra",
   "body": "The shortest path from a start to an end in the network, valued by distance, time or costs. Edges can be directed one by one. If no path reaches the end, the app says so. The solution shows the sections with their length and the total so far."
+ },
+ {
+  "id": "cpp",
+  "title": "Chinese postman (CPP)",
+  "keywords": "chinese postman cpp edge edges traverse street cleaning winter service refuse collection round",
+  "body": "The shortest tour that traverses every edge of the network at least once from the start and returns to it – typical for street cleaning, winter service or refuse collection.\n\n- The network is required. Each edge can be directed (one-way street) or undirected.\n- Edges that cannot be reached otherwise are traversed more than once. The solution shows the length of all edges, the extra distance and how often edges are traversed again.\n- If no way leads from a node back to the start, the app says so before solving."
  },
  {
   "id": "solution",

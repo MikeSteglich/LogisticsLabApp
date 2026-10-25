@@ -21,7 +21,7 @@
   "id": "network",
   "title": "Redes y aristas",
   "keywords": "red arista aristas dibujar conexiones dirección dirigida no dirigida capacidad costes fijos",
-  "body": "Los flujos en redes y el camino más corto necesitan una red; en el problema de transporte y en el TSP es opcional. En la pestaña **Red** eliges la red del problema o creas una nueva.\n\n- **Dibujar arista:** haz clic en el mapa primero en el nodo de inicio y luego en el de destino.\n- **Crear todas las conexiones:** en los problemas de transporte, de los proveedores (por los nodos de transbordo) a los demandantes; en el TSP y el camino más corto, todos los nodos entre sí.\n- **Dirección:** en los problemas de transporte las aristas van de los proveedores a los demandantes; las dibujadas al revés se invierten. En el TSP y el camino más corto cada arista es dirigida o no dirigida.\n- Los valores de las aristas, como la capacidad o los costes fijos, están en el formulario. Algunos solo actúan cuando el parámetro correspondiente está activado."
+  "body": "Los flujos en redes, el camino más corto y el cartero chino necesitan una red; en el problema de transporte y en el TSP es opcional. En la pestaña **Red** eliges la red del problema o creas una nueva.\n\n- **Dibujar arista:** haz clic en el mapa primero en el nodo de inicio y luego en el de destino.\n- **Crear todas las conexiones:** en los problemas de transporte, de los proveedores (por los nodos de transbordo) a los demandantes; en el TSP, el camino más corto y el cartero chino, todos los nodos entre sí.\n- **Dirección:** en los problemas de transporte las aristas van de los proveedores a los demandantes; las dibujadas al revés se invierten. En el TSP, el camino más corto y el cartero chino cada arista es dirigida o no dirigida.\n- Los valores de las aristas, como la capacidad o los costes fijos, están en el formulario. Algunos solo actúan cuando el parámetro correspondiente está activado."
  },
  {
   "id": "tpp",
@@ -46,6 +46,12 @@
   "title": "Camino más corto",
   "keywords": "camino más corto ruta inicio destino red dijkstra",
   "body": "El camino más corto de un inicio a un destino en la red, valorado por distancia, tiempo o costes. Las aristas pueden ser dirigidas una a una. Si ningún camino llega al destino, la aplicación lo indica. La solución muestra los tramos con su longitud y el total acumulado."
+ },
+ {
+  "id": "cpp",
+  "title": "Cartero chino (CPP)",
+  "keywords": "cartero chino cpp arista aristas recorrer limpieza viaria vialidad invernal recogida de basura",
+  "body": "El recorrido más corto que, desde el inicio, pasa al menos una vez por cada arista de la red y vuelve al inicio; típico de la limpieza viaria, la vialidad invernal o la recogida de basura.\n\n- La red es obligatoria. Cada arista puede ser dirigida (calle de sentido único) o no dirigida.\n- Las aristas a las que no se llega de otro modo se recorren varias veces. La solución muestra la longitud de todas las aristas, el recorrido adicional y cuántas veces se repiten aristas.\n- Si desde un nodo no hay camino de vuelta al inicio, la aplicación lo indica antes de resolver."
  },
  {
   "id": "solution",

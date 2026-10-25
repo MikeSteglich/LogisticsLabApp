@@ -10,7 +10,7 @@ export 'tpp.dart';
 
 /// All modules of the UI - the menu "new problem" of the problem chooser groups them by ModuleGroup.
 final modules = {
-  for (final m in [tppSpec, ...flowSpecs, tspSpec]) m.type: m,
+  for (final m in [tppSpec, ...flowSpecs, tspSpec, cppSpec]) m.type: m,
 };
 
 /// Problem types of the menu "new problem" - those without ModuleSpec are not implemented in the prototype yet.

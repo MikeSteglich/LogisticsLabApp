@@ -46,8 +46,9 @@ class AppDelegate: FlutterAppDelegate {
     menuChannel?.invokeMethod("about", arguments: nil)
   }
 
-  /// menu item of the help menu (cmd ?) - the help window of the app
-  @IBAction func showHelp(_ sender: Any?) {
+  /// menu item of the help menu (cmd ?) - the help window of the app; not showHelp: - NSApplication answers that
+  /// itself with "Help isn't available" (no Apple Help Book)
+  @IBAction func showAppHelp(_ sender: Any?) {
     menuChannel?.invokeMethod("help", arguments: [String: String]())
   }
 }

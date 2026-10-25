@@ -153,6 +153,8 @@ class AppState extends ChangeNotifier {
       final start = const ['openStart', 'free'].contains(p['tourType']) ? null : p['startNode'];
       return [n.id == start ? 'supplier' : 'customer'];
     }
+    // chinese postman: the start like a supplier, the other nodes of the network are transit
+    if (spec?.type == 'cpp') return n.id == problem!.parameters['startNode'] ? const ['supplier'] : const [];
     // shortest way: start like a supplier, end like a customer, the other nodes of the network are transit
     if (spec?.type == 'shortestpath') {
       final p = problem!.parameters;

@@ -1,4 +1,4 @@
-/// Routing: travelling salesman problem - round trip (back to the start), passage from a start to an end node
+/// Routing: chinese postman (below) and travelling salesman problem - round trip (back to the start), passage from a start to an end node
 /// ("Durchfahrt"), open end, open start or completely open. The tour visits all active nodes of the scenario.
 library;
 
@@ -39,5 +39,28 @@ final tspSpec = ModuleSpec(
     ResultColumn('tourLength', unit: '€'),
     ResultColumn('nrOfNodes'),
     ResultColumn('longestLeg', unit: '€'),
+  ],
+);
+
+/// Chinese postman: the shortest tour from the start over every edge of the network (at least once) and back -
+/// each edge directed or not
+final cppSpec = ModuleSpec(
+  type: 'cpp',
+  group: ModuleGroup.routing,
+  roles: const [],
+  network: NetworkUse.required,
+  edgeDirections: true,
+  parameters: const [
+    FieldSpec('startNode', FieldKind.node, required: true),
+    FieldSpec('matrixMode', FieldKind.choice, choices: ['distances', 'times', 'costs'], defaultValue: 'distances'),
+    ...solverFields,
+  ],
+  objective: (_) => 'tourLength',
+  summary: const [
+    ResultColumn('tourLength', unit: '€'),
+    ResultColumn('edgesLength', unit: '€'),
+    ResultColumn('extraLength', unit: '€'),
+    ResultColumn('nrOfEdges'),
+    ResultColumn('nrOfRepeats'),
   ],
 );

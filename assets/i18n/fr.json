@@ -386,5 +386,10 @@
   "ui.help.menu": "Aide",
   "ui.help.title": "LogisticsLab Studio – Aide",
   "ui.help.search": "Rechercher dans l’aide",
-  "ui.help.none": "Aucun sujet trouvé"
+  "ui.help.none": "Aucun sujet trouvé",
+  "module.cpp.description": "Tournée la plus courte du départ par chaque arc du réseau et retour",
+  "result.edgesLength": "Longueur de tous les arcs",
+  "result.extraLength": "Trajets supplémentaires",
+  "result.nrOfEdges": "Arcs",
+  "result.nrOfRepeats": "Parcourus à nouveau"
 }

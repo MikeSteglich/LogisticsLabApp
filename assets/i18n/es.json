@@ -386,5 +386,10 @@
   "ui.help.menu": "Ayuda",
   "ui.help.title": "LogisticsLab Studio – Ayuda",
   "ui.help.search": "Buscar en la ayuda",
-  "ui.help.none": "Ningún tema encontrado"
+  "ui.help.none": "Ningún tema encontrado",
+  "module.cpp.description": "Recorrido más corto desde el inicio por cada arista de la red y de vuelta",
+  "result.edgesLength": "Longitud de todas las aristas",
+  "result.extraLength": "Recorrido adicional",
+  "result.nrOfEdges": "Aristas",
+  "result.nrOfRepeats": "Recorridas de nuevo"
 }

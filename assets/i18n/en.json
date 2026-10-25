@@ -386,5 +386,10 @@
   "ui.help.menu": "Help",
   "ui.help.title": "LogisticsLab Studio – Help",
   "ui.help.search": "Search the help",
-  "ui.help.none": "No topic found"
+  "ui.help.none": "No topic found",
+  "module.cpp.description": "Shortest tour from the start over every edge of the network and back",
+  "result.edgesLength": "Length of all edges",
+  "result.extraLength": "Extra distance",
+  "result.nrOfEdges": "Edges",
+  "result.nrOfRepeats": "Traversed again"
 }
