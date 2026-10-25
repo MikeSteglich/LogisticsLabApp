@@ -222,6 +222,37 @@ class AppState extends ChangeNotifier {
     return [part('flows', scenario.commodities), part('modes', scenario.modes)].where((p) => p.isNotEmpty).join(' · ');
   }
 
+  /// the data of a node in the problem: the visible fields of its roles with a value, e.g. demand, service time and
+  /// time window of a customer
+  List<(FieldSpec, String)> nodeData(Node n) {
+    final spec = this.spec;
+    if (spec == null) return const [];
+    final params = problem?.parameters ?? const <String, dynamic>{};
+    final seen = <String>{};
+    return [
+      for (final r in spec.activeRoles(params))
+        if (n.roles.contains(spec.nodeRole(r, params)))
+          for (final f in r.nodeFields)
+            if (f.kind != FieldKind.boolean && f.isVisible(params) && seen.add(f.key))
+              if (nodeFieldText(n, f) case final String v when v.isNotEmpty) (f, v),
+    ];
+  }
+
+  /// value of a field of a node as text - time windows as times of the day, durations and distances with their unit
+  String? nodeFieldText(Node n, FieldSpec f) {
+    final v = n[f.key] ?? f.defaultValue;
+    if (f.kind == FieldKind.timeWindow && v is List) {
+      return '${clock.format(v[0] as num?)} – ${clock.format(v.length > 1 ? v[1] as num? : null)}';
+    }
+    final text = fieldText(v);
+    final unit = switch (f.unit) {
+      '@time' => scenario.units['time'] as String?,
+      '@distance' => scenario.units['distance'] as String?,
+      final u => u,
+    };
+    return text == null || unit == null || unit == '€' ? text : '$text $unit';
+  }
+
   /// value of a field as text - numbers, 'M' (unlimited), values per commodity (sum), modes (names); null: empty
   String? fieldText(Object? v) {
     if (v == null) return null;

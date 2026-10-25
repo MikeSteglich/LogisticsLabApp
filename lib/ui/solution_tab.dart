@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../model/scenario.dart';
 import '../model/solution_analysis.dart';
+import '../modules/modules.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -502,6 +503,16 @@ class _Route extends StatelessWidget {
     final clock = s.clock;
     // vehicle routing with times: the schedule of every section as in LogisticsLab 5
     final schedule = legs.any((a) => a['departure'] != null);
+    // arrival after the waiting: the start of the service - within the time window of the node
+    num? ready(Map<String, dynamic> a) =>
+        a['arrival'] is num ? (a['arrival'] as num) + (a['waiting'] as num? ?? 0) : null;
+    String window(Object? id) {
+      final n = s.scenario.node('$id');
+      if (n == null) return '';
+      return s.nodeData(n).where((e) => e.$1.kind == FieldKind.timeWindow).map((e) => e.$2).firstOrNull ?? '';
+    }
+
+    final withWindows = schedule && legs.any((a) => window(a['to']).isNotEmpty);
     Widget table(List<(int, Map<String, dynamic>)> part) {
       var sum = 0.0;
       String duration(Object? v) => v is num && v > 0.5 ? clock.duration(v) : '';
@@ -515,6 +526,7 @@ class _Route extends StatelessWidget {
               t('ui.sol.travelTime'),
               t('ui.sol.waiting'),
               t('ui.sol.arrival'),
+              if (withWindows) t('ui.col.timeWindow'),
               t('ui.sol.service'),
               t('ui.sol.amount'),
               t('ui.sol.distance'),
@@ -526,8 +538,8 @@ class _Route extends StatelessWidget {
               if (withAmounts) t('ui.sol.amount'),
               t('ui.sol.legValue'),
               t('ui.sol.cumulated'),
-              if (withArrivals) t('ui.sol.arrival'),
               if (withWaiting) t('ui.sol.waiting'),
+              if (withArrivals) t('ui.sol.arrival'),
               if (withPasses) t('ui.sol.passes'),
             ];
       List<String> cells(Map<String, dynamic> a, num v) => schedule
@@ -538,7 +550,8 @@ class _Route extends StatelessWidget {
               time(a['departure']),
               duration(a['travel']),
               duration(a['waiting']),
-              time(a['arrival']),
+              time(ready(a)),
+              if (withWindows) window(a['to']),
               duration(a['service']),
               (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
               s.valueText(v),
@@ -550,8 +563,8 @@ class _Route extends StatelessWidget {
               if (withAmounts) (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
               s.valueText(v),
               s.valueText(sum += v),
-              if (withArrivals) time(a['arrival']),
               if (withWaiting) duration(a['waiting']),
+              if (withArrivals) time(ready(a)),
               if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
             ];
       return Section(

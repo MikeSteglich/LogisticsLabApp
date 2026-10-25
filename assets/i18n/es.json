@@ -443,5 +443,6 @@
   "field.fixedStart.help": "Si no, cada ruta sale lo más tarde posible para no tener que esperar.",
   "ui.sol.departure": "Salida",
   "ui.sol.wide": "Vista amplia",
-  "ui.sol.narrow": "Mapa más ancho de nuevo"
+  "ui.sol.narrow": "Mapa más ancho de nuevo",
+  "ui.col.timeWindow": "Ventana horaria"
 }

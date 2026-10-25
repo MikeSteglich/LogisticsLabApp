@@ -536,6 +536,12 @@ class _MapViewState extends State<MapView> {
                 text: n.name,
                 style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Ui.text),
               ),
+              // the data of the node in the problem: demand, service time, time window, ...
+              for (final (f, v) in s.nodeData(n))
+                TextSpan(
+                  text: '\n${s.strings(f.label).replaceAll(RegExp(r'\s*\(.*\)'), '')}: $v',
+                  style: const TextStyle(fontSize: 12, color: Ui.textSecondary),
+                ),
               if (use != null)
                 TextSpan(
                   text: '\n${_useInfo(use)}',

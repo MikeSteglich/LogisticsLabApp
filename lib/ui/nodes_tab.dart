@@ -152,8 +152,29 @@ class _NodeTable extends StatelessWidget {
         else if (spec!.nodeRole(r, params) == filter)
           for (final f in r.nodeFields.where((f) => f.isVisible(params) && f.kind != FieldKind.boolean))
             (role: filter, field: f as FieldSpec?, label: t(f.label)),
+      // all nodes: the time windows of all roles in one column - main value of none of them
+      if (filter == null &&
+          spec != null &&
+          spec
+              .activeRoles(params)
+              .any(
+                (r) =>
+                    r.mainField?.kind != FieldKind.timeWindow &&
+                    r.nodeFields.any((f) => f.kind == FieldKind.timeWindow && f.isVisible(params)),
+              ))
+        (role: '', field: null, label: t('ui.col.timeWindow')),
     ];
     String roleValue(Node n, ({String role, FieldSpec? field, String label}) c) {
+      // the time window of any role of the node - not the main value of a role, it has its own column (depot)
+      if (c.role.isEmpty) {
+        final mains = [for (final r in spec!.roles) r.mainField];
+        return s
+                .nodeData(n)
+                .where((e) => e.$1.kind == FieldKind.timeWindow && !mains.any((m) => identical(m, e.$1)))
+                .map((e) => e.$2)
+                .firstOrNull ??
+            '';
+      }
       if (!n.roles.contains(c.role)) return '';
       final f = c.field;
       if (f == null) return '✓'; // role without a main value

@@ -443,5 +443,6 @@
   "field.fixedStart.help": "Sinon, chaque tournée part le plus tard possible pour ne pas attendre.",
   "ui.sol.departure": "Départ",
   "ui.sol.wide": "Vue large",
-  "ui.sol.narrow": "Carte à nouveau plus large"
+  "ui.sol.narrow": "Carte à nouveau plus large",
+  "ui.col.timeWindow": "Fenêtre horaire"
 }

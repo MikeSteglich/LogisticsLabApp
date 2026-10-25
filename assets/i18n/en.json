@@ -443,5 +443,6 @@
   "field.fixedStart.help": "Otherwise each tour leaves as late as possible so that it does not have to wait.",
   "ui.sol.departure": "Departure",
   "ui.sol.wide": "Wide view",
-  "ui.sol.narrow": "Map wider again"
+  "ui.sol.narrow": "Map wider again",
+  "ui.col.timeWindow": "Time window"
 }

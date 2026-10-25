@@ -443,5 +443,6 @@
   "field.fixedStart.help": "Sonst fährt jede Tour so spät los, dass nicht gewartet werden muss.",
   "ui.sol.departure": "Abfahrt",
   "ui.sol.wide": "Breite Ansicht",
-  "ui.sol.narrow": "Karte wieder breiter"
+  "ui.sol.narrow": "Karte wieder breiter",
+  "ui.col.timeWindow": "Zeitfenster"
 }
