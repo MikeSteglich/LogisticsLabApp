@@ -498,6 +498,10 @@ class _Route extends StatelessWidget {
     // chinese postman: the sections over edges traversed more than once; vrp: quantities, arrivals, waiting
     final withPasses = legs.any((a) => a['passes'] != null);
     final withAmounts = legs.any((a) => a['amount'] != null);
+    // pickup and delivery: + picked up, − delivered and the load of the vehicle after the stop
+    final withLoad = legs.any((a) => a['load'] != null);
+    String amount(Object? q) =>
+        q is num && q != 0 ? (withLoad ? '${q > 0 ? '+' : '−'}${t.number(q.abs())}' : (q > 0 ? t.number(q) : '')) : '';
     final withArrivals = legs.any((a) => a['arrival'] != null);
     final withWaiting = legs.any((a) => (a['waiting'] as num? ?? 0) > 0.5);
     final clock = s.clock;
@@ -529,6 +533,7 @@ class _Route extends StatelessWidget {
               if (withWindows) t('ui.col.timeWindow'),
               t('ui.sol.service'),
               t('ui.sol.amount'),
+              if (withLoad) t('ui.sol.load'),
               t('ui.sol.distance'),
             ]
           : [
@@ -536,6 +541,7 @@ class _Route extends StatelessWidget {
               t('ui.sol.from'),
               t('ui.sol.to'),
               if (withAmounts) t('ui.sol.amount'),
+              if (withLoad) t('ui.sol.load'),
               t('ui.sol.legValue'),
               t('ui.sol.cumulated'),
               if (withWaiting) t('ui.sol.waiting'),
@@ -553,14 +559,16 @@ class _Route extends StatelessWidget {
               time(ready(a)),
               if (withWindows) window(a['to']),
               duration(a['service']),
-              (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
+              amount(a['amount']),
+              if (withLoad) a['load'] is num ? t.number(a['load'] as num) : '',
               s.valueText(v),
             ]
           : [
               '${a['leg']}',
               name(a['from']),
               [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
-              if (withAmounts) (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
+              if (withAmounts) amount(a['amount']),
+              if (withLoad) a['load'] is num ? t.number(a['load'] as num) : '',
               s.valueText(v),
               s.valueText(sum += v),
               if (withWaiting) duration(a['waiting']),

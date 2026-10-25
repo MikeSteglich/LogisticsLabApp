@@ -396,7 +396,11 @@ class SpecField extends StatelessWidget {
       case FieldKind.text:
         return TextValueField(label: label, value: value as String? ?? '', onChanged: onChanged);
       case FieldKind.node:
-        final nodes = scenario?.nodes ?? const <Node>[];
+        // pdp: only the delivery nodes
+        final nodes = [
+          for (final n in scenario?.nodes ?? const <Node>[])
+            if (spec.nodeRole == null || (n.active && n.roles.contains(spec.nodeRole))) n,
+        ];
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -404,9 +408,7 @@ class SpecField extends StatelessWidget {
             DropdownButtonFormField<String?>(
               initialValue: nodes.any((n) => n.id == value) ? value as String : null,
               isExpanded: true,
-              items: [
-                for (final n in nodes) DropdownMenuItem<String?>(value: n.id, child: Text('${n.id} · ${n.name}')),
-              ],
+              items: [for (final n in nodes) DropdownMenuItem<String?>(value: n.id, child: Text(n.name))],
               onChanged: onChanged,
             ),
           ],

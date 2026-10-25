@@ -54,6 +54,7 @@ class FieldSpec {
   final num? min;
   final FieldCondition? visibleIf;
   final String? requires; // boolean parameter that switches the field on, e.g. useCapacities
+  final String? nodeRole; // FieldKind.node: only nodes with this role, e.g. delivery (pdp)
 
   const FieldSpec(
     this.key,
@@ -67,6 +68,7 @@ class FieldSpec {
     this.min,
     this.visibleIf,
     this.requires,
+    this.nodeRole,
   });
 
   String get label => labelKey ?? 'field.$key';

@@ -42,11 +42,14 @@ abstract final class Ui {
   static const customerDark = Color(0xFF2A7A52);
   static const candidate = Color(0xFF7B5CC4); // warehouses, candidates for locations
   static const candidateDark = Color(0xFF5B3FA0);
+  static const pickup = Color(0xFFE0A030); // pickup and delivery: where the quantities are picked up
+  static const pickupDark = Color(0xFFA06A10);
 
   /// fill and outline of a role - other roles dark grey
   static (Color, Color) roleColors(String role) => switch (role) {
     'supplier' || 'depot' => (supplier, supplierDark),
-    'customer' => (customer, customerDark),
+    'customer' || 'delivery' => (customer, customerDark),
+    'pickup' => (pickup, pickupDark),
     'candidate' => (candidate, candidateDark),
     _ => (textMuted, text),
   };

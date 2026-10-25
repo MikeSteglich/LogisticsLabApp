@@ -65,6 +65,32 @@ final cppSpec = ModuleSpec(
   ],
 );
 
+/// Pickup and delivery: every pickup brings its amount to its delivery node - on the same tour, the pickup first, the
+/// load at most the capacity of the vehicle. Depot, vehicles, times and parameters as in the vehicle routing.
+final pdpSpec = ModuleSpec(
+  type: 'pdp',
+  group: ModuleGroup.routing,
+  usesVehicles: true,
+  roles: [
+    const RoleSpec('depots', 'depot', [
+      FieldSpec('timeWindow', FieldKind.timeWindow, labelKey: 'field.depotTime'),
+    ], main: 'timeWindow'),
+    RoleSpec('sources', 'pickup', [
+      const FieldSpec('amount', FieldKind.number, required: true, min: 0),
+      const FieldSpec('deliveryTo', FieldKind.node, required: true, nodeRole: 'delivery'),
+      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
+      FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
+    ], main: 'amount'),
+    RoleSpec('destinations', 'delivery', [
+      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
+      FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
+    ]),
+  ],
+  parameters: vrpSpec.parameters,
+  objective: (_) => 'totalDistance',
+  summary: vrpSpec.summary,
+);
+
 /// Vehicle routing: tours of the vehicles from the depot to the customers and back - capacities, time windows and
 /// service times, at most a time and a distance per tour. The vehicles are records of the scenario.
 final vrpSpec = ModuleSpec(

@@ -418,7 +418,7 @@
   "ui.check.vehicleCapacity": "Kapazität fehlt bei: {vehicles}",
   "ui.check.oneDepot": "Nur ein Depot möglich – mehrere bei: {nodes}",
   "ui.sol.tour": "Tour {n}",
-  "ui.sol.load": "Last",
+  "ui.sol.load": "Ladung",
   "ui.sol.duration": "Dauer",
   "ui.sol.arrival": "Ankunft",
   "hint.auto": "automatisch",
@@ -446,5 +446,18 @@
   "ui.sol.narrow": "Karte wieder breiter",
   "ui.col.timeWindow": "Zeitfenster",
   "ui.solvingCancel": "Optimierung läuft – klicken zum Abbrechen",
-  "ui.sol.totalTime": "Gesamtzeit"
+  "ui.sol.totalTime": "Gesamtzeit",
+  "module.pdp": "Pickup and Delivery (PDP)",
+  "module.pdp.short": "PDP",
+  "module.pdp.description": "Touren, die Mengen an Abholorten aufnehmen und zu ihren Zustellorten bringen – Abholung vor Zustellung, mit Kapazitäten und Zeitfenstern",
+  "role.pickup": "Abholort",
+  "role.pickup.plural": "Abholorte",
+  "role.delivery": "Zustellort",
+  "role.delivery.plural": "Zustellorte",
+  "field.amount": "Abholmenge",
+  "field.amount.help": "Menge, die hier abgeholt und zum Zustellort gebracht wird",
+  "field.deliveryTo": "Zustellort",
+  "field.deliveryTo.help": "Wohin die abgeholte Menge gebracht wird – ein Knoten mit der Rolle Zustellort",
+  "ui.use.deliveryTo": "Zustellort von {node}",
+  "ui.check.deliveryTo": "Zustellort ohne Rolle Zustellort bei: {nodes}"
 }

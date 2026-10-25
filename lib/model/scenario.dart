@@ -7,7 +7,7 @@ import 'dart:convert';
 
 import 'package:latlong2/latlong.dart';
 
-const nodeRoles = ['supplier', 'customer', 'candidate', 'depot', 'transit'];
+const nodeRoles = ['supplier', 'customer', 'candidate', 'depot', 'transit', 'pickup', 'delivery'];
 
 class Node {
   final Map<String, dynamic> json;
@@ -163,6 +163,8 @@ class Scenario {
       if (v['depot'] == id) ('ui.use.depot', {'vehicle': '${v['id']}'}),
     for (final n in nodes)
       if (n['assignedTo'] == id) ('ui.use.assigned', {'node': n.name}),
+    for (final n in nodes)
+      if (n['deliveryTo'] == id) ('ui.use.deliveryTo', {'node': n.name}),
     for (final (p, key) in _paramRefs(id)) ('ui.use.param', {'param': key, 'problem': p.name}),
   ];
 
@@ -178,6 +180,7 @@ class Scenario {
     }
     for (final n in nodes) {
       if (n['assignedTo'] == id) n['assignedTo'] = null;
+      if (n['deliveryTo'] == id) n.json.remove('deliveryTo');
     }
     for (final (p, key) in _paramRefs(id)) {
       final v = p.parameters[key];
@@ -195,6 +198,7 @@ class Scenario {
     for (final n in nodes) {
       if (n.id == from) n.id = to;
       if (n['assignedTo'] == from) n['assignedTo'] = to;
+      if (n['deliveryTo'] == from) n['deliveryTo'] = to;
     }
     for (final net in networks.values) {
       for (final e in net.edges) {

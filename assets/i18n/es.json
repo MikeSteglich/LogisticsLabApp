@@ -446,5 +446,18 @@
   "ui.sol.narrow": "Mapa más ancho de nuevo",
   "ui.col.timeWindow": "Ventana horaria",
   "ui.solvingCancel": "Optimización en curso – clic para cancelar",
-  "ui.sol.totalTime": "Tiempo total"
+  "ui.sol.totalTime": "Tiempo total",
+  "module.pdp": "Recogida y entrega (PDP)",
+  "module.pdp.short": "PDP",
+  "module.pdp.description": "Rutas que recogen cantidades y las llevan a sus puntos de entrega – recogida antes de la entrega, con capacidades y ventanas horarias",
+  "role.pickup": "Recogida",
+  "role.pickup.plural": "Recogidas",
+  "role.delivery": "Entrega",
+  "role.delivery.plural": "Entregas",
+  "field.amount": "Cantidad",
+  "field.amount.help": "Cantidad que se recoge aquí y se lleva al punto de entrega",
+  "field.deliveryTo": "Punto de entrega",
+  "field.deliveryTo.help": "Adónde se lleva la cantidad – un nodo con el rol entrega",
+  "ui.use.deliveryTo": "punto de entrega de {node}",
+  "ui.check.deliveryTo": "Punto de entrega sin el rol entrega en: {nodes}"
 }

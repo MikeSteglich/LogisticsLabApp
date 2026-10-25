@@ -10,14 +10,14 @@ export 'tpp.dart';
 
 /// All modules of the UI - the menu "new problem" of the problem chooser groups them by ModuleGroup.
 final modules = {
-  for (final m in [tppSpec, ...flowSpecs, tspSpec, cppSpec, vrpSpec]) m.type: m,
+  for (final m in [tppSpec, ...flowSpecs, tspSpec, cppSpec, vrpSpec, pdpSpec]) m.type: m,
 };
 
 /// Problem types of the menu "new problem" - those without ModuleSpec are not implemented in the prototype yet.
 const problemTypesByGroup = {
   ModuleGroup.transport: ['tpp'],
   ModuleGroup.location: ['wlp', 'pmedian', 'pcentre', 'scp', 'mcp', 'contpmedian', 'contpcentre'],
-  ModuleGroup.routing: ['tsp', 'cpp', 'vrp'],
+  ModuleGroup.routing: ['tsp', 'cpp', 'vrp', 'pdp'],
   ModuleGroup.network: ['shortestpath', 'mincostflow', 'maxflow', 'multicommodity', 'multimodal', 'multistagewlp'],
 };
 

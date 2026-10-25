@@ -446,5 +446,18 @@
   "ui.sol.narrow": "Map wider again",
   "ui.col.timeWindow": "Time window",
   "ui.solvingCancel": "Optimisation running – click to cancel",
-  "ui.sol.totalTime": "Total time"
+  "ui.sol.totalTime": "Total time",
+  "module.pdp": "Pickup and delivery (PDP)",
+  "module.pdp.short": "PDP",
+  "module.pdp.description": "Tours that pick up quantities and bring them to their delivery nodes – pickup before delivery, with capacities and time windows",
+  "role.pickup": "Pickup",
+  "role.pickup.plural": "Pickups",
+  "role.delivery": "Delivery",
+  "role.delivery.plural": "Deliveries",
+  "field.amount": "Amount",
+  "field.amount.help": "Quantity picked up here and brought to the delivery node",
+  "field.deliveryTo": "Delivery node",
+  "field.deliveryTo.help": "Where the quantity is brought – a node with the role delivery",
+  "ui.use.deliveryTo": "delivery node of {node}",
+  "ui.check.deliveryTo": "Delivery node without the role delivery at: {nodes}"
 }

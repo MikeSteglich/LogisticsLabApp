@@ -244,6 +244,8 @@ class AppState extends ChangeNotifier {
     if (f.kind == FieldKind.timeWindow && v is List) {
       return '${clock.format(v[0] as num?)} – ${clock.format(v.length > 1 ? v[1] as num? : null)}';
     }
+    // another node: its name
+    if (f.kind == FieldKind.node) return v == null ? null : scenario.node('$v')?.name ?? '$v';
     final text = fieldText(v);
     final unit = switch (f.unit) {
       '@time' => scenario.units['time'] as String?,
@@ -398,6 +400,19 @@ class AppState extends ChangeNotifier {
       if (id == null) continue; // required: checked with the parameters
       final n = scenario.node('$id');
       if (n == null || !n.active) out.add(strings('ui.check.nodeParam', {'field': strings(f.label), 'node': '$id'}));
+    }
+    // pickup and delivery: the delivery node of every pickup - a node with the role delivery
+    if (s.type == 'pdp') {
+      final deliveries = s.nodeRole(s.roles.last, p.parameters);
+      final pickups = [
+        for (final n in scenario.nodes)
+          if (n.active && n.roles.contains(s.nodeRole(s.roles[1], p.parameters))) n,
+      ];
+      final wrong = [
+        for (final n in pickups)
+          if (n['deliveryTo'] != null && !(scenario.node('${n['deliveryTo']}')?.roles.contains(deliveries) ?? false)) n,
+      ];
+      if (wrong.isNotEmpty) out.add(strings('ui.check.deliveryTo', {'nodes': names(wrong)}));
     }
     for (final r in s.activeRoles(p.parameters)) {
       final role = s.nodeRole(r, p.parameters);

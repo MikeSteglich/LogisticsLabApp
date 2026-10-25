@@ -188,6 +188,7 @@ class _NodeTable extends StatelessWidget {
       if (f.kind == FieldKind.timeWindow && v is List) {
         return '${s.clock.format(v[0] as num?)} – ${s.clock.format(v[1] as num?)}';
       }
+      if (f.kind == FieldKind.node) return s.nodeFieldText(n, f) ?? '';
       return s.fieldText(v) ?? '';
     }
 

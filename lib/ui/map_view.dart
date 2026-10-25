@@ -121,6 +121,8 @@ class _MapViewState extends State<MapView> {
                 _edgeHit,
                 (i) => s.selectEdge(i, showTab: true),
               ),
+            // pickup and delivery: from every pickup a dashed line to its delivery node
+            if (s.spec?.type == 'pdp') PolylineLayer(polylines: _requestLines()),
             if (_showSolution)
               _hitLayer(
                 // the camera for the lines side by side - built again with every move and zoom
@@ -334,6 +336,23 @@ class _MapViewState extends State<MapView> {
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
   }
 
+  /// pickup and delivery: a dashed line from every pickup to its delivery node - fainter with a solution
+  List<Polyline> _requestLines() {
+    final pickup = s.spec!.nodeRole(s.spec!.roles[1], s.problem?.parameters ?? const {});
+    final faint = _showSolution && s.solution != null;
+    return [
+      for (final n in s.scenario.nodes)
+        if (n.active && n.roles.contains(pickup))
+          if (s.scenario.node('${n['deliveryTo']}') case final Node d when d.active)
+            Polyline(
+              points: [n.position, d.position],
+              color: Ui.pickupDark.withValues(alpha: faint ? 0.35 : 0.8),
+              strokeWidth: 1.5,
+              pattern: StrokePattern.dashed(segments: const [6, 5]),
+            ),
+    ];
+  }
+
   /// a section of a tour over the shortest way in the network: along the nodes of its way - null without one
   List<LatLng>? _legPoints(Map<String, dynamic> a) {
     final path = (a['path'] as List?)?.cast<String>();
@@ -444,8 +463,10 @@ class _MapViewState extends State<MapView> {
     // with a solution: how far the supply is shipped / the demand is met
     final use = _analysis?.use(n.id);
     // suppliers blue, customers green - pale without a role in the problem
-    final role = roles.contains('customer')
+    final role = roles.contains('customer') || roles.contains('delivery')
         ? 'customer'
+        : roles.contains('pickup')
+        ? 'pickup'
         : roles.contains('candidate')
         ? 'candidate'
         : roles.isEmpty
@@ -482,7 +503,18 @@ class _MapViewState extends State<MapView> {
                 child: ColoredBox(color: fill),
               ),
             );
-    } else if (roles.contains('customer')) {
+    } else if (roles.contains('pickup')) {
+      // pickup and delivery: the pickups filled, their deliveries rings
+      shape = Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: fill,
+          shape: BoxShape.circle,
+          border: Border.all(color: line, width: 1.5),
+        ),
+      );
+    } else if (roles.contains('customer') || roles.contains('delivery')) {
       shape = use == null
           ? Container(
               width: 16,
@@ -818,7 +850,9 @@ class _MapViewState extends State<MapView> {
     final tsp = s.spec?.allNodes == true || s.spec?.type == 'shortestpath' || s.spec?.type == 'cpp';
     final roles = tsp
         ? (s.spec?.type == 'cpp' ? const ['supplier'] : const ['supplier', 'customer'])
-        : s.problemRoles.where((r) => const ['supplier', 'depot', 'candidate', 'customer'].contains(r));
+        : s.problemRoles.where(
+            (r) => const ['supplier', 'depot', 'candidate', 'customer', 'pickup', 'delivery'].contains(r),
+          );
     // the tours of the vehicles (vrp)
     final tours = _showSolution ? s.routeNames : const <String>[];
     Widget item(Widget mark, String text, {Color color = Ui.textMuted}) => Row(
@@ -848,8 +882,10 @@ class _MapViewState extends State<MapView> {
                 height: 9,
                 decoration: BoxDecoration(
                   color: Ui.roleColors(role == 'depot' ? 'supplier' : role).$1,
-                  shape: role == 'customer' ? BoxShape.circle : BoxShape.rectangle,
-                  borderRadius: role == 'customer' ? null : BorderRadius.circular(1.5),
+                  shape: const ['customer', 'pickup', 'delivery'].contains(role) ? BoxShape.circle : BoxShape.rectangle,
+                  borderRadius: const ['customer', 'pickup', 'delivery'].contains(role)
+                      ? null
+                      : BorderRadius.circular(1.5),
                 ),
                 transform: role == 'candidate' ? Matrix4.rotationZ(0.785) : null,
                 transformAlignment: Alignment.center,

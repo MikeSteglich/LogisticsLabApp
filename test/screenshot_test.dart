@@ -237,6 +237,21 @@ void main() {
     state.setTab(DataTab.parameters);
     await tester.pump();
     await shot('14c-vrp-parameters');
+    // pickup and delivery: the requests as dashed lines, the tours with the load
+    state.chooseProblem('Abholen und Zustellen');
+    state.setTab(DataTab.nodes);
+    state.selectNode('W');
+    await tester.pump();
+    await shot('15-pdp-nodes');
+    await tester.runAsync(state.solve);
+    await tester.pump();
+    await settle(() => false, seconds: 4);
+    state.toggleWideData();
+    await tester.pump();
+    await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+    await tester.pump();
+    await shot('15a-pdp-solution');
+    state.toggleWideData();
     // help window with a search
     showHelp(tester.element(find.byType(MainScreen)), state, query: 'Rundreise');
     await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 200)));

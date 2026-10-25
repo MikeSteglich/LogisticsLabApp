@@ -418,7 +418,7 @@
   "ui.check.vehicleCapacity": "Capacité manquante pour : {vehicles}",
   "ui.check.oneDepot": "Un seul dépôt possible – plusieurs : {nodes}",
   "ui.sol.tour": "Tournée {n}",
-  "ui.sol.load": "Charge",
+  "ui.sol.load": "Chargement",
   "ui.sol.duration": "Durée",
   "ui.sol.arrival": "Arrivée",
   "hint.auto": "automatique",
@@ -446,5 +446,18 @@
   "ui.sol.narrow": "Carte à nouveau plus large",
   "ui.col.timeWindow": "Fenêtre horaire",
   "ui.solvingCancel": "Optimisation en cours – cliquer pour annuler",
-  "ui.sol.totalTime": "Temps total"
+  "ui.sol.totalTime": "Temps total",
+  "module.pdp": "Collecte et livraison (PDP)",
+  "module.pdp.short": "PDP",
+  "module.pdp.description": "Tournées qui collectent des quantités et les livrent à leurs points de livraison – collecte avant livraison, avec capacités et fenêtres horaires",
+  "role.pickup": "Collecte",
+  "role.pickup.plural": "Collectes",
+  "role.delivery": "Livraison",
+  "role.delivery.plural": "Livraisons",
+  "field.amount": "Quantité",
+  "field.amount.help": "Quantité collectée ici et livrée au point de livraison",
+  "field.deliveryTo": "Point de livraison",
+  "field.deliveryTo.help": "Où la quantité est livrée – un nœud avec le rôle livraison",
+  "ui.use.deliveryTo": "point de livraison de {node}",
+  "ui.check.deliveryTo": "Point de livraison sans le rôle livraison pour : {nodes}"
 }

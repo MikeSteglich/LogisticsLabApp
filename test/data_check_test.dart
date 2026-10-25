@@ -31,7 +31,7 @@ void main() {
     state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
     state.edit(() {
       for (final n in state.scenario.nodes) {
-        for (final k in ['supply', 'demand', 'supplies', 'demands']) {
+        for (final k in ['supply', 'demand', 'supplies', 'demands', 'amount']) {
           n.json.remove(k);
         }
       }
@@ -42,7 +42,7 @@ void main() {
       if (spec == null || const ['tsp', 'cpp', 'shortestpath'].contains(spec.type)) continue;
       state.chooseProblem(p.name);
       expect(state.nodeProblems, isNotEmpty, reason: p.name);
-      expect(state.nodeProblems.join(), anyOf(contains('Angebot'), contains('Nachfrage')), reason: p.name);
+      expect(state.nodeProblems.join(), anyOf(contains('Angebot'), contains('Nachfrage'), contains('Abholmenge')), reason: p.name);
     }
     // costs as the measure without cost rates
     state.chooseProblem('Transport direkt vom Werk');
