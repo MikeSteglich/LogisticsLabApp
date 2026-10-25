@@ -307,6 +307,13 @@ class SpecField extends StatelessWidget {
     this.onEditRecords,
   });
 
+  /// unit of the field - @time and @distance: the units of the scenario
+  String? _unit(String? unit) => switch (unit) {
+    '@time' => scenario?.units['time'] as String?,
+    '@distance' => scenario?.units['distance'] as String?,
+    _ => unit,
+  };
+
   /// label of a field with commodities or modes - with a link to their list
   Widget _recordsLabel(String label) => Row(
     children: [
@@ -464,12 +471,46 @@ class SpecField extends StatelessWidget {
             ),
           ],
         );
+      case FieldKind.timeWindow:
+        // earliest and latest - both empty: no time window
+        final tw = (value as List?) ?? const [null, null];
+        void set(int i, num? v) {
+          final next = [...tw]..[i] = v;
+          onChanged(next.every((x) => x == null) ? null : next);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FieldLabel('$label${_unit(spec.unit) == null ? '' : ' (${_unit(spec.unit)})'}'),
+            Row(
+              children: [
+                for (final (i, key) in const [(0, 'ui.timeWindow.from'), (1, 'ui.timeWindow.to')]) ...[
+                  if (i == 1) const SizedBox(width: Ui.gap),
+                  Expanded(
+                    child: NumberField(
+                      key: ValueKey('${spec.key}|$i'),
+                      label: s(key),
+                      value: tw[i] as num?,
+                      strings: s,
+                      hint: i == 1 ? s('hint.open') : null,
+                      check: (v) {
+                        final next = [...tw]..[i] = v;
+                        return spec.validate(next.every((x) => x == null) ? null : next);
+                      },
+                      onChanged: (v) => set(i, v),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        );
       case FieldKind.number || FieldKind.integer || FieldKind.unlimited:
         return NumberField(
           label: label,
           value: value is num ? value as num : null,
           strings: s,
-          unit: spec.unit,
+          unit: _unit(spec.unit),
           decimals: spec.kind == FieldKind.integer ? 0 : 6,
           hint: spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null,
           help: s.has(spec.help) ? s(spec.help) : null,

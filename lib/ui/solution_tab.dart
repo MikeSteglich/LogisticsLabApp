@@ -145,7 +145,11 @@ class SolutionTab extends StatelessWidget {
                       card(
                         w,
                         t(col.label),
-                        col.unit == '€' ? money(v) : t.number(v),
+                        col.unit == '€'
+                            ? money(v)
+                            : col.unit == '@time'
+                            ? '${t.number(v)} ${s.scenario.units['time'] ?? ''}'
+                            : t.number(v),
                         objective: col.key == objectiveKey,
                       ),
                   // how the nodes are served: supply left, demand not met, customers with several suppliers
@@ -479,35 +483,85 @@ class _Route extends StatelessWidget {
     final s = state;
     final t = s.strings;
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
-    var sum = 0.0;
-    // chinese postman: the sections over edges traversed more than once
-    final withPasses = s.connections.any((a) => a['passes'] != null);
-    return Section(
-      padding: EdgeInsets.zero,
-      child: Table(
-        columnWidths: const {1: FlexColumnWidth(3), 2: FlexColumnWidth(3)},
-        defaultColumnWidth: const IntrinsicColumnWidth(),
-        children: [
-          SolutionTab._row(numericFrom: 3, header: true, [
-            t('ui.sol.leg'),
-            t('ui.sol.from'),
-            t('ui.sol.to'),
-            t('ui.sol.legValue'),
-            t('ui.sol.cumulated'),
-            if (withPasses) t('ui.sol.passes'),
+    final legs = s.connections;
+    final routes = ((s.solution?.results?['routes'] as List?) ?? const []).cast<Map<String, dynamic>>();
+    // chinese postman: the sections over edges traversed more than once; vrp: the arrivals
+    final withPasses = legs.any((a) => a['passes'] != null);
+    final withArrivals = legs.any((a) => a['arrival'] != null);
+    final time = s.scenario.units['time'] as String? ?? '';
+    Widget table(List<(int, Map<String, dynamic>)> part) {
+      var sum = 0.0;
+      return Section(
+        padding: EdgeInsets.zero,
+        child: Table(
+          columnWidths: const {1: FlexColumnWidth(3), 2: FlexColumnWidth(3)},
+          defaultColumnWidth: const IntrinsicColumnWidth(),
+          children: [
+            SolutionTab._row(numericFrom: 3, header: true, [
+              t('ui.sol.leg'),
+              t('ui.sol.from'),
+              t('ui.sol.to'),
+              t('ui.sol.legValue'),
+              t('ui.sol.cumulated'),
+              if (withArrivals) t('ui.sol.arrival'),
+              if (withPasses) t('ui.sol.passes'),
+            ]),
+            for (final (i, a) in part)
+              if (a['value'] case final num v)
+                SolutionTab._row(numericFrom: 3, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
+                  '${a['leg']}',
+                  name(a['from']),
+                  [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
+                  s.valueText(v),
+                  s.valueText(sum += v),
+                  if (withArrivals) a['arrival'] is num ? '${t.number(a['arrival'] as num)} $time' : '',
+                  if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
+                ]),
+          ],
+        ),
+      );
+    }
+
+    final indexed = [for (final (i, a) in legs.indexed) (i, a)];
+    if (routes.length < 2) return table(indexed);
+    // several tours: a heading per tour with its vehicle and figures
+    final names = s.routeNames;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (ri, r) in routes.indexed) ...[
+          if (ri > 0) const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 14,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Ui.routeColors[ri % Ui.routeColors.length],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  [
+                    ri < names.length ? names[ri] : '',
+                    if (r['load'] is num) '${t('ui.sol.load')} ${t.number(r['load'] as num)}',
+                    if (r['distance'] is num) s.valueText(r['distance'] as num),
+                    if (r['duration'] is num) '${t('ui.sol.duration')} ${t.number(r['duration'] as num)} $time',
+                  ].join(' · '),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          table([
+            for (final e in indexed)
+              if (e.$2['route'] == ri) e,
           ]),
-          for (final (i, a) in s.connections.indexed)
-            if (a['value'] case final num v)
-              SolutionTab._row(numericFrom: 3, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
-                '${a['leg']}',
-                name(a['from']),
-                [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
-                s.valueText(v),
-                s.valueText(sum += v),
-                if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
-              ]),
         ],
-      ),
+      ],
     );
   }
 }

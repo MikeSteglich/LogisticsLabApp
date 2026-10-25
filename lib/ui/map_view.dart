@@ -270,6 +270,8 @@ class _MapViewState extends State<MapView> {
   /// connections of the solution - the selected one last, so that it is drawn on top
   List<_Flow> _flows() {
     final list = s.connections;
+    // several tours (vrp): a colour per tour
+    final tours = {for (final a in list) a['route']}.whereType<int>().length;
     final flows = [
       for (final (i, a) in list.indexed)
         if (s.scenario.node(a['from'] as String) case final from?)
@@ -281,6 +283,7 @@ class _MapViewState extends State<MapView> {
               label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
               selected: i == s.selectedFlow,
               repeated: a['passes'] != null,
+              color: tours > 1 ? Ui.routeColors[(a['route'] as int) % Ui.routeColors.length] : Ui.accent,
             ),
     ];
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
@@ -306,7 +309,7 @@ class _MapViewState extends State<MapView> {
           hitValue: f.index,
           points: f.points,
           // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
-          color: f.selected ? Ui.highlight : (stale ? Ui.accent.withValues(alpha: 0.4) : Ui.accent),
+          color: f.selected ? Ui.highlight : (stale ? f.color.withValues(alpha: 0.4) : f.color),
           strokeWidth: f.repeated ? 8 : (f.selected ? 6 : 3.5),
           strokeCap: StrokeCap.round,
           strokeJoin: StrokeJoin.round,
@@ -339,8 +342,8 @@ class _MapViewState extends State<MapView> {
       f.label,
       const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: Ui.tabular),
       centered: true,
-      color: f.selected ? Ui.highlight : Ui.accentDark,
-      border: f.selected ? Ui.highlight : (s.solutionIsStale ? Ui.textSecondary : Ui.accent),
+      color: f.selected ? Ui.highlight : (f.color == Ui.accent ? Ui.accentDark : f.color),
+      border: f.selected ? Ui.highlight : (s.solutionIsStale ? Ui.textSecondary : f.color),
       borderWidth: f.selected ? 2 : 1,
     );
     _Label nodeLabel(Node n) => _Label(
@@ -732,7 +735,9 @@ class _MapViewState extends State<MapView> {
     final tsp = s.spec?.allNodes == true || s.spec?.type == 'shortestpath' || s.spec?.type == 'cpp';
     final roles = tsp
         ? (s.spec?.type == 'cpp' ? const ['supplier'] : const ['supplier', 'customer'])
-        : s.problemRoles.where((r) => r == 'supplier' || r == 'candidate' || r == 'customer');
+        : s.problemRoles.where((r) => const ['supplier', 'depot', 'candidate', 'customer'].contains(r));
+    // the tours of the vehicles (vrp)
+    final tours = _showSolution ? s.routeNames : const <String>[];
     Widget item(Widget mark, String text, {Color color = Ui.textMuted}) => Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -759,7 +764,7 @@ class _MapViewState extends State<MapView> {
                 width: 9,
                 height: 9,
                 decoration: BoxDecoration(
-                  color: Ui.roleColors(role).$1,
+                  color: Ui.roleColors(role == 'depot' ? 'supplier' : role).$1,
                   shape: role == 'customer' ? BoxShape.circle : BoxShape.rectangle,
                   borderRadius: role == 'customer' ? null : BorderRadius.circular(1.5),
                 ),
@@ -792,6 +797,19 @@ class _MapViewState extends State<MapView> {
                 const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
               ),
             ),
+          if (tours.length > 1)
+            for (final (i, name) in tours.indexed)
+              item(
+                Container(
+                  width: 14,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Ui.routeColors[i % Ui.routeColors.length],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                name,
+              ),
           if (_showSolution && s.connections.any((c) => c['passes'] != null))
             item(
               Container(
@@ -1053,7 +1071,7 @@ class _LabelLayer extends StatelessWidget {
   }
 }
 
-typedef _Flow = ({int index, List<LatLng> points, String label, bool selected, bool repeated});
+typedef _Flow = ({int index, List<LatLng> points, String label, bool selected, bool repeated, Color color});
 
 /// pie of a share inside a ring - a customer and the part of its demand that is met
 class _PiePainter extends CustomPainter {

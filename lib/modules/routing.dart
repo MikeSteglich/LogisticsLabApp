@@ -64,3 +64,35 @@ final cppSpec = ModuleSpec(
     ResultColumn('nrOfRepeats'),
   ],
 );
+
+/// Vehicle routing: tours of the vehicles from the depot to the customers and back - capacities, time windows and
+/// service times, at most a time and a distance per tour. The vehicles are records of the scenario.
+final vrpSpec = ModuleSpec(
+  type: 'vrp',
+  group: ModuleGroup.routing,
+  usesVehicles: true,
+  roles: [
+    const RoleSpec('depots', 'depot', []),
+    RoleSpec('destinations', 'customer', [
+      const FieldSpec('demand', FieldKind.number, required: true, min: 0),
+      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
+      FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
+    ]),
+  ],
+  parameters: const [
+    FieldSpec('useTimeWindows', FieldKind.boolean, defaultValue: false),
+    FieldSpec('maxTime', FieldKind.number, unit: '@time', min: 0),
+    FieldSpec('maxDist', FieldKind.number, unit: '@distance', min: 0),
+    FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
+  ],
+  // total distance in the distance unit of the scenario
+  objective: (_) => 'totalDistance',
+  summary: const [
+    ResultColumn('totalDistance', unit: '€'),
+    ResultColumn('nrOfRoutes'),
+    ResultColumn('nrOfVehicles'),
+    ResultColumn('totalLoad'),
+    ResultColumn('longestRoute', unit: '€'),
+    ResultColumn('longestDuration', unit: '@time'),
+  ],
+);

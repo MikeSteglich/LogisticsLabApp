@@ -175,6 +175,15 @@ class AppState extends ChangeNotifier {
     });
   }
 
+  /// the tours of a solution with several vehicles (vrp): "Tour 1 · LKW1", ...
+  List<String> get routeNames => [
+    for (final (i, r) in ((solution?.results?['routes'] as List?) ?? const []).cast<Map<String, dynamic>>().indexed)
+      [
+        strings('ui.sol.tour', {'n': i + 1}),
+        if (r['vehicle'] != null) '${r['vehicle']}',
+      ].join(' · '),
+  ];
+
   /// the solution consists of tours (tsp) - its connections are the sections of the tours
   bool get isRoute => solution?.results?['routes'] != null;
 
@@ -198,6 +207,11 @@ class AppState extends ChangeNotifier {
   /// value of a field as text - numbers, 'M' (unlimited), values per commodity (sum), modes (names); null: empty
   String? fieldText(Object? v) {
     if (v == null) return null;
+    // time window: earliest – latest
+    if (v is List) {
+      String part(Object? x) => x is num ? strings.number(x) : '';
+      return '${part(v[0])} – ${part(v.length > 1 ? v[1] : null)}';
+    }
     if (v == 'M') return '∞';
     if (v is num) return strings.number(v);
     if (v is Map) {
@@ -260,7 +274,12 @@ class AppState extends ChangeNotifier {
   /// deletes a commodity or mode of the scenario and its values at the nodes and edges
   void deleteRecord(String kind, Map<String, dynamic> record) => edit(() {
     final id = record['id'];
-    (kind == 'commodities' ? scenario.commodities : scenario.modes).remove(record);
+    (switch (kind) {
+      'commodities' => scenario.commodities,
+      'vehicles' => scenario.vehicles,
+      _ => scenario.modes,
+    }).remove(record);
+    if (kind == 'vehicles') return;
     final edges = [for (final net in scenario.networks.values) ...net.edges];
     if (kind == 'commodities') {
       for (final n in scenario.nodes) {
@@ -302,6 +321,19 @@ class AppState extends ChangeNotifier {
     // data of the scenario the problem needs
     if (s.usesCommodities && scenario.commodities.isEmpty) out.add(strings('ui.commodities.none'));
     if (s.usesModes && scenario.modes.isEmpty) out.add(strings('ui.modes.none'));
+    if (s.usesVehicles) {
+      if (scenario.vehicles.isEmpty) out.add(strings('ui.vehicles.none'));
+      final noCapacity = [
+        for (final v in scenario.vehicles)
+          if (v['capacity'] is! num) Scenario.recordName(v),
+      ];
+      if (noCapacity.isNotEmpty) out.add(strings('ui.check.vehicleCapacity', {'vehicles': noCapacity.join(', ')}));
+      final depots = [
+        for (final n in scenario.nodes)
+          if (n.active && n.roles.contains('depot')) n.name,
+      ];
+      if (depots.length > 1) out.add(strings('ui.check.oneDepot', {'nodes': depots.join(', ')}));
+    }
     if (s.network == NetworkUse.required && network != null && network!.edges.isEmpty) {
       out.add(strings('ui.check.noEdges'));
     }

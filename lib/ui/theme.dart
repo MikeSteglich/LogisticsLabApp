@@ -23,6 +23,17 @@ abstract final class Ui {
   // edges of the network on the map: petrol - not in the colours of the OSM map (roads grey/white, yellow, orange,
   // red, water light blue, green); blue is for the used edges of a solution, orange for the highlighted one
   static const network = Color(0xFF2F6F73);
+  // tours of the vehicles (vrp) - beside the colours of the roles, the network (petrol) and the highlight (orange)
+  static const routeColors = [
+    Color(0xFF1D5FD1), // blue (accent)
+    Color(0xFFC2185B), // magenta
+    Color(0xFF6A4C93), // purple
+    Color(0xFFB8860B), // dark gold
+    Color(0xFF5D4037), // brown
+    Color(0xFF283593), // indigo
+    Color(0xFFD32F2F), // red
+    Color(0xFF00838F), // cyan
+  ];
   static const networkSelected = Color(0xFF1B4547); // selected edge of the network
   // colours of the roles on the map: suppliers blue (not the blue of the solution lines), customers green
   static const supplier = Color(0xFF2F6DB5);

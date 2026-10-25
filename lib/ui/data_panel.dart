@@ -180,6 +180,18 @@ class _ParametersTab extends StatelessWidget {
             fields: _commodityFields,
           ),
         ],
+        if (spec.usesVehicles) ...[
+          const SizedBox(height: 20),
+          _Records(
+            kind: 'vehicles',
+            state: s,
+            title: 'ui.vehicles',
+            add: 'ui.vehicles.add',
+            prefix: 'V',
+            records: s.scenario.vehicles,
+            fields: _vehicleFields,
+          ),
+        ],
         if (spec.usesModes) ...[
           const SizedBox(height: 20),
           _Records(
@@ -221,6 +233,11 @@ List<Widget> _pairedNodes(List<FieldSpec> fields, Widget Function(FieldSpec) fie
   return out;
 }
 
+const _vehicleFields = [
+  FieldSpec('name', FieldKind.text),
+  FieldSpec('capacity', FieldKind.number, required: true, min: 0),
+  FieldSpec('count', FieldKind.integer, min: 1, defaultValue: 1),
+];
 const _commodityFields = [
   FieldSpec('name', FieldKind.text),
   FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),

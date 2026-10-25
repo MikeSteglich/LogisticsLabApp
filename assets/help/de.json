@@ -54,6 +54,12 @@
   "body": "Die kürzeste Tour, die vom Start aus jede Kante des Netzes mindestens einmal befährt und zum Start zurückkehrt – typisch für Straßenreinigung, Winterdienst oder Müllabfuhr.\n\n- Das Netz ist Pflicht. Jede Kante kann einzeln gerichtet (Einbahnstraße) oder ungerichtet sein.\n- Kanten, die nicht anders erreichbar sind, werden mehrfach befahren. Die Lösung zeigt die Länge aller Kanten, die zusätzlichen Wege und wie oft Kanten mehrfach befahren werden.\n- Führt von einem Knoten kein Weg zurück zum Start, meldet die App das vor dem Lösen."
  },
  {
+  "id": "vrp",
+  "title": "Tourenplanung (VRP)",
+  "keywords": "tourenplanung vrp fahrzeug fahrzeuge depot kunden kapazität zeitfenster servicezeit höchstdauer höchststrecke touren",
+  "body": "Die Fahrzeuge fahren vom Depot zu den Kunden und zurück. Gesucht sind Touren mit möglichst kurzer Gesamtstrecke.\n\n- **Knoten:** genau ein Knoten mit der Rolle Depot, die Kunden mit Nachfrage, Servicezeit und – wenn eingeschaltet – Zeitfenster (frühestens, spätestens).\n- **Fahrzeuge** legst du im Tab Parameter an: Kapazität und Anzahl gleicher Fahrzeuge.\n- **Optionen:** Zeitfenster beachten, Höchstdauer und Höchststrecke je Tour.\n- **Lösung:** jede Tour in einer eigenen Farbe; die Tabelle zeigt je Tour Fahrzeug, Last, Länge und Dauer, die Abschnitte und – mit Zeiten – die Ankunft.\n\nPasst die Nachfrage eines Kunden in kein Fahrzeug, meldet die App das vor dem Lösen."
+ },
+ {
   "id": "solution",
   "title": "Lösung lesen",
   "keywords": "lösung ergebnis zielfunktion kennzahl verbindungen auslastung gut verkehrsträger veraltet llsol speichern",

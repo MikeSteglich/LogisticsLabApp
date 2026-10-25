@@ -54,6 +54,12 @@
   "body": "La tournée la plus courte qui, depuis le départ, parcourt chaque arc du réseau au moins une fois et revient au départ – typique du nettoyage des rues, de la viabilité hivernale ou de la collecte des déchets.\n\n- Le réseau est obligatoire. Chaque arc peut être orienté (sens unique) ou non orienté.\n- Les arcs qu’on ne peut pas atteindre autrement sont parcourus plusieurs fois. La solution montre la longueur de tous les arcs, les trajets supplémentaires et combien de fois des arcs sont parcourus à nouveau.\n- Si aucun chemin ne ramène d’un nœud au départ, l’application le signale avant de résoudre."
  },
  {
+  "id": "vrp",
+  "title": "Tournées de véhicules (VRP)",
+  "keywords": "tournées de véhicules vrp véhicule véhicules dépôt clients capacité fenêtre horaire temps de service durée distance maximale tournées",
+  "body": "Les véhicules partent du dépôt vers les clients et y reviennent. On cherche des tournées de distance totale minimale.\n\n- **Nœuds :** exactement un nœud avec le rôle dépôt, les clients avec demande, temps de service et – si activé – une fenêtre horaire (au plus tôt, au plus tard).\n- **Véhicules :** ils se créent dans l’onglet Paramètres, avec la capacité et le nombre de véhicules identiques.\n- **Options :** respecter les fenêtres horaires, durée maximale et distance maximale par tournée.\n- **Solution :** chaque tournée dans sa propre couleur ; par tournée, le tableau montre le véhicule, la charge, la longueur et la durée, les tronçons et – avec les temps – l’arrivée.\n\nSi la demande d’un client ne tient dans aucun véhicule, l’application le signale avant de résoudre."
+ },
+ {
   "id": "solution",
   "title": "Lire la solution",
   "keywords": "solution résultat objectif indicateur liaisons utilisation produit mode périmée llsol enregistrer",

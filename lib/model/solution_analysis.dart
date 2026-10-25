@@ -167,11 +167,13 @@ class SolutionAnalysis {
       }
       final passes = <String, int>{};
       return [
-        for (final r in routes.cast<Map<String, dynamic>>())
+        for (final (ri, r) in routes.cast<Map<String, dynamic>>().indexed)
           for (final (k, l) in ((r['legs'] as List?) ?? const []).cast<Map<String, dynamic>>().indexed)
             {
               ...l,
               'leg': k + 1,
+              'route': ri, // vrp: the tour of a vehicle
+              if (r['vehicle'] != null) 'vehicle': r['vehicle'],
               if ((usages['${l['from']}|${l['to']}'] ?? 0) > 1) ...{
                 'passes': usages['${l['from']}|${l['to']}'],
                 'pass': passes.update(_pair(l), (n) => n + 1, ifAbsent: () => 1),

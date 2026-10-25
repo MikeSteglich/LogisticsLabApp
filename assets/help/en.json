@@ -54,6 +54,12 @@
   "body": "The shortest tour that traverses every edge of the network at least once from the start and returns to it – typical for street cleaning, winter service or refuse collection.\n\n- The network is required. Each edge can be directed (one-way street) or undirected.\n- Edges that cannot be reached otherwise are traversed more than once. The solution shows the length of all edges, the extra distance and how often edges are traversed again.\n- If no way leads from a node back to the start, the app says so before solving."
  },
  {
+  "id": "vrp",
+  "title": "Vehicle routing (VRP)",
+  "keywords": "vehicle routing vrp vehicle vehicles depot customers capacity time window service time maximum time distance tours",
+  "body": "The vehicles drive from the depot to the customers and back. The aim is tours with the shortest total distance.\n\n- **Nodes:** exactly one node with the role depot, the customers with demand, service time and – if switched on – a time window (earliest, latest).\n- **Vehicles** are created in the Parameters tab: capacity and number of identical vehicles.\n- **Options:** observe time windows, maximum time and maximum distance per tour.\n- **Solution:** each tour in its own colour; per tour the table shows vehicle, load, length and duration, the sections and – with times – the arrival.\n\nIf the demand of a customer fits into no vehicle, the app says so before solving."
+ },
+ {
   "id": "solution",
   "title": "Reading the solution",
   "keywords": "solution result objective key figure connections utilisation commodity mode stale llsol save",

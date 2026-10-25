@@ -26,6 +26,7 @@ enum FieldKind {
   node, // id of a node of the scenario, e.g. source of a max flow
   commodities, // a number per commodity of the scenario, e.g. supplies of a multi-commodity flow
   modes, // modes allowed at an edge (multimodal) - null: all modes of the scenario
+  timeWindow, // [earliest, latest] in the time unit of the scenario - latest null: open (vrp)
 }
 
 /// Text to be shown in the language of the UI - key with arguments, e.g. error.min with {label} and {min}.
@@ -92,6 +93,13 @@ class FieldSpec {
         return choices.contains(value) ? null : Message('error.choice', {'label': label, 'value': value});
       case FieldKind.text || FieldKind.node:
         return value is String ? null : Message('error.text', {'label': label});
+      case FieldKind.timeWindow:
+        if (value is! List || value.length != 2 || value.any((x) => x != null && x is! num)) {
+          return Message('error.number', {'label': label});
+        }
+        final [a, b] = value;
+        if (a is num && b is num && a > b) return Message('error.timeWindow', {'label': label});
+        return null;
       case FieldKind.commodities || FieldKind.modes:
         return value is Map ? null : Message('error.text', {'label': label});
     }
@@ -147,6 +155,7 @@ class ModuleSpec {
   final bool usesModes; // the scenario needs modes of transport (multimodal)
   final bool allNodes; // the problem uses all active nodes, e.g. the tsp
   final bool edgeDirections; // each edge directed or not (tsp, cpp) - else the direction of the network
+  final bool usesVehicles; // the scenario needs vehicles (vrp)
 
   /// key of the summary value the objective function uses - depends on the parameters (e.g. objSense)
   final String? Function(Map<String, dynamic> parameters)? objective;
@@ -167,6 +176,7 @@ class ModuleSpec {
     this.usesModes = false,
     this.allNodes = false,
     this.edgeDirections = false,
+    this.usesVehicles = false,
     this.objective,
   });
 

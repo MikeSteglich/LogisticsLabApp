@@ -225,6 +225,11 @@ class Scenario {
   /// commodities (multicommodity) and modes of transport (multimodal) - records with id, name and values
   List<Map<String, dynamic>> get commodities => _records('commodities');
   List<Map<String, dynamic>> get modes => _records('modes');
+  List<Map<String, dynamic>> get vehicles => _records('vehicles');
+
+  /// units of the distances and times, e.g. km and min
+  Map<String, dynamic> get units =>
+      (json['units'] ??= <String, dynamic>{'distance': 'km', 'time': 'min'}) as Map<String, dynamic>;
 
   List<Map<String, dynamic>> _records(String key) => ((json[key] ??= <dynamic>[]) as List).cast<Map<String, dynamic>>();
 

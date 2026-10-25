@@ -200,6 +200,19 @@ void main() {
     state.setTab(DataTab.solution);
     await settle(() => false, seconds: 4);
     await shot('13-cpp');
+    // vehicle routing: two tours in their colours, the schedule
+    state.chooseProblem('Touren ab Wildau');
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('14-vrp');
+    state.setTab(DataTab.nodes);
+    state.selectNode('B');
+    await tester.pump();
+    await shot('14b-vrp-customer');
+    state.setTab(DataTab.parameters);
+    await tester.pump();
+    await shot('14c-vrp-parameters');
     // help window with a search
     showHelp(tester.element(find.byType(MainScreen)), state, query: 'Rundreise');
     await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 200)));
