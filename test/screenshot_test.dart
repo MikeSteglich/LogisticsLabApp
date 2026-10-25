@@ -206,6 +206,9 @@ void main() {
     state.setTab(DataTab.solution);
     await settle(() => false, seconds: 4);
     await shot('14-vrp');
+    await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+    await tester.pump();
+    await shot('14a-vrp-tables');
     state.setTab(DataTab.nodes);
     state.selectNode('B');
     await tester.pump();

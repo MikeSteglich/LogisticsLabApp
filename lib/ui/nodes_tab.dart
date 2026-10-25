@@ -163,6 +163,10 @@ class _NodeTable extends StatelessWidget {
         final x = (v as Map?)?[part] as num?;
         return x == null ? '' : t.number(x);
       }
+      // time window: times of the day
+      if (f.kind == FieldKind.timeWindow && v is List) {
+        return '${s.clock.format(v[0] as num?)} – ${s.clock.format(v[1] as num?)}';
+      }
       return s.fieldText(v) ?? '';
     }
 

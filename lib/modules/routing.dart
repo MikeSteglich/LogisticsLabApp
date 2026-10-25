@@ -72,7 +72,10 @@ final vrpSpec = ModuleSpec(
   group: ModuleGroup.routing,
   usesVehicles: true,
   roles: [
-    const RoleSpec('depots', 'depot', []),
+    // the depot: start of the tours and their latest return (times of the day)
+    const RoleSpec('depots', 'depot', [
+      FieldSpec('timeWindow', FieldKind.timeWindow, labelKey: 'field.depotTime'),
+    ], main: 'timeWindow'),
     RoleSpec('destinations', 'customer', [
       const FieldSpec('demand', FieldKind.number, required: true, min: 0),
       const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
@@ -92,7 +95,9 @@ final vrpSpec = ModuleSpec(
     ResultColumn('nrOfRoutes'),
     ResultColumn('nrOfVehicles'),
     ResultColumn('totalLoad'),
+    ResultColumn('utilization', unit: '%'),
     ResultColumn('longestRoute', unit: '€'),
     ResultColumn('longestDuration', unit: '@time'),
+    ResultColumn('totalWaitingTime', unit: '@time'),
   ],
 );

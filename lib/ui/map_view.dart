@@ -123,7 +123,14 @@ class _MapViewState extends State<MapView> {
               ),
             if (_showSolution)
               _hitLayer(
-                PolylineLayer<int>(polylines: _solutionLines(), hitNotifier: _flowHit, minimumHitbox: 12),
+                // the camera for the lines side by side - built again with every move and zoom
+                Builder(
+                  builder: (context) => PolylineLayer<int>(
+                    polylines: _solutionLines(MapCamera.of(context)),
+                    hitNotifier: _flowHit,
+                    minimumHitbox: 12,
+                  ),
+                ),
                 _flowHit,
                 (i) => s.selectFlow(i, showTab: true),
               ),
@@ -272,6 +279,10 @@ class _MapViewState extends State<MapView> {
     final list = s.connections;
     // several tours (vrp): a colour per tour
     final tours = {for (final a in list) a['route']}.whereType<int>().length;
+    // several tours: each a few pixels beside the others - where they share a road (the way out of the depot) their
+    // colours lie side by side
+    double offset(Map<String, dynamic> a) =>
+        tours < 2 || a['route'] is! int ? 0 : ((a['route'] as int) - (tours - 1) / 2) * 4.5;
     final flows = [
       for (final (i, a) in list.indexed)
         if (s.scenario.node(a['from'] as String) case final from?)
@@ -283,6 +294,7 @@ class _MapViewState extends State<MapView> {
               label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
               selected: i == s.selectedFlow,
               repeated: a['passes'] != null,
+              offset: offset(a),
               color: tours > 1 ? Ui.routeColors[(a['route'] as int) % Ui.routeColors.length] : Ui.accent,
             ),
     ];
@@ -301,13 +313,28 @@ class _MapViewState extends State<MapView> {
     ];
   }
 
-  List<Polyline<int>> _solutionLines() {
+  /// the points of a line moved by [px] pixels to its right - lines of several tours on one edge side by side
+  static List<LatLng> _beside(MapCamera camera, List<LatLng> points, double px) {
+    if (px == 0 || points.length < 2) return points;
+    final screen = [for (final p in points) camera.latLngToScreenOffset(p)];
+    return [
+      for (var i = 0; i < screen.length; i++)
+        () {
+          final d = screen[i == screen.length - 1 ? i : i + 1] - screen[i == 0 ? 0 : i - 1];
+          final length = d.distance;
+          if (length == 0) return points[i];
+          return camera.screenOffsetToLatLng(screen[i] + Offset(-d.dy, d.dx) / length * px);
+        }(),
+    ];
+  }
+
+  List<Polyline<int>> _solutionLines(MapCamera camera) {
     final stale = s.solutionIsStale;
     return [
       for (final f in _flows()) ...[
         Polyline(
           hitValue: f.index,
-          points: f.points,
+          points: _beside(camera, f.points, f.offset),
           // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
           color: f.selected ? Ui.highlight : (stale ? f.color.withValues(alpha: 0.4) : f.color),
           strokeWidth: f.repeated ? 8 : (f.selected ? 6 : 3.5),
@@ -318,7 +345,7 @@ class _MapViewState extends State<MapView> {
         if (f.repeated)
           Polyline(
             hitValue: f.index,
-            points: f.points,
+            points: _beside(camera, f.points, f.offset),
             color: Colors.white,
             strokeWidth: 3,
             strokeCap: StrokeCap.round,
@@ -611,6 +638,10 @@ class _MapViewState extends State<MapView> {
           if (a['value'] is num) s.valueText(a['value'] as num),
           s.via(a),
           if (a['passes'] != null) t('ui.sol.passOf', {'pass': a['pass'], 'passes': a['passes']}),
+          // vehicle routing: quantity, arrival and waiting at the end of the section
+          if ((a['amount'] as num? ?? 0) > 0) '${t('ui.sol.amount')} ${t.number(a['amount'] as num)}',
+          if (a['arrival'] is num) '${t('ui.sol.arrival')} ${s.clock.format(a['arrival'] as num)}',
+          if ((a['waiting'] as num? ?? 0) > 0.5) '${t('ui.sol.waiting')} ${s.clock.duration(a['waiting'] as num)}',
         ].where((x) => x.isNotEmpty).join(' · '),
       );
     }
@@ -1071,7 +1102,15 @@ class _LabelLayer extends StatelessWidget {
   }
 }
 
-typedef _Flow = ({int index, List<LatLng> points, String label, bool selected, bool repeated, Color color});
+typedef _Flow = ({
+  int index,
+  List<LatLng> points,
+  String label,
+  bool selected,
+  bool repeated,
+  Color color,
+  double offset, // pixels beside the edge - several tours over one edge side by side
+});
 
 /// pie of a share inside a ring - a customer and the part of its demand that is met
 class _PiePainter extends CustomPainter {

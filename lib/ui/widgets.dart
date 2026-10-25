@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../i18n/strings.dart';
+import '../model/clock.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
 import 'theme.dart';
@@ -202,6 +203,9 @@ class NumberField extends StatefulWidget {
   final String? unit;
   final String? help; // shown as tooltip of an info symbol beside the label
   final Message? Function(num?)? check;
+  final String Function(num?)? format; // other text than a number, e.g. a time of the day
+  final num? Function(String)? parse;
+  final String? invalid; // message key of a text parse cannot read - default error.number
 
   const NumberField({
     super.key,
@@ -214,6 +218,9 @@ class NumberField extends StatefulWidget {
     this.unit,
     this.help,
     this.check,
+    this.format,
+    this.parse,
+    this.invalid,
   });
 
   @override
@@ -224,12 +231,16 @@ class _NumberFieldState extends State<NumberField> {
   late final _c = TextEditingController(text: _text(widget.value));
   String? _error;
 
-  String _text(num? v) => v == null ? '' : widget.strings.number(v, decimals: widget.decimals, grouping: false);
+  String _text(num? v) => widget.format != null
+      ? widget.format!(v)
+      : (v == null ? '' : widget.strings.number(v, decimals: widget.decimals, grouping: false));
+
+  num? _parse(String t) => widget.parse != null ? widget.parse!(t) : widget.strings.parse(t);
 
   @override
   void didUpdateWidget(NumberField old) {
     super.didUpdateWidget(old);
-    final current = widget.strings.parse(_c.text);
+    final current = _parse(_c.text);
     if (widget.value != current && widget.value != old.value) {
       _c.text = _text(widget.value);
       _error = null;
@@ -243,10 +254,10 @@ class _NumberFieldState extends State<NumberField> {
   }
 
   void _changed(String t) {
-    final v = widget.strings.parse(t);
+    final v = _parse(t);
     String? error;
     if (t.trim().isNotEmpty && v == null) {
-      error = widget.strings('error.number', {'label': widget.label});
+      error = widget.strings(widget.invalid ?? 'error.number', {'label': widget.label});
     } else {
       final m = widget.check?.call(v);
       if (m != null) error = widget.strings.message(m);
@@ -280,7 +291,10 @@ class _NumberFieldState extends State<NumberField> {
         onSubmitted: (_) => focusNextField(context),
         textAlign: TextAlign.right,
         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-\s]'))],
+        // digits and the signs of a number - a time of the day also with its colon
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(widget.parse != null ? r'[0-9:.\s]' : r'[0-9.,\-\s]')),
+        ],
         style: const TextStyle(fontFeatures: Ui.tabular),
         decoration: InputDecoration(errorText: _error, hintText: widget.hint, errorMaxLines: 2),
       ),
@@ -472,8 +486,9 @@ class SpecField extends StatelessWidget {
           ],
         );
       case FieldKind.timeWindow:
-        // earliest and latest - both empty: no time window
+        // earliest and latest as times of the day - both empty: no time window
         final tw = (value as List?) ?? const [null, null];
+        final clock = Clock(scenario?.units['time'] as String? ?? 'min');
         void set(int i, num? v) {
           final next = [...tw]..[i] = v;
           onChanged(next.every((x) => x == null) ? null : next);
@@ -481,7 +496,7 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel('$label${_unit(spec.unit) == null ? '' : ' (${_unit(spec.unit)})'}'),
+            FieldLabel(label),
             Row(
               children: [
                 for (final (i, key) in const [(0, 'ui.timeWindow.from'), (1, 'ui.timeWindow.to')]) ...[
@@ -492,7 +507,10 @@ class SpecField extends StatelessWidget {
                       label: s(key),
                       value: tw[i] as num?,
                       strings: s,
-                      hint: i == 1 ? s('hint.open') : null,
+                      hint: i == 1 ? s('hint.open') : s('hint.clock'),
+                      format: clock.format,
+                      parse: clock.parse,
+                      invalid: 'error.clock',
                       check: (v) {
                         final next = [...tw]..[i] = v;
                         return spec.validate(next.every((x) => x == null) ? null : next);

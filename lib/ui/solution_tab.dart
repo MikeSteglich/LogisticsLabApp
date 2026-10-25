@@ -148,7 +148,9 @@ class SolutionTab extends StatelessWidget {
                         col.unit == '€'
                             ? money(v)
                             : col.unit == '@time'
-                            ? '${t.number(v)} ${s.scenario.units['time'] ?? ''}'
+                            ? s.clock.duration(v)
+                            : col.unit == '%'
+                            ? '${t.number(v * 100, decimals: 0)} %'
                             : t.number(v),
                         objective: col.key == objectiveKey,
                       ),
@@ -485,10 +487,12 @@ class _Route extends StatelessWidget {
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
     final legs = s.connections;
     final routes = ((s.solution?.results?['routes'] as List?) ?? const []).cast<Map<String, dynamic>>();
-    // chinese postman: the sections over edges traversed more than once; vrp: the arrivals
+    // chinese postman: the sections over edges traversed more than once; vrp: quantities, arrivals, waiting
     final withPasses = legs.any((a) => a['passes'] != null);
+    final withAmounts = legs.any((a) => a['amount'] != null);
     final withArrivals = legs.any((a) => a['arrival'] != null);
-    final time = s.scenario.units['time'] as String? ?? '';
+    final withWaiting = legs.any((a) => (a['waiting'] as num? ?? 0) > 0.5);
+    final clock = s.clock;
     Widget table(List<(int, Map<String, dynamic>)> part) {
       var sum = 0.0;
       return Section(
@@ -501,9 +505,11 @@ class _Route extends StatelessWidget {
               t('ui.sol.leg'),
               t('ui.sol.from'),
               t('ui.sol.to'),
+              if (withAmounts) t('ui.sol.amount'),
               t('ui.sol.legValue'),
               t('ui.sol.cumulated'),
               if (withArrivals) t('ui.sol.arrival'),
+              if (withWaiting) t('ui.sol.waiting'),
               if (withPasses) t('ui.sol.passes'),
             ]),
             for (final (i, a) in part)
@@ -512,9 +518,11 @@ class _Route extends StatelessWidget {
                   '${a['leg']}',
                   name(a['from']),
                   [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
+                  if (withAmounts) (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
                   s.valueText(v),
                   s.valueText(sum += v),
-                  if (withArrivals) a['arrival'] is num ? '${t.number(a['arrival'] as num)} $time' : '',
+                  if (withArrivals) a['arrival'] is num ? clock.format(a['arrival'] as num) : '',
+                  if (withWaiting) (a['waiting'] as num? ?? 0) > 0.5 ? clock.duration(a['waiting'] as num) : '',
                   if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
                 ]),
           ],
@@ -523,32 +531,40 @@ class _Route extends StatelessWidget {
     }
 
     final indexed = [for (final (i, a) in legs.indexed) (i, a)];
-    if (routes.length < 2) return table(indexed);
-    // several tours: a heading per tour with its vehicle and figures
+    // vehicle routing: an overview of the tours and a table per tour
+    if (routes.isEmpty || routes.first['capacity'] == null) return table(indexed);
     final names = s.routeNames;
+    final many = routes.length > 1;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        Text(t('ui.sol.overview'), style: Ui.title),
+        const SizedBox(height: 8),
+        _Overview(state: s, routes: routes),
+        const SizedBox(height: 16),
         for (final (ri, r) in routes.indexed) ...[
           if (ri > 0) const SizedBox(height: 14),
           Row(
             children: [
-              Container(
-                width: 14,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Ui.routeColors[ri % Ui.routeColors.length],
-                  borderRadius: BorderRadius.circular(2),
+              if (many) ...[
+                Container(
+                  width: 14,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Ui.routeColors[ri % Ui.routeColors.length],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
               Expanded(
                 child: Text(
                   [
                     ri < names.length ? names[ri] : '',
-                    if (r['load'] is num) '${t('ui.sol.load')} ${t.number(r['load'] as num)}',
+                    if (r['load'] is num) '${t('ui.sol.amount')} ${t.number(r['load'] as num)}',
                     if (r['distance'] is num) s.valueText(r['distance'] as num),
-                    if (r['duration'] is num) '${t('ui.sol.duration')} ${t.number(r['duration'] as num)} $time',
+                    if (r['start'] is num && r['end'] is num)
+                      '${clock.format(r['start'] as num)} – ${clock.format(r['end'] as num)}',
                   ].join(' · '),
                   style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                 ),
@@ -562,6 +578,74 @@ class _Route extends StatelessWidget {
           ]),
         ],
       ],
+    );
+  }
+}
+
+/// overview of the tours of a vehicle routing: stops, quantity and utilization, distance, times, start and return -
+/// a row per tour and the total
+class _Overview extends StatelessWidget {
+  final AppState state;
+  final List<Map<String, dynamic>> routes;
+  const _Overview({required this.state, required this.routes});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    final clock = s.clock;
+    final names = s.routeNames;
+    final withTimes = routes.any((r) => r['duration'] is num);
+    num total(String key) => routes.fold<num>(0, (sum, r) => sum + (r[key] as num? ?? 0));
+    String percent(num? v) => v == null ? '' : '${t.number(v * 100, decimals: 0)} %';
+    List<String> row(String name, Map<String, dynamic> r) => [
+      name,
+      '${r['stops'] ?? ''}',
+      t.number(r['load'] as num? ?? 0),
+      percent(r['utilization'] as num?),
+      s.valueText(r['distance'] as num? ?? 0),
+      if (withTimes) ...[
+        clock.duration(r['travelTime'] as num? ?? 0),
+        clock.duration(r['waitingTime'] as num? ?? 0),
+        clock.duration(r['serviceTime'] as num? ?? 0),
+        r['start'] is num && r['end'] is num
+            ? '${clock.format(r['start'] as num)} – ${clock.format(r['end'] as num)}'
+            : '',
+      ],
+    ];
+    final capacity = total('capacity');
+    final sum = {
+      'stops': total('stops'),
+      'load': total('load'),
+      'utilization': capacity > 0 ? total('load') / capacity : null,
+      'distance': total('distance'),
+      'travelTime': total('travelTime'),
+      'waitingTime': total('waitingTime'),
+      'serviceTime': total('serviceTime'),
+    };
+    // all columns as wide as their content - scrolls sideways if the data area is narrow
+    return Section(
+      padding: EdgeInsets.zero,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+          columnWidths: const {0: IntrinsicColumnWidth()},
+          defaultColumnWidth: const IntrinsicColumnWidth(),
+          children: [
+            SolutionTab._row(numericFrom: 1, header: true, [
+              t('ui.sol.tourVehicle'),
+              t('ui.sol.stops'),
+              t('ui.sol.amount'),
+              t('ui.sol.utilization'),
+              t('ui.sol.distance'),
+              if (withTimes) ...[t('ui.sol.travelTime'), t('ui.sol.waiting'), t('ui.sol.service'), t('ui.sol.time')],
+            ]),
+            for (final (i, r) in routes.indexed)
+              SolutionTab._row(numericFrom: 1, row(i < names.length ? names[i] : '', r)),
+            if (routes.length > 1) SolutionTab._row(numericFrom: 1, header: true, row(t('ui.sol.total'), sum)),
+          ],
+        ),
+      ),
     );
   }
 }

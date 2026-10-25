@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/backend/backend.dart';
+import 'package:logisticslab_app/model/clock.dart';
 import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
 import 'package:logisticslab_app/modules/modules.dart';
@@ -75,7 +76,7 @@ void main() {
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
   });
 
-  testWidgets('customer mask: demand, service time and the time window in minutes', (tester) async {
+  testWidgets('customer mask: the time window as times of the day', (tester) async {
     MapView.showTiles = false;
     tester.view.physicalSize = const Size(1440, 1800);
     tester.view.devicePixelRatio = 1;
@@ -85,14 +86,44 @@ void main() {
     state.selectNode('B');
     await tester.pumpWidget(LogisticsLabApp(state: state));
     await tester.pump();
-    expect(find.text('Zeitfenster (min)'), findsOneWidget);
-    expect(find.text('frühestens'), findsOneWidget);
+    expect(find.text('Zeitfenster (Uhrzeit)'), findsOneWidget);
     expect(find.text('Servicezeit (min)'), findsOneWidget);
-    // the latest end of Berlin: 240
-    final latest = find.widgetWithText(TextField, '240');
+    // Berlin: 08:00 to 12:00 (480 and 720 minutes)
+    Finder field(String text) => find.byWidgetPredicate((w) => w is TextField && w.controller?.text == text);
+    expect(field('08:00'), findsOneWidget);
+    final latest = field('12:00');
     expect(latest, findsOneWidget);
-    await tester.enterText(latest, '');
+    final input = find.descendant(of: find.byKey(const ValueKey('timeWindow|1')), matching: find.byType(TextField));
+    await tester.enterText(input, '13:30');
     await tester.pump();
-    expect(state.scenario.node('B')!['timeWindow'], [0, null]); // open end
+    expect(state.scenario.node('B')!['timeWindow'], [480, 810]);
+    await tester.enterText(input, '13:3x');
+    await tester.pump();
+    expect(find.textContaining('Uhrzeit wie 08:30'), findsOneWidget);
+    expect(state.scenario.node('B')!['timeWindow'], [480, 810]); // unchanged
+    await tester.enterText(input, '');
+    await tester.pump();
+    expect(state.scenario.node('B')!['timeWindow'], [480, null]); // open end
+    // the depot: start and latest return
+    state.selectNode('D1');
+    await tester.pump();
+    expect(find.text('Einsatzzeit (Start, späteste Rückkehr)'), findsWidgets); // column of the list and field of the mask
+    expect(find.text('07:00 – 18:00'), findsOneWidget); // the list
+    expect(field('07:00'), findsOneWidget);
+    expect(field('18:00'), findsOneWidget);
+  });
+
+  test('clock: times of the day in the time unit of the scenario', () {
+    const min = Clock('min'), h = Clock('h');
+    expect(min.format(510), '08:30');
+    expect(min.format(1500), '01:00 (+1)');
+    expect(min.parse('8:30'), 510);
+    expect(min.parse('08.30'), 510);
+    expect(min.parse('8'), 480);
+    expect(min.parse('25:00'), isNull);
+    expect(min.parse('8:75'), isNull);
+    expect(h.parse('7:30'), 7.5);
+    expect(h.format(7.5), '07:30');
+    expect(min.duration(476.5), '7:57 h');
   });
 }
