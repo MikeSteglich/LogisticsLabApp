@@ -688,8 +688,14 @@ class _Overview extends StatelessWidget {
             t('ui.sol.distance'),
             if (withTimes) ...[t('ui.sol.totalTime'), t('ui.sol.time')],
           ]),
+          // a click: the tour highlighted on the map
           for (final (i, r) in routes.indexed)
-            SolutionTab._row(numericFrom: 1, row(i < names.length ? names[i] : '', r)),
+            SolutionTab._row(
+              numericFrom: 1,
+              selected: i == s.selectedRoute,
+              onTap: () => s.selectRoute(i),
+              row(i < names.length ? names[i] : '', r),
+            ),
           if (routes.length > 1) SolutionTab._row(numericFrom: 1, header: true, row(t('ui.sol.total'), sum)),
         ],
       ),

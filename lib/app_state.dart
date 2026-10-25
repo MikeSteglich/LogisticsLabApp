@@ -307,6 +307,7 @@ class AppState extends ChangeNotifier {
   void setSolutionPart(String? part) {
     solutionPart = part;
     selectedFlow = null; // the indexes of the connections change
+    selectedRoute = null;
     notifyListeners();
   }
 
@@ -459,6 +460,7 @@ class AppState extends ChangeNotifier {
     drawingEdge = false;
     edgeStart = null;
     selectedFlow = null;
+    selectedRoute = null;
     tab = DataTab.nodes;
     placing = false;
     message = null;
@@ -488,6 +490,7 @@ class AppState extends ChangeNotifier {
   void chooseProblem(String name) {
     problemName = name;
     selectedFlow = null;
+    selectedRoute = null;
     solutionPart = null;
     selectedEdge = null;
     drawingEdge = false;
@@ -509,7 +512,22 @@ class AppState extends ChangeNotifier {
   void selectFlow(int? i, {bool showTab = false}) {
     selectedFlow = i == selectedFlow ? null : i; // a second tap removes the highlight
     if (showTab && selectedFlow != null) tab = DataTab.solution;
-    if (selectedFlow != null) selectedEdge = null; // only one highlight on the map
+    if (selectedFlow != null) {
+      selectedEdge = null; // only one highlight on the map
+      selectedRoute = null;
+    }
+    notifyListeners();
+  }
+
+  int? selectedRoute; // a whole tour of the solution (vrp) - all its sections highlighted on the map
+
+  /// a tour of the overview: highlighted on the map, a second tap removes it - instead of a section or an edge
+  void selectRoute(int? r) {
+    selectedRoute = r == selectedRoute ? null : r;
+    if (selectedRoute != null) {
+      selectedFlow = null;
+      selectedEdge = null;
+    }
     notifyListeners();
   }
 
@@ -687,7 +705,10 @@ class AppState extends ChangeNotifier {
   void selectEdge(int? i, {bool showTab = false}) {
     selectedEdge = i;
     if (showTab && i != null) tab = DataTab.network;
-    if (i != null) selectedFlow = null; // only one highlight on the map
+    if (i != null) {
+      selectedFlow = null; // only one highlight on the map
+      selectedRoute = null;
+    }
     notifyListeners();
   }
 
@@ -990,6 +1011,7 @@ class AppState extends ChangeNotifier {
       if (answer.solution != null) {
         solutions[name] = SolutionState(answer.solution!, rev);
         selectedFlow = null;
+        selectedRoute = null;
         if (problemName == name) tab = DataTab.solution;
       }
       message = answer.status == 'solution' ? null : '${strings('ui.status.${answer.status}')}: ${answer.message}';

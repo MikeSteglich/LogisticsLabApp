@@ -218,6 +218,10 @@ void main() {
     await tester.drag(find.byType(ListView).last, const Offset(0, -400));
     await tester.pump();
     await shot('14d-vrp-wide');
+    // a tour of the overview highlighted on the map
+    await tester.tap(find.descendant(of: find.byType(Table), matching: find.text('Tour 2 · LKW2')).first);
+    await shot('14f-vrp-route');
+    state.selectRoute(null);
     // while solving: the cancel button
     state.status = 'running';
     state.notifyListeners();

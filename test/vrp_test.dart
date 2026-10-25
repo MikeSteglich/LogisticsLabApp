@@ -77,6 +77,17 @@ void main() {
     // no waiting at the depot: a tour leaves as late as its first time window needs - with a fixed start all leave
     // at 07:00 and wait at the customers
     expect(routes.any((r) => (r as Map)['start'] as num > 420), isTrue);
+    // a tour of the overview highlighted - a section instead of it, a second tap removes it
+    state.selectRoute(1);
+    expect(state.selectedRoute, 1);
+    final second = legs.indexWhere((l) => l['route'] == 0);
+    state.selectFlow(second);
+    expect(state.selectedRoute, isNull);
+    expect(state.selectedFlow, second);
+    state.selectRoute(0);
+    expect(state.selectedFlow, isNull);
+    state.selectRoute(0);
+    expect(state.selectedRoute, isNull);
     state.edit(() => state.problem!.parameters['fixedStart'] = true);
     await tester.runAsync(state.solve);
     expect(state.message, isNull);
