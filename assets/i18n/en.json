@@ -444,5 +444,6 @@
   "ui.sol.departure": "Departure",
   "ui.sol.wide": "Wide view",
   "ui.sol.narrow": "Map wider again",
-  "ui.col.timeWindow": "Time window"
+  "ui.col.timeWindow": "Time window",
+  "ui.solvingCancel": "Optimisation running – click to cancel"
 }

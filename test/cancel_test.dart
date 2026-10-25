@@ -8,14 +8,43 @@ library;
 
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/backend/backend.dart';
+import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
+import 'package:logisticslab_app/ui/map_view.dart';
+import 'package:logisticslab_app/ui/theme.dart';
 
 void main() {
+  testWidgets('while solving: the cancel button orange with a spinner', (tester) async {
+    MapView.showTiles = false;
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    final state = (await tester.runAsync(AppState.create))!;
+    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
+    state.chooseProblem('Touren ab Wildau');
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    expect(find.widgetWithText(FilledButton, 'Lösen'), findsOneWidget);
+    state.status = 'running';
+    state.notifyListeners();
+    await tester.pump();
+    final cancel = find.widgetWithText(FilledButton, 'Abbrechen');
+    expect(cancel, findsOneWidget);
+    expect(tester.widget<FilledButton>(cancel).style!.backgroundColor!.resolve({}), Ui.warning);
+    expect(find.descendant(of: cancel, matching: find.byType(CircularProgressIndicator)), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Lösen'), findsNothing);
+    state.status = null;
+    state.notifyListeners();
+    await tester.pump();
+  });
+
   testWidgets('cancel a running solver', skip: Platform.environment['LOGLAB_STDIO'] == null, (tester) async {
     SharedPreferences.setMockInitialValues({'language': 'de'});
     final state = (await tester.runAsync(AppState.create))!;

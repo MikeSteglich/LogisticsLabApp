@@ -218,6 +218,12 @@ void main() {
     await tester.drag(find.byType(ListView).last, const Offset(0, -400));
     await tester.pump();
     await shot('14d-vrp-wide');
+    // while solving: the cancel button
+    state.status = 'running';
+    state.notifyListeners();
+    await shot('14e-solving');
+    state.status = null;
+    state.notifyListeners();
     state.toggleWideData();
     state.edit(() => state.problem!.parameters.remove('fixedStart'));
     state.setTab(DataTab.nodes);

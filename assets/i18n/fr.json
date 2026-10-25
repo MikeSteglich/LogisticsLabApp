@@ -444,5 +444,6 @@
   "ui.sol.departure": "Départ",
   "ui.sol.wide": "Vue large",
   "ui.sol.narrow": "Carte à nouveau plus large",
-  "ui.col.timeWindow": "Fenêtre horaire"
+  "ui.col.timeWindow": "Fenêtre horaire",
+  "ui.solvingCancel": "Optimisation en cours – cliquer pour annuler"
 }

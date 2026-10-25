@@ -147,10 +147,19 @@ class _Header extends StatelessWidget {
               ),
               sep,
               if (s.solving)
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.stop_rounded, size: 18),
-                  label: Text(t('ui.cancel')),
-                  onPressed: s.cancel,
+                // the optimisation runs: orange with a spinner - a click cancels it
+                Tooltip(
+                  message: t('ui.solvingCancel'),
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: Ui.warning, foregroundColor: Colors.white),
+                    icon: const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    ),
+                    label: Text(t('ui.cancel')),
+                    onPressed: s.cancel,
+                  ),
                 )
               else
                 FilledButton.icon(
