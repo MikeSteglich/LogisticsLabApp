@@ -209,6 +209,17 @@ void main() {
     await tester.drag(find.byType(ListView).last, const Offset(0, -400));
     await tester.pump();
     await shot('14a-vrp-tables');
+    // fixed start: waiting at the customers - in the wide view
+    state.edit(() => state.problem!.parameters['fixedStart'] = true);
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    state.toggleWideData();
+    await settle(() => false, seconds: 3);
+    await tester.drag(find.byType(ListView).last, const Offset(0, -400));
+    await tester.pump();
+    await shot('14d-vrp-wide');
+    state.toggleWideData();
+    state.edit(() => state.problem!.parameters.remove('fixedStart'));
     state.setTab(DataTab.nodes);
     state.selectNode('B');
     await tester.pump();

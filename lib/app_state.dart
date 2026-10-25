@@ -57,6 +57,20 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// wide view of the data area (large solutions): the map narrow - again: the width before
+  static const wideRatio = 0.3;
+  double? _narrowRatio;
+  bool get wideData => splitRatio <= wideRatio + 0.01;
+
+  void toggleWideData() {
+    if (wideData) {
+      setSplitRatio(_narrowRatio ?? defaultSplitRatio, save: true);
+    } else {
+      _narrowRatio = splitRatio;
+      setSplitRatio(wideRatio, save: true);
+    }
+  }
+
   void setSplitRatio(double v, {bool save = false}) {
     splitRatio = v.clamp(0.25, 0.8);
     if (save) _prefs.setDouble('splitRatio', splitRatio);

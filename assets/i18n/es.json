@@ -440,5 +440,8 @@
   "result.totalWaitingTime": "Espera total",
   "ui.sol.time": "Horario",
   "field.fixedStart": "Todas las rutas salen a la hora de salida del depósito",
-  "field.fixedStart.help": "Si no, cada ruta sale lo más tarde posible para no tener que esperar."
+  "field.fixedStart.help": "Si no, cada ruta sale lo más tarde posible para no tener que esperar.",
+  "ui.sol.departure": "Salida",
+  "ui.sol.wide": "Vista amplia",
+  "ui.sol.narrow": "Mapa más ancho de nuevo"
 }

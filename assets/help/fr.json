@@ -63,7 +63,7 @@
   "id": "solution",
   "title": "Lire la solution",
   "keywords": "solution résultat objectif indicateur liaisons utilisation produit mode périmée llsol enregistrer",
-  "body": "- L’indicateur de l’objectif a un cadre bleu.\n- Le tableau montre les liaisons avec quantité, taux de coût, coûts et utilisation ; pour les tournées, les tronçons avec longueur et « cumulé ». Un clic met la liaison en évidence en orange sur la carte.\n- Pour les problèmes multiproduits et multimodaux, « Produit : » ou « Mode : » en affiche un seul.\n- La liste des nœuds montre la cible, le réel, la part ou l’utilisation et les partenaires. Les filtres trouvent par exemple la demande non couverte ou les nœuds pleinement utilisés.\n- Si les données changent, la solution est marquée comme périmée. « Enregistrer en .llsol » sauvegarde la solution."
+  "body": "- L’indicateur de l’objectif a un cadre bleu.\n- Le tableau montre les liaisons avec quantité, taux de coût, coûts et utilisation ; pour les tournées, les tronçons avec longueur et « cumulé ». Un clic met la liaison en évidence en orange sur la carte.\n- Pour les problèmes multiproduits et multimodaux, « Produit : » ou « Mode : » en affiche un seul.\n- La liste des nœuds montre la cible, le réel, la part ou l’utilisation et les partenaires. Les filtres trouvent par exemple la demande non couverte ou les nœuds pleinement utilisés.\n- Si les données changent, la solution est marquée comme périmée. « Enregistrer en .llsol » sauvegarde la solution.\n- L’icône à côté de « Solution » active la **vue large** : la zone de données s’élargit, la carte se rétrécit – pour les grandes solutions comme les tournées de véhicules. Un second clic rétablit la largeur. Les tableaux larges défilent latéralement."
  },
  {
   "id": "map",

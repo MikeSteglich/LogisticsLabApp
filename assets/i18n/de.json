@@ -440,5 +440,8 @@
   "result.totalWaitingTime": "Wartezeit gesamt",
   "ui.sol.time": "Zeit",
   "field.fixedStart": "Alle Touren beginnen zur Startzeit des Depots",
-  "field.fixedStart.help": "Sonst fährt jede Tour so spät los, dass nicht gewartet werden muss."
+  "field.fixedStart.help": "Sonst fährt jede Tour so spät los, dass nicht gewartet werden muss.",
+  "ui.sol.departure": "Abfahrt",
+  "ui.sol.wide": "Breite Ansicht",
+  "ui.sol.narrow": "Karte wieder breiter"
 }

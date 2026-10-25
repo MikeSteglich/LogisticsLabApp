@@ -106,6 +106,13 @@ class SolutionTab extends StatelessWidget {
           spacing: 8,
           children: [
             Text(t('ui.tab.solution'), style: Ui.title),
+            // wide view: the data area wide, the map narrow - for large solutions
+            IconButton(
+              tooltip: t(s.wideData ? 'ui.sol.narrow' : 'ui.sol.wide'),
+              icon: Icon(s.wideData ? Icons.close_fullscreen : Icons.open_in_full, size: 18),
+              visualDensity: VisualDensity.compact,
+              onPressed: s.toggleWideData,
+            ),
             Text(
               t('ui.status.${sol.status}'),
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: ok ? Ui.ok : Ui.error),
@@ -493,15 +500,26 @@ class _Route extends StatelessWidget {
     final withArrivals = legs.any((a) => a['arrival'] != null);
     final withWaiting = legs.any((a) => (a['waiting'] as num? ?? 0) > 0.5);
     final clock = s.clock;
+    // vehicle routing with times: the schedule of every section as in LogisticsLab 5
+    final schedule = legs.any((a) => a['departure'] != null);
     Widget table(List<(int, Map<String, dynamic>)> part) {
       var sum = 0.0;
-      return Section(
-        padding: EdgeInsets.zero,
-        child: Table(
-          columnWidths: const {1: FlexColumnWidth(3), 2: FlexColumnWidth(3)},
-          defaultColumnWidth: const IntrinsicColumnWidth(),
-          children: [
-            SolutionTab._row(numericFrom: 3, header: true, [
+      String duration(Object? v) => v is num && v > 0.5 ? clock.duration(v) : '';
+      String time(Object? v) => v is num ? clock.format(v) : '';
+      final head = schedule
+          ? [
+              t('ui.sol.leg'),
+              t('ui.sol.from'),
+              t('ui.sol.to'),
+              t('ui.sol.departure'),
+              t('ui.sol.travelTime'),
+              t('ui.sol.waiting'),
+              t('ui.sol.arrival'),
+              t('ui.sol.service'),
+              t('ui.sol.amount'),
+              t('ui.sol.distance'),
+            ]
+          : [
               t('ui.sol.leg'),
               t('ui.sol.from'),
               t('ui.sol.to'),
@@ -511,20 +529,44 @@ class _Route extends StatelessWidget {
               if (withArrivals) t('ui.sol.arrival'),
               if (withWaiting) t('ui.sol.waiting'),
               if (withPasses) t('ui.sol.passes'),
-            ]),
+            ];
+      List<String> cells(Map<String, dynamic> a, num v) => schedule
+          ? [
+              '${a['leg']}',
+              name(a['from']),
+              name(a['to']),
+              time(a['departure']),
+              duration(a['travel']),
+              duration(a['waiting']),
+              time(a['arrival']),
+              duration(a['service']),
+              (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
+              s.valueText(v),
+            ]
+          : [
+              '${a['leg']}',
+              name(a['from']),
+              [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
+              if (withAmounts) (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
+              s.valueText(v),
+              s.valueText(sum += v),
+              if (withArrivals) time(a['arrival']),
+              if (withWaiting) duration(a['waiting']),
+              if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
+            ];
+      return Section(
+        padding: EdgeInsets.zero,
+        child: WideTable(
+          rows: [
+            SolutionTab._row(numericFrom: 3, header: true, head),
             for (final (i, a) in part)
               if (a['value'] case final num v)
-                SolutionTab._row(numericFrom: 3, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
-                  '${a['leg']}',
-                  name(a['from']),
-                  [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
-                  if (withAmounts) (a['amount'] as num? ?? 0) > 0 ? t.number(a['amount'] as num) : '',
-                  s.valueText(v),
-                  s.valueText(sum += v),
-                  if (withArrivals) a['arrival'] is num ? clock.format(a['arrival'] as num) : '',
-                  if (withWaiting) (a['waiting'] as num? ?? 0) > 0.5 ? clock.duration(a['waiting'] as num) : '',
-                  if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
-                ]),
+                SolutionTab._row(
+                  numericFrom: 3,
+                  selected: i == s.selectedFlow,
+                  onTap: () => s.selectFlow(i),
+                  cells(a, v),
+                ),
           ],
         ),
       );
@@ -619,28 +661,23 @@ class _Overview extends StatelessWidget {
       'distance': total('distance'),
       'travelTime': total('travelTime'),
     };
-    // all columns as wide as their content - scrolls sideways if the data area is narrow
+    // the whole width - scrolls sideways if the data area is narrow
     return Section(
       padding: EdgeInsets.zero,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Table(
-          columnWidths: const {0: IntrinsicColumnWidth()},
-          defaultColumnWidth: const IntrinsicColumnWidth(),
-          children: [
-            SolutionTab._row(numericFrom: 1, header: true, [
-              t('ui.sol.tourVehicle'),
-              t('ui.sol.stops'),
-              t('ui.sol.amount'),
-              t('ui.sol.utilization'),
-              t('ui.sol.distance'),
-              if (withTimes) ...[t('ui.sol.travelTime'), t('ui.sol.time')],
-            ]),
-            for (final (i, r) in routes.indexed)
-              SolutionTab._row(numericFrom: 1, row(i < names.length ? names[i] : '', r)),
-            if (routes.length > 1) SolutionTab._row(numericFrom: 1, header: true, row(t('ui.sol.total'), sum)),
-          ],
-        ),
+      child: WideTable(
+        rows: [
+          SolutionTab._row(numericFrom: 1, header: true, [
+            t('ui.sol.tourVehicle'),
+            t('ui.sol.stops'),
+            t('ui.sol.amount'),
+            t('ui.sol.utilization'),
+            t('ui.sol.distance'),
+            if (withTimes) ...[t('ui.sol.travelTime'), t('ui.sol.time')],
+          ]),
+          for (final (i, r) in routes.indexed)
+            SolutionTab._row(numericFrom: 1, row(i < names.length ? names[i] : '', r)),
+          if (routes.length > 1) SolutionTab._row(numericFrom: 1, header: true, row(t('ui.sol.total'), sum)),
+        ],
       ),
     );
   }

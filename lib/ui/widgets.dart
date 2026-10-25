@@ -565,6 +565,47 @@ class FieldGrid extends StatelessWidget {
   );
 }
 
+/// A table over the whole available width: its columns as wide as their content and the rest shared out - wider
+/// than the space it scrolls sideways with a scroll bar.
+class WideTable extends StatefulWidget {
+  final List<TableRow> rows;
+  final Map<int, TableColumnWidth> columnWidths;
+  const WideTable({super.key, required this.rows, this.columnWidths = const {}});
+
+  @override
+  State<WideTable> createState() => _WideTableState();
+}
+
+class _WideTableState extends State<WideTable> {
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, c) => Scrollbar(
+      controller: _scroll,
+      child: SingleChildScrollView(
+        controller: _scroll,
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          // at least the whole width - the table shares the rest out among its columns
+          constraints: BoxConstraints(minWidth: c.maxWidth),
+          child: Table(
+            columnWidths: widget.columnWidths,
+            defaultColumnWidth: const IntrinsicColumnWidth(flex: 1),
+            children: widget.rows,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 class Section extends StatelessWidget {
   final Widget child;
   final EdgeInsets padding;

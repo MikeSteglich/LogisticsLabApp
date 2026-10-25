@@ -440,5 +440,8 @@
   "result.totalWaitingTime": "Total waiting",
   "ui.sol.time": "Time",
   "field.fixedStart": "All tours start at the start time of the depot",
-  "field.fixedStart.help": "Otherwise each tour leaves as late as possible so that it does not have to wait."
+  "field.fixedStart.help": "Otherwise each tour leaves as late as possible so that it does not have to wait.",
+  "ui.sol.departure": "Departure",
+  "ui.sol.wide": "Wide view",
+  "ui.sol.narrow": "Map wider again"
 }

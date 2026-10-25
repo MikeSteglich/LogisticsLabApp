@@ -63,7 +63,7 @@
   "id": "solution",
   "title": "Leer la solución",
   "keywords": "solución resultado objetivo indicador conexiones utilización producto medio desactualizada llsol guardar",
-  "body": "- El indicador del objetivo tiene un marco azul.\n- La tabla muestra las conexiones con cantidad, tasa de coste, costes y utilización; en los recorridos, los tramos con longitud y «acumulado». Un clic resalta la conexión en naranja en el mapa.\n- En los problemas multiproducto y multimodales, «Producto:» o «Medio:» muestra uno solo.\n- La lista de nodos muestra el objetivo, el valor real, la proporción o la utilización y los socios. Los filtros encuentran, por ejemplo, la demanda no cubierta o los nodos plenamente utilizados.\n- Si cambian los datos, la solución se marca como desactualizada. «Guardar como .llsol» guarda la solución."
+  "body": "- El indicador del objetivo tiene un marco azul.\n- La tabla muestra las conexiones con cantidad, tasa de coste, costes y utilización; en los recorridos, los tramos con longitud y «acumulado». Un clic resalta la conexión en naranja en el mapa.\n- En los problemas multiproducto y multimodales, «Producto:» o «Medio:» muestra uno solo.\n- La lista de nodos muestra el objetivo, el valor real, la proporción o la utilización y los socios. Los filtros encuentran, por ejemplo, la demanda no cubierta o los nodos plenamente utilizados.\n- Si cambian los datos, la solución se marca como desactualizada. «Guardar como .llsol» guarda la solución.\n- El icono junto a «Solución» activa la **vista amplia**: el área de datos se ensancha y el mapa se estrecha, para soluciones grandes como la planificación de rutas. Un segundo clic restablece el ancho. Las tablas anchas se desplazan lateralmente."
  },
  {
   "id": "map",

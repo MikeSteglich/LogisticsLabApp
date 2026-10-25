@@ -63,7 +63,7 @@
   "id": "solution",
   "title": "Reading the solution",
   "keywords": "solution result objective key figure connections utilisation commodity mode stale llsol save",
-  "body": "- The key figure of the objective has a blue frame.\n- The table shows the connections with quantity, cost rate, costs and utilisation, for tours the sections with length and “so far”. A click highlights the connection on the map in orange.\n- For multicommodity and multimodal problems “Commodity:” or “Mode:” shows a single one.\n- The node list shows target, actual, share or utilisation and the partners. Filters find, for example, unmet demand or fully used nodes.\n- When the data changes, the solution is marked as out of date. “Save as .llsol” stores the solution."
+  "body": "- The key figure of the objective has a blue frame.\n- The table shows the connections with quantity, cost rate, costs and utilisation, for tours the sections with length and “so far”. A click highlights the connection on the map in orange.\n- For multicommodity and multimodal problems “Commodity:” or “Mode:” shows a single one.\n- The node list shows target, actual, share or utilisation and the partners. Filters find, for example, unmet demand or fully used nodes.\n- When the data changes, the solution is marked as out of date. “Save as .llsol” stores the solution.\n- The icon beside “Solution” switches on the **wide view**: the data area becomes wide, the map narrow – for large solutions such as vehicle routing. A second click restores the width. Wide tables scroll sideways."
  },
  {
   "id": "map",
