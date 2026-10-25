@@ -420,5 +420,6 @@
   "ui.sol.tour": "Ruta {n}",
   "ui.sol.load": "Carga",
   "ui.sol.duration": "Duración",
-  "ui.sol.arrival": "Llegada"
+  "ui.sol.arrival": "Llegada",
+  "hint.auto": "automático"
 }

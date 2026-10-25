@@ -57,7 +57,7 @@
   "id": "vrp",
   "title": "Tourenplanung (VRP)",
   "keywords": "tourenplanung vrp fahrzeug fahrzeuge depot kunden kapazität zeitfenster servicezeit höchstdauer höchststrecke touren",
-  "body": "Die Fahrzeuge fahren vom Depot zu den Kunden und zurück. Gesucht sind Touren mit möglichst kurzer Gesamtstrecke.\n\n- **Knoten:** genau ein Knoten mit der Rolle Depot, die Kunden mit Nachfrage, Servicezeit und – wenn eingeschaltet – Zeitfenster (frühestens, spätestens).\n- **Fahrzeuge** legst du im Tab Parameter an: Kapazität und Anzahl gleicher Fahrzeuge.\n- **Optionen:** Zeitfenster beachten, Höchstdauer und Höchststrecke je Tour.\n- **Lösung:** jede Tour in einer eigenen Farbe; die Tabelle zeigt je Tour Fahrzeug, Last, Länge und Dauer, die Abschnitte und – mit Zeiten – die Ankunft.\n\nPasst die Nachfrage eines Kunden in kein Fahrzeug, meldet die App das vor dem Lösen."
+  "body": "Die Fahrzeuge fahren vom Depot zu den Kunden und zurück. Gesucht sind Touren mit möglichst kurzer Gesamtstrecke.\n\n- **Knoten:** genau ein Knoten mit der Rolle Depot, die Kunden mit Nachfrage, Servicezeit und – wenn eingeschaltet – Zeitfenster (frühestens, spätestens).\n- **Fahrzeuge** legst du im Tab Parameter an: Kapazität und Anzahl gleicher Fahrzeuge. Bleibt die Anzahl leer, rechnet die App mit so wenigen Touren wie möglich und erst danach mit der kürzesten Strecke.\n- **Optionen:** Zeitfenster beachten, Höchstdauer und Höchststrecke je Tour.\n- **Lösung:** jede Tour in einer eigenen Farbe; die Tabelle zeigt je Tour Fahrzeug, Last, Länge und Dauer, die Abschnitte und – mit Zeiten – die Ankunft.\n\nPasst die Nachfrage eines Kunden in kein Fahrzeug, meldet die App das vor dem Lösen."
  },
  {
   "id": "solution",

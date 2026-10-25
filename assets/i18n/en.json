@@ -420,5 +420,6 @@
   "ui.sol.tour": "Tour {n}",
   "ui.sol.load": "Load",
   "ui.sol.duration": "Duration",
-  "ui.sol.arrival": "Arrival"
+  "ui.sol.arrival": "Arrival",
+  "hint.auto": "automatic"
 }

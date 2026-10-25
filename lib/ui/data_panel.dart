@@ -236,7 +236,8 @@ List<Widget> _pairedNodes(List<FieldSpec> fields, Widget Function(FieldSpec) fie
 const _vehicleFields = [
   FieldSpec('name', FieldKind.text),
   FieldSpec('capacity', FieldKind.number, required: true, min: 0),
-  FieldSpec('count', FieldKind.integer, min: 1, defaultValue: 1),
+  // empty: as many as needed - the solver uses as few tours as possible
+  FieldSpec('count', FieldKind.integer, min: 1, hint: 'hint.auto'),
 ];
 const _commodityFields = [
   FieldSpec('name', FieldKind.text),

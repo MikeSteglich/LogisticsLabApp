@@ -47,6 +47,7 @@ class FieldSpec {
   final FieldKind kind;
   final String? labelKey; // default field.<key>
   final String? unit;
+  final String? hint; // key of the text in an empty field, e.g. hint.auto
   final Object? defaultValue;
   final List<String> choices; // values of FieldKind.choice - labels choice.<key>.<value>
   final bool required;
@@ -59,6 +60,7 @@ class FieldSpec {
     this.kind, {
     this.labelKey,
     this.unit,
+    this.hint,
     this.defaultValue,
     this.choices = const [],
     this.required = false,

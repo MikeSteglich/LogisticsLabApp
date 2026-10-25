@@ -512,7 +512,7 @@ class SpecField extends StatelessWidget {
           strings: s,
           unit: _unit(spec.unit),
           decimals: spec.kind == FieldKind.integer ? 0 : 6,
-          hint: spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null,
+          hint: spec.hint != null ? s(spec.hint!) : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null),
           help: s.has(spec.help) ? s(spec.help) : null,
           check: (v) => spec.validate(v),
           onChanged: onChanged,

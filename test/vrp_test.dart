@@ -57,7 +57,10 @@ void main() {
     await tester.runAsync(state.solve);
     expect(state.message, isNull);
     final routes = state.solution!.results!['routes'] as List;
-    expect(routes.length, 2); // 2 trucks of 60 for a demand of 100
+    // no number of trucks: as few tours as possible - a demand of 100 needs 2 trucks of 60
+    expect(state.scenario.vehicles.single.containsKey('count'), isFalse);
+    expect(routes.length, 2);
+    expect((state.solution!.results!['summary'] as Map)['nrOfVehicles'], isNull);
     expect(state.routeNames, ['Tour 1 · LKW1', 'Tour 2 · LKW2']);
     final legs = state.connections;
     expect({for (final l in legs) l['route']}, {0, 1});
