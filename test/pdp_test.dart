@@ -90,8 +90,11 @@ void main() {
     (tester) async {
       final state = await _state(tester);
       await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      // the tours named after the name of the vehicle - not its id
+      state.edit(() => state.scenario.vehicles.single['name'] = 'Sprinter');
       await tester.runAsync(state.solve);
       expect(state.message, isNull);
+      expect(state.routeNames.first, 'Tour 1 · Sprinter1');
       final routes = (state.solution!.results!['routes'] as List).cast<Map>();
       expect(routes, isNotEmpty);
       final pairs = {

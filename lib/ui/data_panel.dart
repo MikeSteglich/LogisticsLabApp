@@ -321,13 +321,23 @@ class _Records extends StatelessWidget {
                     columns: 3,
                     children: [
                       for (final f in fields)
-                        SpecField(
-                          key: ValueKey('${identityHashCode(r)}|${f.key}|${t.language}'),
-                          spec: f,
-                          value: r[f.key],
-                          strings: t,
-                          onChanged: (v) => s.edit(() => v == null || v == '' ? r.remove(f.key) : r[f.key] = v),
-                        ),
+                        if (f.key == 'name')
+                          // the name shown in the solution - empty: the id
+                          TextValueField(
+                            key: ValueKey('${identityHashCode(r)}|name|${t.language}'),
+                            label: t(f.label),
+                            value: r['name'] as String? ?? '',
+                            hint: '${r['id']}',
+                            onChanged: (v) => s.edit(() => v.trim().isEmpty ? r.remove('name') : r['name'] = v),
+                          )
+                        else
+                          SpecField(
+                            key: ValueKey('${identityHashCode(r)}|${f.key}|${t.language}'),
+                            spec: f,
+                            value: r[f.key],
+                            strings: t,
+                            onChanged: (v) => s.edit(() => v == null || v == '' ? r.remove(f.key) : r[f.key] = v),
+                          ),
                     ],
                   ),
                 ],
