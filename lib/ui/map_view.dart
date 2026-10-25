@@ -277,6 +277,7 @@ class _MapViewState extends State<MapView> {
               // quantity - the number of the section of a tour
               label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
               selected: i == s.selectedFlow,
+              repeated: a['passes'] != null,
             ),
     ];
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
@@ -297,16 +298,27 @@ class _MapViewState extends State<MapView> {
   List<Polyline<int>> _solutionLines() {
     final stale = s.solutionIsStale;
     return [
-      for (final f in _flows())
+      for (final f in _flows()) ...[
         Polyline(
           hitValue: f.index,
           points: f.points,
           // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
           color: f.selected ? Ui.highlight : (stale ? Ui.accent.withValues(alpha: 0.4) : Ui.accent),
-          strokeWidth: f.selected ? 6 : 3.5,
+          strokeWidth: f.selected ? 6 : (f.repeated ? 6 : 3.5),
           strokeCap: StrokeCap.round,
           strokeJoin: StrokeJoin.round,
         ),
+        // an edge traversed more than once: a double line - white in the middle
+        if (f.repeated)
+          Polyline(
+            hitValue: f.index,
+            points: f.points,
+            color: Colors.white,
+            strokeWidth: 2,
+            strokeCap: StrokeCap.round,
+            strokeJoin: StrokeJoin.round,
+          ),
+      ],
     ];
   }
 
@@ -589,7 +601,11 @@ class _MapViewState extends State<MapView> {
       // section of a tour
       return (
         '$leg. ${_name('${a['from']}')} → ${_name('${a['to']}')}',
-        [if (a['value'] is num) s.valueText(a['value'] as num), s.via(a)].where((x) => x.isNotEmpty).join(' · '),
+        [
+          if (a['value'] is num) s.valueText(a['value'] as num),
+          s.via(a),
+          if (a['passes'] != null) t('ui.sol.passOf', {'pass': a['pass'], 'passes': a['passes']}),
+        ].where((x) => x.isNotEmpty).join(' · '),
       );
     }
     final flow = a['flow'] as num, rate = a['rate'] as num?;
@@ -772,6 +788,17 @@ class _MapViewState extends State<MapView> {
               t(
                 const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
               ),
+            ),
+          if (_showSolution && s.connections.any((c) => c['passes'] != null))
+            item(
+              Container(
+                width: 18,
+                height: 6,
+                decoration: BoxDecoration(color: Ui.accent, borderRadius: BorderRadius.circular(3)),
+                alignment: Alignment.center,
+                child: Container(height: 2, color: Colors.white),
+              ),
+              t('ui.sol.repeated'),
             ),
           item(
             CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),
@@ -1023,7 +1050,7 @@ class _LabelLayer extends StatelessWidget {
   }
 }
 
-typedef _Flow = ({int index, List<LatLng> points, String label, bool selected});
+typedef _Flow = ({int index, List<LatLng> points, String label, bool selected, bool repeated});
 
 /// pie of a share inside a ring - a customer and the part of its demand that is met
 class _PiePainter extends CustomPainter {

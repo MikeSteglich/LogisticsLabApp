@@ -189,6 +189,17 @@ void main() {
     state.setTab(DataTab.solution);
     await settle(() => false, seconds: 4);
     await shot('11-shortest-path');
+    // chinese postman: the dead ends traversed twice - double lines
+    state.newProblem('cpp');
+    state.chooseNetwork('supply');
+    state.edit(() {
+      state.network!.directed = false;
+      state.problem!.parameters['startNode'] = 'W';
+    });
+    await tester.runAsync(state.solve);
+    state.setTab(DataTab.solution);
+    await settle(() => false, seconds: 4);
+    await shot('13-cpp');
     // help window with a search
     showHelp(tester.element(find.byType(MainScreen)), state, query: 'Rundreise');
     await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 200)));

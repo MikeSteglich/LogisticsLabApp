@@ -391,5 +391,8 @@
   "result.edgesLength": "Longitud de todas las aristas",
   "result.extraLength": "Recorrido adicional",
   "result.nrOfEdges": "Aristas",
-  "result.nrOfRepeats": "Recorridas de nuevo"
+  "result.nrOfRepeats": "Recorridas de nuevo",
+  "ui.sol.passes": "Recorrido",
+  "ui.sol.passOf": "recorrido {pass} de {passes} por esta arista",
+  "ui.sol.repeated": "Recorrida varias veces"
 }

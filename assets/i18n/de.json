@@ -391,5 +391,8 @@
   "result.edgesLength": "Länge aller Kanten",
   "result.extraLength": "Zusätzliche Wege",
   "result.nrOfEdges": "Kanten",
-  "result.nrOfRepeats": "Mehrfach befahren"
+  "result.nrOfRepeats": "Mehrfach befahren",
+  "ui.sol.passes": "Befahren",
+  "ui.sol.passOf": "{pass}. von {passes} Fahrten über diese Kante",
+  "ui.sol.repeated": "Mehrfach befahren"
 }

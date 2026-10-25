@@ -57,6 +57,12 @@ void main() {
     }
     final summary = state.solution!.results!['summary'] as Map;
     expect(summary['nrOfRepeats'], 3); // Cottbus, Frankfurt, Potsdam: dead ends
+    // the sections over the dead ends: traversed twice - pass 1/2 and 2/2
+    final repeated = legs.where((l) => l['passes'] != null).toList();
+    expect(repeated.length, 6);
+    final toCottbus = repeated.where((l) => l['from'] == 'C' || l['to'] == 'C').toList();
+    expect([for (final l in toCottbus) '${l['pass']}/${l['passes']}'], ['1/2', '2/2']);
+    expect(legs.where((l) => l['from'] == 'W' && l['passes'] != null), isEmpty);
     expect(summary['tourLength'], closeTo((summary['edgesLength'] as num) + (summary['extraLength'] as num), 1e-6));
 
     // directed edges without a way back: refused with a message

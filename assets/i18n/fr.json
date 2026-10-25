@@ -391,5 +391,8 @@
   "result.edgesLength": "Longueur de tous les arcs",
   "result.extraLength": "Trajets supplémentaires",
   "result.nrOfEdges": "Arcs",
-  "result.nrOfRepeats": "Parcourus à nouveau"
+  "result.nrOfRepeats": "Parcourus à nouveau",
+  "ui.sol.passes": "Passage",
+  "ui.sol.passOf": "passage {pass} sur {passes} par cet arc",
+  "ui.sol.repeated": "Parcouru plusieurs fois"
 }

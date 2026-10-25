@@ -391,5 +391,8 @@
   "result.edgesLength": "Length of all edges",
   "result.extraLength": "Extra distance",
   "result.nrOfEdges": "Edges",
-  "result.nrOfRepeats": "Traversed again"
+  "result.nrOfRepeats": "Traversed again",
+  "ui.sol.passes": "Traversal",
+  "ui.sol.passOf": "traversal {pass} of {passes} over this edge",
+  "ui.sol.repeated": "Traversed more than once"
 }

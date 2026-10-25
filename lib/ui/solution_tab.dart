@@ -480,6 +480,8 @@ class _Route extends StatelessWidget {
     final t = s.strings;
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
     var sum = 0.0;
+    // chinese postman: the sections over edges traversed more than once
+    final withPasses = s.connections.any((a) => a['passes'] != null);
     return Section(
       padding: EdgeInsets.zero,
       child: Table(
@@ -492,6 +494,7 @@ class _Route extends StatelessWidget {
             t('ui.sol.to'),
             t('ui.sol.legValue'),
             t('ui.sol.cumulated'),
+            if (withPasses) t('ui.sol.passes'),
           ]),
           for (final (i, a) in s.connections.indexed)
             if (a['value'] case final num v)
@@ -501,6 +504,7 @@ class _Route extends StatelessWidget {
                 [name(a['to']), s.via(a)].where((x) => x.isNotEmpty).join('\n'),
                 s.valueText(v),
                 s.valueText(sum += v),
+                if (withPasses) a['passes'] == null ? '' : '${a['pass']}/${a['passes']}',
               ]),
         ],
       ),

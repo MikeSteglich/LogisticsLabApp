@@ -7,6 +7,8 @@
 /// capacity.
 library;
 
+import 'dart:math' as math;
+
 import '../modules/modules.dart';
 import 'scenario.dart';
 
@@ -153,10 +155,28 @@ class SolutionAnalysis {
   static List<Map<String, dynamic>> connectionsOf(Map<String, dynamic>? results, [String? part]) {
     // tours: their sections in order - leg: number of the section, value: its length (distance, time, costs)
     if (results?['routes'] case final List routes) {
+      // chinese postman: how often each edge is traversed - a section over an edge traversed more than once gets
+      // its pass and their number ("2/3")
+      final usages = <String, int>{};
+      for (final e in ((results?['edges'] as List?) ?? const []).cast<Map<String, dynamic>>()) {
+        if (e['usages'] case final num u) {
+          for (final key in ['${e['from']}|${e['to']}', '${e['to']}|${e['from']}']) {
+            usages[key] = math.max(usages[key] ?? 0, u.toInt());
+          }
+        }
+      }
+      final passes = <String, int>{};
       return [
         for (final r in routes.cast<Map<String, dynamic>>())
           for (final (k, l) in ((r['legs'] as List?) ?? const []).cast<Map<String, dynamic>>().indexed)
-            {...l, 'leg': k + 1},
+            {
+              ...l,
+              'leg': k + 1,
+              if ((usages['${l['from']}|${l['to']}'] ?? 0) > 1) ...{
+                'passes': usages['${l['from']}|${l['to']}'],
+                'pass': passes.update(_pair(l), (n) => n + 1, ifAbsent: () => 1),
+              },
+            },
       ];
     }
     final all = ((results?['assignments'] ?? results?['edges']) as List? ?? const []).cast<Map<String, dynamic>>();
@@ -172,6 +192,10 @@ class SolutionAnalysis {
           },
     ];
   }
+
+  /// the edge of a section - both directions alike
+  static String _pair(Map<String, dynamic> leg) =>
+      ([leg['from'], leg['to']]..sort((a, b) => '$a'.compareTo('$b'))).join('|');
 
   NodeUse? use(String id) => uses.where((u) => u.node.id == id).firstOrNull;
 
