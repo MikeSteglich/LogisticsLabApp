@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../app_log.dart';
 import '../app_state.dart';
 import '../backend/backend.dart';
 import '../model/scenario.dart';
@@ -89,37 +90,47 @@ class FileOps {
 
   Future<void> _import(XFile file) async {
     final t = state.strings;
+    appLog('import ${file.name}: chosen');
     // formats of LogisticsLab 4 (TPP, ...): planar coordinates and own matrices - not convertible
     final ext = file.name.split('.').last.toUpperCase();
     if (AppState.legacyFormats.contains(ext)) {
       await _error(t('ui.error.legacy', {'file': file.name, 'ext': ext}));
       return;
     }
-    final bytes = await file.readAsBytes();
-    // the old files are UTF-8 or Latin-1
-    String text;
-    try {
-      text = utf8.decode(bytes);
-    } on FormatException {
-      text = latin1.decode(bytes);
-    }
-    // the app is blocked while the core starts and converts
     if (!context.mounted) return;
+    // the dialog first - reading, starting the core and converting follow once it is shown
     try {
       final converted = await busy(
         context,
         t('ui.importing', {'file': file.name}),
-        () => state.convertOld(file.name, text),
+        () async {
+          appLog('import ${file.name}: dialog shown');
+          final bytes = await file.readAsBytes();
+          // the old files are UTF-8 or Latin-1
+          String text;
+          try {
+            text = utf8.decode(bytes);
+          } on FormatException {
+            text = latin1.decode(bytes);
+          }
+          appLog('import ${file.name}: read ${bytes.length} bytes');
+          final r = await state.convertOld(file.name, text);
+          appLog('import ${file.name}: converted');
+          return r;
+        },
         cancelLabel: t('ui.cancel'),
         onCancel: state.resetBackend, // the solver may hang - the next request starts a new one
       );
       if (converted == null) return; // cancelled
       state.openImported(converted.$1, converted.$2);
+      appLog('import ${file.name}: opened');
       _snack(t('ui.imported', {'file': file.name}));
     } on BackendException catch (e) {
+      appLog('import ${file.name}: error $e');
       if (e.httpStatus == 504) unawaited(state.resetBackend()); // no answer - restart the solver
       await _error(e.outdated ? t('ui.error.outdated') : t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     } catch (e) {
+      appLog('import ${file.name}: error $e');
       await _error(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     }
   }

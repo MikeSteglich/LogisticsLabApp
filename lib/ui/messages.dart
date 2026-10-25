@@ -5,6 +5,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../i18n/strings.dart';
 import 'theme.dart';
@@ -91,21 +92,25 @@ Future<T?> busy<T>(
       ),
     ),
   );
-  work().then(
-    (v) async {
-      if (result.isCompleted) return; // cancelled - the result is dropped
-      await rest();
-      if (result.isCompleted) return;
-      close();
-      result.complete(v);
-    },
-    onError: (Object e, StackTrace st) async {
-      if (result.isCompleted) return;
-      await rest();
-      if (result.isCompleted) return;
-      close();
-      result.completeError(e, st);
-    },
-  );
+  // the work starts once the dialog is on the screen - a slow first step (reading, starting the core) does not
+  // hold it back
+  SchedulerBinding.instance.endOfFrame
+      .then((_) => work())
+      .then(
+        (v) async {
+          if (result.isCompleted) return; // cancelled - the result is dropped
+          await rest();
+          if (result.isCompleted) return;
+          close();
+          result.complete(v);
+        },
+        onError: (Object e, StackTrace st) async {
+          if (result.isCompleted) return;
+          await rest();
+          if (result.isCompleted) return;
+          close();
+          result.completeError(e, st);
+        },
+      );
   return result.future;
 }
