@@ -38,7 +38,8 @@ void main() {
     });
     for (final p in state.scenario.problems) {
       final spec = modules[p.type];
-      if (spec == null || spec.type == 'tsp') continue; // a tour needs no quantities
+      // tours and ways need no quantities
+      if (spec == null || const ['tsp', 'cpp', 'shortestpath'].contains(spec.type)) continue;
       state.chooseProblem(p.name);
       expect(state.nodeProblems, isNotEmpty, reason: p.name);
       expect(state.nodeProblems.join(), anyOf(contains('Angebot'), contains('Nachfrage')), reason: p.name);

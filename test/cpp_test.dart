@@ -72,4 +72,29 @@ void main() {
     expect(state.message, contains('back to the start'));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
   });
+
+  testWidgets(
+    'the example: street cleaning and the way to Cottbus',
+    skip: Platform.environment['LOGLAB_STDIO'] == null,
+    (tester) async {
+      final state = await _state(tester);
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      state.chooseProblem('Straßenreinigung ab Wildau');
+      await tester.runAsync(state.solve);
+      expect(state.message, isNull);
+      final legs = state.connections;
+      expect(legs.first['from'], 'D1');
+      expect(legs.last['to'], 'D1');
+      // the one-way street Berlin -> Wildau only in its direction
+      expect(legs.any((l) => l['from'] == 'D1' && l['to'] == 'B'), isFalse);
+      expect(legs.any((l) => l['from'] == 'B' && l['to'] == 'D1'), isTrue);
+
+      state.chooseProblem('Weg nach Cottbus');
+      await tester.runAsync(state.solve);
+      expect(state.message, isNull);
+      expect(state.connections.first['from'], 'D2');
+      expect(state.connections.last['to'], 'C');
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
+    },
+  );
 }

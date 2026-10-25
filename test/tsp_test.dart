@@ -96,7 +96,7 @@ void main() {
     addTearDown(tester.view.reset);
     final state = await _state(tester);
     state.newProblem('tsp');
-    state.newNetwork('Straßen', directed: false);
+    state.newNetwork('Wege', directed: false);
     expect(state.addEdge('W', 'B'), isTrue);
     final net = state.network!;
     final e = net.edges.single;
