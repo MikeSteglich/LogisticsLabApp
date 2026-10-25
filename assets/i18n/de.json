@@ -445,5 +445,6 @@
   "ui.sol.wide": "Breite Ansicht",
   "ui.sol.narrow": "Karte wieder breiter",
   "ui.col.timeWindow": "Zeitfenster",
-  "ui.solvingCancel": "Optimierung läuft – klicken zum Abbrechen"
+  "ui.solvingCancel": "Optimierung läuft – klicken zum Abbrechen",
+  "ui.sol.totalTime": "Gesamtzeit"
 }

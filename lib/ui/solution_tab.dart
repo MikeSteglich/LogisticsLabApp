@@ -660,7 +660,8 @@ class _Overview extends StatelessWidget {
       percent(r['utilization'] as num?),
       s.valueText(r['distance'] as num? ?? 0),
       if (withTimes) ...[
-        clock.duration(r['travelTime'] as num? ?? 0),
+        // total time of the tour: driving, waiting and service
+        clock.duration(r['duration'] as num? ?? 0),
         r['start'] is num && r['end'] is num
             ? '${clock.format(r['start'] as num)} – ${clock.format(r['end'] as num)}'
             : '',
@@ -672,7 +673,7 @@ class _Overview extends StatelessWidget {
       'load': total('load'),
       'utilization': capacity > 0 ? total('load') / capacity : null,
       'distance': total('distance'),
-      'travelTime': total('travelTime'),
+      'duration': total('duration'),
     };
     // the whole width - scrolls sideways if the data area is narrow
     return Section(
@@ -685,7 +686,7 @@ class _Overview extends StatelessWidget {
             t('ui.sol.amount'),
             t('ui.sol.utilization'),
             t('ui.sol.distance'),
-            if (withTimes) ...[t('ui.sol.travelTime'), t('ui.sol.time')],
+            if (withTimes) ...[t('ui.sol.totalTime'), t('ui.sol.time')],
           ]),
           for (final (i, r) in routes.indexed)
             SolutionTab._row(numericFrom: 1, row(i < names.length ? names[i] : '', r)),

@@ -445,5 +445,6 @@
   "ui.sol.wide": "Vista amplia",
   "ui.sol.narrow": "Mapa más ancho de nuevo",
   "ui.col.timeWindow": "Ventana horaria",
-  "ui.solvingCancel": "Optimización en curso – clic para cancelar"
+  "ui.solvingCancel": "Optimización en curso – clic para cancelar",
+  "ui.sol.totalTime": "Tiempo total"
 }
