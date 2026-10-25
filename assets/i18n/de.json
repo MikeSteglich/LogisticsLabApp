@@ -438,5 +438,7 @@
   "ui.sol.total": "Gesamt",
   "result.utilization": "Auslastung",
   "result.totalWaitingTime": "Wartezeit gesamt",
-  "ui.sol.time": "Zeit"
+  "ui.sol.time": "Zeit",
+  "field.fixedStart": "Alle Touren beginnen zur Startzeit des Depots",
+  "field.fixedStart.help": "Sonst fährt jede Tour so spät los, dass nicht gewartet werden muss."
 }

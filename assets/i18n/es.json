@@ -438,5 +438,7 @@
   "ui.sol.total": "Total",
   "result.utilization": "Utilización",
   "result.totalWaitingTime": "Espera total",
-  "ui.sol.time": "Horario"
+  "ui.sol.time": "Horario",
+  "field.fixedStart": "Todas las rutas salen a la hora de salida del depósito",
+  "field.fixedStart.help": "Si no, cada ruta sale lo más tarde posible para no tener que esperar."
 }

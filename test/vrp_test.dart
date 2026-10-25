@@ -73,6 +73,16 @@ void main() {
     }
     final summary = state.solution!.results!['summary'] as Map;
     expect(summary['totalLoad'], 100);
+
+    // no waiting at the depot: a tour leaves as late as its first time window needs - with a fixed start all leave
+    // at 07:00 and wait at the customers
+    expect(routes.any((r) => (r as Map)['start'] as num > 420), isTrue);
+    state.edit(() => state.problem!.parameters['fixedStart'] = true);
+    await tester.runAsync(state.solve);
+    expect(state.message, isNull);
+    final fixed = (state.solution!.results!['routes'] as List).cast<Map>();
+    expect(fixed.every((r) => r['start'] == 420), isTrue);
+    expect((state.solution!.results!['summary'] as Map)['totalWaitingTime'], greaterThan(0));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
   });
 
@@ -107,7 +117,10 @@ void main() {
     // the depot: start and latest return
     state.selectNode('D1');
     await tester.pump();
-    expect(find.text('Einsatzzeit (Start, späteste Rückkehr)'), findsWidgets); // column of the list and field of the mask
+    expect(
+      find.text('Einsatzzeit (Start, späteste Rückkehr)'),
+      findsWidgets,
+    ); // column of the list and field of the mask
     expect(find.text('07:00 – 18:00'), findsOneWidget); // the list
     expect(field('07:00'), findsOneWidget);
     expect(field('18:00'), findsOneWidget);

@@ -438,5 +438,7 @@
   "ui.sol.total": "Total",
   "result.utilization": "Utilisation",
   "result.totalWaitingTime": "Attente totale",
-  "ui.sol.time": "Horaire"
+  "ui.sol.time": "Horaire",
+  "field.fixedStart": "Toutes les tournées partent à l’heure de départ du dépôt",
+  "field.fixedStart.help": "Sinon, chaque tournée part le plus tard possible pour ne pas attendre."
 }

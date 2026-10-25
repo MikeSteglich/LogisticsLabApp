@@ -84,6 +84,8 @@ final vrpSpec = ModuleSpec(
   ],
   parameters: const [
     FieldSpec('useTimeWindows', FieldKind.boolean, defaultValue: false),
+    // every tour starts at the start of the depot (waiting at the customers) - otherwise as late as needed
+    FieldSpec('fixedStart', FieldKind.boolean, defaultValue: false),
     FieldSpec('maxTime', FieldKind.number, unit: '@time', min: 0),
     FieldSpec('maxDist', FieldKind.number, unit: '@distance', min: 0),
     FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),

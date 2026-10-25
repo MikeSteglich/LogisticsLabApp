@@ -279,24 +279,56 @@ class _MapViewState extends State<MapView> {
     final list = s.connections;
     // several tours (vrp): a colour per tour
     final tours = {for (final a in list) a['route']}.whereType<int>().length;
-    // several tours: each a few pixels beside the others - where they share a road (the way out of the depot) their
-    // colours lie side by side
-    double offset(Map<String, dynamic> a) =>
-        tours < 2 || a['route'] is! int ? 0 : ((a['route'] as int) - (tours - 1) / 2) * 4.5;
-    final flows = [
-      for (final (i, a) in list.indexed)
+    final points = [
+      for (final a in list)
         if (s.scenario.node(a['from'] as String) case final from?)
           if (s.scenario.node(a['to'] as String) case final to?)
-            (
-              index: i,
-              points: _legPoints(a) ?? s.edgePoints(from.position, to.position),
-              // quantity - the number of the section of a tour
-              label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
-              selected: i == s.selectedFlow,
-              repeated: a['passes'] != null,
-              offset: offset(a),
-              color: tours > 1 ? Ui.routeColors[(a['route'] as int) % Ui.routeColors.length] : Ui.accent,
-            ),
+            (a, _legPoints(a) ?? s.edgePoints(from.position, to.position))
+          else
+            (a, const <LatLng>[])
+        else
+          (a, const <LatLng>[]),
+    ];
+    // several tours on one piece of road (the way out of the depot): their lines side by side there - a tour that
+    // drives a road there and back stays one line
+    String seg(LatLng p, LatLng q) {
+      String key(LatLng x) => '${x.latitude.toStringAsFixed(5)},${x.longitude.toStringAsFixed(5)}';
+      final a = key(p), b = key(q);
+      return a.compareTo(b) < 0 ? '$a|$b' : '$b|$a';
+    }
+
+    final toursOfSeg = <String, Set<int>>{};
+    if (tours > 1) {
+      for (final (a, pts) in points) {
+        if (a['route'] case final int r) {
+          for (var k = 0; k + 1 < pts.length; k++) {
+            toursOfSeg.putIfAbsent(seg(pts[k], pts[k + 1]), () => {}).add(r);
+          }
+        }
+      }
+    }
+    List<double> offsets(Map<String, dynamic> a, List<LatLng> pts) => [
+      for (var k = 0; k + 1 < pts.length; k++)
+        () {
+          final shared = toursOfSeg[seg(pts[k], pts[k + 1])];
+          if (shared == null || shared.length < 2) return 0.0;
+          final order = shared.toList()..sort();
+          return (order.indexOf(a['route'] as int) - (order.length - 1) / 2) * 4.5;
+        }(),
+    ];
+    final flows = [
+      for (final (i, (a, pts)) in points.indexed)
+        if (pts.isNotEmpty)
+          (
+            index: i,
+            points: pts,
+            // quantity - the number of the section of a tour
+            label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
+            selected: i == s.selectedFlow,
+            repeated: a['passes'] != null,
+            offsets: offsets(a, pts),
+            color: tours > 1 ? Ui.routeColors[(a['route'] as int) % Ui.routeColors.length] : Ui.accent,
+          ),
     ];
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
   }
@@ -330,28 +362,41 @@ class _MapViewState extends State<MapView> {
 
   List<Polyline<int>> _solutionLines(MapCamera camera) {
     final stale = s.solutionIsStale;
+    // the pieces of a line with the same offset - shared parts of the road beside each other
+    Iterable<List<LatLng>> parts(_Flow f) sync* {
+      var start = 0;
+      for (var k = 1; k <= f.offsets.length; k++) {
+        if (k == f.offsets.length || f.offsets[k] != f.offsets[start]) {
+          yield _beside(camera, f.points.sublist(start, k + 1), f.offsets[start]);
+          start = k;
+        }
+      }
+      if (f.offsets.isEmpty) yield f.points;
+    }
+
     return [
-      for (final f in _flows()) ...[
-        Polyline(
-          hitValue: f.index,
-          points: _beside(camera, f.points, f.offset),
-          // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
-          color: f.selected ? Ui.highlight : (stale ? f.color.withValues(alpha: 0.4) : f.color),
-          strokeWidth: f.repeated ? 8 : (f.selected ? 6 : 3.5),
-          strokeCap: StrokeCap.round,
-          strokeJoin: StrokeJoin.round,
-        ),
-        // an edge traversed more than once: a double line - white in the middle
-        if (f.repeated)
+      for (final f in _flows())
+        for (final points in parts(f)) ...[
           Polyline(
             hitValue: f.index,
-            points: _beside(camera, f.points, f.offset),
-            color: Colors.white,
-            strokeWidth: 3,
+            points: points,
+            // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
+            color: f.selected ? Ui.highlight : (stale ? f.color.withValues(alpha: 0.4) : f.color),
+            strokeWidth: f.repeated ? 8 : (f.selected ? 6 : 3.5),
             strokeCap: StrokeCap.round,
             strokeJoin: StrokeJoin.round,
           ),
-      ],
+          // an edge traversed more than once: a double line - white in the middle
+          if (f.repeated)
+            Polyline(
+              hitValue: f.index,
+              points: points,
+              color: Colors.white,
+              strokeWidth: 3,
+              strokeCap: StrokeCap.round,
+              strokeJoin: StrokeJoin.round,
+            ),
+        ],
     ];
   }
 
@@ -1109,7 +1154,7 @@ typedef _Flow = ({
   bool selected,
   bool repeated,
   Color color,
-  double offset, // pixels beside the edge - several tours over one edge side by side
+  List<double> offsets, // pixels beside the road per piece of the line - several tours on one road side by side
 });
 
 /// pie of a share inside a ring - a customer and the part of its demand that is met
