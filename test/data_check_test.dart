@@ -42,7 +42,11 @@ void main() {
       if (spec == null || const ['tsp', 'cpp', 'shortestpath'].contains(spec.type)) continue;
       state.chooseProblem(p.name);
       expect(state.nodeProblems, isNotEmpty, reason: p.name);
-      expect(state.nodeProblems.join(), anyOf(contains('Angebot'), contains('Nachfrage'), contains('Abholmenge')), reason: p.name);
+      expect(
+        state.nodeProblems.join(),
+        anyOf(contains('Angebot'), contains('Nachfrage'), contains('Abholmenge')),
+        reason: p.name,
+      );
     }
     // costs as the measure without cost rates
     state.chooseProblem('Transport direkt vom Werk');

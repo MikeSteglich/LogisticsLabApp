@@ -243,6 +243,9 @@ void main() {
     state.selectNode('W');
     await tester.pump();
     await shot('15-pdp-nodes');
+    state.selectNode('B');
+    await tester.pump();
+    await shot('15b-pdp-delivery');
     await tester.runAsync(state.solve);
     await tester.pump();
     await settle(() => false, seconds: 4);

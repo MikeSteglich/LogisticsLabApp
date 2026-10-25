@@ -558,6 +558,7 @@ class FieldGrid extends StatelessWidget {
       return Wrap(
         spacing: Ui.gap,
         runSpacing: Ui.gap,
+        crossAxisAlignment: WrapCrossAlignment.end,
         children: [
           for (final child in children)
             SizedBox(width: child is SpecField && _wide.contains(child.spec.kind) ? c.maxWidth : w, child: child),

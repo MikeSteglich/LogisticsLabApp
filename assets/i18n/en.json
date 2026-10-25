@@ -459,5 +459,7 @@
   "field.deliveryTo": "Delivery node",
   "field.deliveryTo.help": "Where the quantity is brought – a node with the role delivery",
   "ui.use.deliveryTo": "delivery node of {node}",
-  "ui.check.deliveryTo": "Delivery node without the role delivery at: {nodes}"
+  "ui.check.deliveryTo": "Delivery node without the role delivery at: {nodes}",
+  "field.delivered": "Delivered amount",
+  "field.delivered.help": "Sum of the amounts brought here – entered at the pickups"
 }

@@ -459,5 +459,7 @@
   "field.deliveryTo": "Point de livraison",
   "field.deliveryTo.help": "Où la quantité est livrée – un nœud avec le rôle livraison",
   "ui.use.deliveryTo": "point de livraison de {node}",
-  "ui.check.deliveryTo": "Point de livraison sans le rôle livraison pour : {nodes}"
+  "ui.check.deliveryTo": "Point de livraison sans le rôle livraison pour : {nodes}",
+  "field.delivered": "Quantité livrée",
+  "field.delivered.help": "Somme des quantités livrées ici – saisie aux points de collecte"
 }

@@ -459,5 +459,7 @@
   "field.deliveryTo": "Punto de entrega",
   "field.deliveryTo.help": "Adónde se lleva la cantidad – un nodo con el rol entrega",
   "ui.use.deliveryTo": "punto de entrega de {node}",
-  "ui.check.deliveryTo": "Punto de entrega sin el rol entrega en: {nodes}"
+  "ui.check.deliveryTo": "Punto de entrega sin el rol entrega en: {nodes}",
+  "field.delivered": "Cantidad entregada",
+  "field.delivered.help": "Suma de las cantidades que se traen aquí – se introduce en las recogidas"
 }

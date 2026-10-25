@@ -112,11 +112,10 @@ void main() {
     // the data of Berlin in the list and on the map (hover): demand, service time, time window
     expect(find.text('Zeitfenster'), findsOneWidget); // column of the list
     expect(find.text('08:00 – 12:00'), findsOneWidget);
-    expect([for (final (f, v) in state.nodeData(state.scenario.node('B')!)) '${f.key} $v'], [
-      'demand 40',
-      'serviceTime 10 min',
-      'timeWindow 08:00 – 12:00',
-    ]);
+    expect(
+      [for (final (f, v) in state.nodeData(state.scenario.node('B')!)) '${f.key} $v'],
+      ['demand 40', 'serviceTime 10 min', 'timeWindow 08:00 – 12:00'],
+    );
     // Berlin: 08:00 to 12:00 (480 and 720 minutes)
     Finder field(String text) => find.byWidgetPredicate((w) => w is TextField && w.controller?.text == text);
     expect(field('08:00'), findsOneWidget);

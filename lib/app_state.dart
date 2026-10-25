@@ -238,8 +238,18 @@ class AppState extends ChangeNotifier {
     ];
   }
 
+  /// pickup and delivery: the active pickups that bring their amount to the node - (pickup, amount)
+  List<(Node, num)> deliveries(Node n) => [
+    for (final p in scenario.nodes)
+      if (p.active && p['deliveryTo'] == n.id && p.roles.contains('pickup')) (p, p['amount'] as num? ?? 0),
+  ];
+
   /// value of a field of a node as text - time windows as times of the day, durations and distances with their unit
   String? nodeFieldText(Node n, FieldSpec f) {
+    if (f.key == 'delivered') {
+      final q = deliveries(n);
+      return q.isEmpty ? null : strings.number(q.fold<num>(0, (sum, e) => sum + e.$2));
+    }
     final v = n[f.key] ?? f.defaultValue;
     if (f.kind == FieldKind.timeWindow && v is List) {
       return '${clock.format(v[0] as num?)} – ${clock.format(v.length > 1 ? v[1] as num? : null)}';

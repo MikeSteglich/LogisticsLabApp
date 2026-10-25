@@ -459,5 +459,7 @@
   "field.deliveryTo": "Zustellort",
   "field.deliveryTo.help": "Wohin die abgeholte Menge gebracht wird – ein Knoten mit der Rolle Zustellort",
   "ui.use.deliveryTo": "Zustellort von {node}",
-  "ui.check.deliveryTo": "Zustellort ohne Rolle Zustellort bei: {nodes}"
+  "ui.check.deliveryTo": "Zustellort ohne Rolle Zustellort bei: {nodes}",
+  "field.delivered": "Liefermenge",
+  "field.delivered.help": "Summe der Abholmengen, die hierher gebracht werden – eingegeben wird sie beim Abholort"
 }

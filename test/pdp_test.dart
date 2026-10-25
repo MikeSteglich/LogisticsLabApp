@@ -35,6 +35,8 @@ void main() {
       [for (final (f, v) in state.nodeData(state.scenario.node('W')!)) '${f.key} $v'],
       ['amount 30', 'deliveryTo Berlin'],
     );
+    // the amount delivered to Berlin: from the pickups
+    expect([for (final (f, v) in state.nodeData(state.scenario.node('B')!)) '${f.key} $v'].first, 'delivered 30');
     // a delivery node without the role
     state.edit(() => state.scenario.node('W')!['deliveryTo'] = 'D2');
     expect(state.nodeProblems, contains(startsWith('Zustellort ohne Rolle Zustellort bei: Werk Ludwigsfelde')));
@@ -70,6 +72,16 @@ void main() {
     await tester.tap(find.descendant(of: find.byType(DropdownMenuItem<String?>), matching: find.text('Potsdam')).last);
     await tester.pumpAndSettle();
     expect(state.scenario.node('W')!['deliveryTo'], 'P');
+    // Potsdam: its amount from both pickups, shown and not entered
+    state.selectNode('P');
+    await tester.pumpAndSettle();
+    expect(find.text('Liefermenge'), findsWidgets);
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is TextField && w.controller?.text == '50 · Werk Ludwigsfelde 30 · Lager Brandenburg 20',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets(

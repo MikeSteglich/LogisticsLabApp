@@ -82,9 +82,11 @@ final pdpSpec = ModuleSpec(
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
     ], main: 'amount'),
     RoleSpec('destinations', 'delivery', [
+      // the amounts of the pickups delivered here - entered at the pickups
+      const FieldSpec('delivered', FieldKind.number, computed: true),
       const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
-    ]),
+    ], main: 'delivered'),
   ],
   parameters: vrpSpec.parameters,
   objective: (_) => 'totalDistance',

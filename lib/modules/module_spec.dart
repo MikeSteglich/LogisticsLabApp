@@ -55,6 +55,7 @@ class FieldSpec {
   final FieldCondition? visibleIf;
   final String? requires; // boolean parameter that switches the field on, e.g. useCapacities
   final String? nodeRole; // FieldKind.node: only nodes with this role, e.g. delivery (pdp)
+  final bool computed; // shown, not entered - computed from other nodes, e.g. the delivered amount (pdp)
 
   const FieldSpec(
     this.key,
@@ -69,6 +70,7 @@ class FieldSpec {
     this.visibleIf,
     this.requires,
     this.nodeRole,
+    this.computed = false,
   });
 
   String get label => labelKey ?? 'field.$key';

@@ -178,6 +178,7 @@ class _NodeTable extends StatelessWidget {
       if (!n.roles.contains(c.role)) return '';
       final f = c.field;
       if (f == null) return '✓'; // role without a main value
+      if (f.computed) return s.nodeFieldText(n, f) ?? '';
       final v = n[f.key] ?? f.defaultValue;
       if (f.kind == FieldKind.commodities && part != null) {
         // one commodity - empty: 0 (supply, demand) or 1 (capacity factor)
@@ -401,14 +402,28 @@ class _NodeMask extends StatelessWidget {
             FieldGrid(
               children: [
                 for (final f in moduleFields)
-                  SpecField(
-                    scenario: s.scenario,
-                    onEditRecords: () => s.setTab(DataTab.parameters),
-                    spec: f,
-                    value: n[f.key] ?? f.defaultValue,
-                    strings: t,
-                    onChanged: (v) => s.edit(() => n[f.key] = v),
-                  ),
+                  if (f.computed)
+                    // computed (delivered amount): shown with where it comes from
+                    TextValueField(
+                      // built again when the amounts change
+                      key: ValueKey('${f.key}|${n.id}|${s.nodeFieldText(n, f)}'),
+                      label: t(f.label),
+                      value: [
+                        s.nodeFieldText(n, f) ?? '0',
+                        for (final (p, q) in s.deliveries(n)) '${p.name} ${t.number(q)}',
+                      ].join(' · '),
+                      readOnly: true,
+                      onChanged: (_) {},
+                    )
+                  else
+                    SpecField(
+                      scenario: s.scenario,
+                      onEditRecords: () => s.setTab(DataTab.parameters),
+                      spec: f,
+                      value: n[f.key] ?? f.defaultValue,
+                      strings: t,
+                      onChanged: (v) => s.edit(() => n[f.key] = v),
+                    ),
               ],
             ),
           ],
