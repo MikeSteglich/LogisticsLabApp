@@ -156,6 +156,9 @@ class _TextValueFieldState extends State<TextValueField> {
         controller: _c,
         readOnly: widget.readOnly,
         onChanged: widget.onChanged,
+        textInputAction: TextInputAction.next,
+        onEditingComplete: () {}, // enter: the next field (onSubmitted) instead of the default
+        onSubmitted: (_) => focusNextField(context),
         decoration: InputDecoration(
           errorText: widget.error,
           hintText: widget.hint,
@@ -164,6 +167,28 @@ class _TextValueFieldState extends State<TextValueField> {
       ),
     ],
   );
+}
+
+/// enter in a field: the next input field of the mask - buttons, chips and dropdowns between them are skipped
+void focusNextField(BuildContext context) {
+  bool isField(FocusNode? n) {
+    final c = n?.context;
+    return c != null && (c.widget is EditableText || c.findAncestorWidgetOfExactType<EditableText>() != null);
+  }
+
+  final start = FocusManager.instance.primaryFocus;
+  if (start == null) return;
+  // the focus changes only after this frame - the order of the traversal gives the next field at once
+  final order = _FieldOrder().of(FocusScope.of(context).traversalDescendants, start);
+  final i = order.indexOf(start);
+  for (final n in [...order.skip(i + 1), ...order.take(i < 0 ? 0 : i)]) {
+    if (isField(n) && n.canRequestFocus) return n.requestFocus();
+  }
+}
+
+/// the reading order of the focus traversal (as the app) - for focusNextField
+class _FieldOrder extends ReadingOrderTraversalPolicy {
+  List<FocusNode> of(Iterable<FocusNode> nodes, FocusNode current) => sortDescendants(nodes, current).toList();
 }
 
 /// Number in the format of the language - empty is null (with hint, e.g. "unlimited").
@@ -250,6 +275,9 @@ class _NumberFieldState extends State<NumberField> {
       TextField(
         controller: _c,
         onChanged: _changed,
+        textInputAction: TextInputAction.next,
+        onEditingComplete: () {}, // enter: the next field (onSubmitted) instead of the default
+        onSubmitted: (_) => focusNextField(context),
         textAlign: TextAlign.right,
         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-\s]'))],

@@ -688,6 +688,31 @@ class AppState extends ChangeNotifier {
   }
 
   /// [keepTab]: chosen in the solution - the solution stays in view
+  /// arrow keys: the previous (-1) or next (+1) entry of the list of the tab - nodes, edges, connections of the
+  /// solution; without a selection the first or last one
+  void moveSelection(int delta) {
+    int? next(int? current, int length) => length == 0
+        ? null
+        : current == null
+        ? (delta > 0 ? 0 : length - 1)
+        : (current + delta).clamp(0, length - 1);
+    switch (tab) {
+      case DataTab.nodes:
+        final list = filteredNodes;
+        final i = list.indexWhere((n) => n.id == selectedNode);
+        final k = next(i < 0 ? null : i, list.length);
+        if (k != null) selectNode(list[k].id, keepTab: true);
+      case DataTab.network:
+        final k = next(selectedEdge, network?.edges.length ?? 0);
+        if (k != null) selectEdge(k);
+      case DataTab.solution:
+        final k = next(selectedFlow, connections.length);
+        if (k != null && k != selectedFlow) selectFlow(k);
+      case DataTab.parameters:
+        break;
+    }
+  }
+
   void selectNode(String? id, {bool keepTab = false}) {
     selectedNode = id;
     placing = false;

@@ -48,35 +48,38 @@ class MainScreen extends StatelessWidget {
     return _ExitGuard(
       state: state,
       files: files,
-      child: CallbackShortcuts(
-        bindings: shortcuts,
-        child: Focus(
-          autofocus: true,
-          child: Scaffold(
-            body: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Header(state: state, files: files),
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, c) {
-                        final wide = c.maxWidth >= 900;
-                        return SplitView(
-                          axis: wide ? Axis.horizontal : Axis.vertical,
-                          ratio: state.splitRatio,
-                          semanticLabel: state.strings('ui.split'),
-                          onChanged: state.setSplitRatio,
-                          onChangeEnd: (v) => state.setSplitRatio(v, save: true),
-                          onReset: () => state.setSplitRatio(AppState.defaultSplitRatio, save: true),
-                          first: MapView(state: state),
-                          second: DataPanel(state: state, onSaveSolution: files.saveSolution),
-                        );
-                      },
+      child: _ListKeys(
+        state: state,
+        child: CallbackShortcuts(
+          bindings: shortcuts,
+          child: Focus(
+            autofocus: true,
+            child: Scaffold(
+              body: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Header(state: state, files: files),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (context, c) {
+                          final wide = c.maxWidth >= 900;
+                          return SplitView(
+                            axis: wide ? Axis.horizontal : Axis.vertical,
+                            ratio: state.splitRatio,
+                            semanticLabel: state.strings('ui.split'),
+                            onChanged: state.setSplitRatio,
+                            onChangeEnd: (v) => state.setSplitRatio(v, save: true),
+                            onReset: () => state.setSplitRatio(AppState.defaultSplitRatio, save: true),
+                            first: MapView(state: state),
+                            second: DataPanel(state: state, onSaveSolution: files.saveSolution),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  _StatusBar(state: state),
-                ],
+                    _StatusBar(state: state),
+                  ],
+                ),
               ),
             ),
           ),
@@ -460,6 +463,54 @@ class _ExitGuardState extends State<_ExitGuard> {
       default:
         return AppExitResponse.cancel;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// arrow keys up and down: the previous or next entry of the list of the tab - not while typing in a field or with a
+/// dialog or menu open
+class _ListKeys extends StatefulWidget {
+  final AppState state;
+  final Widget child;
+  const _ListKeys({required this.state, required this.child});
+
+  @override
+  State<_ListKeys> createState() => _ListKeysState();
+}
+
+class _ListKeysState extends State<_ListKeys> {
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_key);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_key);
+    super.dispose();
+  }
+
+  bool _key(KeyEvent e) {
+    if (e is KeyUpEvent) return false;
+    final delta = switch (e.logicalKey) {
+      LogicalKeyboardKey.arrowDown => 1,
+      LogicalKeyboardKey.arrowUp => -1,
+      _ => 0,
+    };
+    if (delta == 0 || !mounted) return false;
+    // a dialog, menu or dropdown on top
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return false;
+    // typing in a field
+    final focus = FocusManager.instance.primaryFocus?.context;
+    if (focus != null &&
+        (focus.widget is EditableText || focus.findAncestorWidgetOfExactType<EditableText>() != null)) {
+      return false;
+    }
+    widget.state.moveSelection(delta);
+    return true;
   }
 
   @override

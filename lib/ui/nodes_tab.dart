@@ -442,8 +442,13 @@ class _IdInputState extends State<_IdInput> {
         controller: _c,
         decoration: InputDecoration(errorText: _error),
         onChanged: (v) => setState(() => _error = widget.validate(v)),
-        // the id changes only on enter or leaving the field - the selection depends on it
-        onSubmitted: _commit,
+        // the id changes only on enter or leaving the field - the selection depends on it; enter: the next field
+        textInputAction: TextInputAction.next,
+        onEditingComplete: () {},
+        onSubmitted: (v) {
+          _commit(v);
+          focusNextField(context);
+        },
         onTapOutside: (_) => _commit(_c.text),
       ),
     ],
