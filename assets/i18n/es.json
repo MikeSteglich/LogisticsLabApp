@@ -447,9 +447,9 @@
   "ui.col.timeWindow": "Ventana horaria",
   "ui.solvingCancel": "Optimización en curso – clic para cancelar",
   "ui.sol.totalTime": "Tiempo total",
-  "module.pdp": "Recogida y entrega (PDP)",
+  "module.pdp": "Recogida y entrega / dial-a-ride (PDP, DARP)",
   "module.pdp.short": "PDP",
-  "module.pdp.description": "Rutas que recogen cantidades y las llevan a sus puntos de entrega – recogida antes de la entrega, con capacidades y ventanas horarias",
+  "module.pdp.description": "Rutas que recogen cantidades o pasajeros y los llevan a su destino – recogida antes de la entrega, con capacidades, ventanas horarias y tiempo máximo de viaje por pasajero",
   "role.pickup": "Recogida",
   "role.pickup.plural": "Recogidas",
   "role.delivery": "Entrega",
@@ -465,5 +465,15 @@
   "field.stopTime": "Tiempo de parada",
   "field.stopTime.help": "Tiempo fijo por parada (detenerse, aparcar, ir a la puerta) – una vez, aunque se entreguen varias cantidades",
   "field.serviceTimePerUnit": "Tiempo de servicio por unidad",
-  "field.serviceTimePerUnit.help": "Tiempo por unidad entregada, p. ej. por envío o por persona que baja"
+  "field.serviceTimePerUnit.help": "Tiempo por unidad entregada, p. ej. por envío o por persona que baja",
+  "field.maxRideTime": "Tiempo máximo de viaje por pasajero",
+  "field.maxRideTime.help": "Tiempo máximo en el vehículo desde la salida en la recogida hasta el destino – vacío: sin límite (PDP), si no dial-a-ride (DARP)",
+  "field.maxDetour": "Factor máximo de desvío",
+  "field.maxDetour.help": "Viaje como máximo tantas veces el viaje directo, p. ej. 1,5 – con tiempo máximo vale el límite más estricto",
+  "result.longestRide": "Viaje más largo",
+  "result.maxDetour": "Mayor desvío",
+  "ui.sol.rides": "Viajes",
+  "ui.sol.direct": "Directo",
+  "ui.sol.ride": "Viaje",
+  "ui.sol.detour": "Desvío"
 }

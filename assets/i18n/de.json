@@ -447,9 +447,9 @@
   "ui.col.timeWindow": "Zeitfenster",
   "ui.solvingCancel": "Optimierung läuft – klicken zum Abbrechen",
   "ui.sol.totalTime": "Gesamtzeit",
-  "module.pdp": "Pickup and Delivery (PDP)",
+  "module.pdp": "Pickup and Delivery / Dial-a-Ride (PDP, DARP)",
   "module.pdp.short": "PDP",
-  "module.pdp.description": "Touren, die Mengen an Abholorten aufnehmen und zu ihren Zustellorten bringen – Abholung vor Zustellung, mit Kapazitäten und Zeitfenstern",
+  "module.pdp.description": "Touren, die Mengen oder Fahrgäste abholen und zu ihrem Ziel bringen – Abholung vor Zustellung, mit Kapazitäten, Zeitfenstern und Höchstfahrzeit je Fahrgast",
   "role.pickup": "Abholort",
   "role.pickup.plural": "Abholorte",
   "role.delivery": "Zustellort",
@@ -465,5 +465,15 @@
   "field.stopTime": "Stoppzeit",
   "field.stopTime.help": "Feste Zeit je Halt (Halten, Parken, Weg zur Tür) – einmal, auch wenn mehrere Mengen hier zugestellt werden",
   "field.serviceTimePerUnit": "Servicezeit je Einheit",
-  "field.serviceTimePerUnit.help": "Zeit je zugestellter Einheit, z. B. je Sendung oder je aussteigender Person"
+  "field.serviceTimePerUnit.help": "Zeit je zugestellter Einheit, z. B. je Sendung oder je aussteigender Person",
+  "field.maxRideTime": "Höchstfahrzeit je Fahrgast",
+  "field.maxRideTime.help": "Längste Zeit im Fahrzeug von der Abfahrt am Abholort bis zum Ziel – leer: keine Grenze (PDP), sonst Dial-a-Ride (DARP)",
+  "field.maxDetour": "Höchster Umwegfaktor",
+  "field.maxDetour.help": "Fahrzeit höchstens so viel mal die Direktfahrt, z. B. 1,5 – mit Höchstfahrzeit gilt die strengere Grenze",
+  "result.longestRide": "Längste Fahrt",
+  "result.maxDetour": "Größter Umweg",
+  "ui.sol.rides": "Fahrten",
+  "ui.sol.direct": "Direkt",
+  "ui.sol.ride": "Fahrzeit",
+  "ui.sol.detour": "Umweg"
 }

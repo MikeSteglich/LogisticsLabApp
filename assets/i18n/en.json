@@ -447,9 +447,9 @@
   "ui.col.timeWindow": "Time window",
   "ui.solvingCancel": "Optimisation running – click to cancel",
   "ui.sol.totalTime": "Total time",
-  "module.pdp": "Pickup and delivery (PDP)",
+  "module.pdp": "Pickup and delivery / dial-a-ride (PDP, DARP)",
   "module.pdp.short": "PDP",
-  "module.pdp.description": "Tours that pick up quantities and bring them to their delivery nodes – pickup before delivery, with capacities and time windows",
+  "module.pdp.description": "Tours that pick up quantities or passengers and bring them to their destination – pickup before delivery, with capacities, time windows and a longest ride per passenger",
   "role.pickup": "Pickup",
   "role.pickup.plural": "Pickups",
   "role.delivery": "Delivery",
@@ -465,5 +465,15 @@
   "field.stopTime": "Stop time",
   "field.stopTime.help": "Fixed time per stop (stopping, parking, walking to the door) – once, even if several quantities are delivered here",
   "field.serviceTimePerUnit": "Service time per unit",
-  "field.serviceTimePerUnit.help": "Time per unit delivered, e.g. per parcel or per person getting off"
+  "field.serviceTimePerUnit.help": "Time per unit delivered, e.g. per parcel or per person getting off",
+  "field.maxRideTime": "Longest ride per passenger",
+  "field.maxRideTime.help": "Longest time in the vehicle from the departure at the pickup to the destination – empty: no limit (PDP), else dial-a-ride (DARP)",
+  "field.maxDetour": "Largest detour factor",
+  "field.maxDetour.help": "Ride at most this many times the direct ride, e.g. 1.5 – with a longest ride the stricter limit applies",
+  "result.longestRide": "Longest ride",
+  "result.maxDetour": "Largest detour",
+  "ui.sol.rides": "Rides",
+  "ui.sol.direct": "Direct",
+  "ui.sol.ride": "Ride",
+  "ui.sol.detour": "Detour"
 }

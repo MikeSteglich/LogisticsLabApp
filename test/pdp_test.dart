@@ -124,6 +124,16 @@ void main() {
       expect({for (final r in routes) ...(r['nodes'] as List)}.containsAll(pairs.keys), isTrue);
       // the load in the table: + picked up, − delivered
       expect(state.connections.any((l) => l['load'] != null), isTrue);
+      // the rides: direct and in the vehicle - with a detour factor every ride at most so many times the direct ride
+      final rides = (state.solution!.results!['requests'] as List).cast<Map>();
+      expect(rides.length, pairs.length);
+      state.edit(() => state.problem!.parameters['maxDetour'] = 1.3);
+      await tester.runAsync(state.solve);
+      expect(state.message, isNull);
+      for (final q in (state.solution!.results!['requests'] as List).cast<Map>()) {
+        expect(q['detour'] as num, lessThanOrEqualTo(1.3 + 1e-6), reason: '${q['pickup']}');
+      }
+      expect((state.solution!.results!['summary'] as Map)['maxDetour'], lessThanOrEqualTo(1.3 + 1e-6));
       await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings())); // stops the solver
     },
   );

@@ -157,6 +157,8 @@ class SolutionTab extends StatelessWidget {
                             ? money(v)
                             : col.unit == '@time'
                             ? s.clock.duration(v)
+                            : col.unit == '×'
+                            ? '${t.fixed(v, 2)} ×'
                             : col.unit == '%'
                             ? '${t.number(v * 100, decimals: 0)} %'
                             : t.number(v),
@@ -640,7 +642,68 @@ class _Route extends StatelessWidget {
               if (e.$2['route'] == ri) e,
           ]),
         ],
+        // pickup and delivery: the rides - direct and real time in the vehicle, the detour
+        if (s.solution?.results?['requests'] case final List requests when requests.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(t('ui.sol.rides'), style: Ui.title),
+          const SizedBox(height: 8),
+          _Rides(state: s, requests: requests.cast<Map<String, dynamic>>()),
+        ],
       ],
+    );
+  }
+}
+
+/// pickup and delivery (dial-a-ride): every pair with its tour, quantity, direct ride, ride in the vehicle and detour
+class _Rides extends StatelessWidget {
+  final AppState state;
+  final List<Map<String, dynamic>> requests;
+  const _Rides({required this.state, required this.requests});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
+    final names = s.routeNames;
+    final routes = ((s.solution?.results?['routes'] as List?) ?? const []).cast<Map<String, dynamic>>();
+    String tour(Object? vehicle) {
+      final i = routes.indexWhere((r) => r['vehicle'] == vehicle);
+      return i < 0 || i >= names.length ? '${vehicle ?? ''}' : names[i];
+    }
+
+    return Section(
+      padding: EdgeInsets.zero,
+      child: WideTable(
+        rows: [
+          SolutionTab._row(numericFrom: 3, header: true, [
+            t('role.pickup'),
+            t('role.delivery'),
+            t('ui.sol.tourVehicle'),
+            t('ui.sol.amount'),
+            t('ui.sol.direct'),
+            t('ui.sol.ride'),
+            t('ui.sol.detour'),
+          ]),
+          for (final q in requests)
+            SolutionTab._row(
+              numericFrom: 3,
+              onTap: () {
+                final i = routes.indexWhere((r) => r['vehicle'] == q['vehicle']);
+                if (i >= 0 && i != s.selectedRoute) s.selectRoute(i);
+              },
+              [
+                name(q['pickup']),
+                name(q['delivery']),
+                tour(q['vehicle']),
+                t.number(q['amount'] as num? ?? 0),
+                s.clock.duration(q['direct'] as num? ?? 0),
+                s.clock.duration(q['ride'] as num? ?? 0),
+                q['detour'] is num ? '${t.fixed(q['detour'] as num, 2)} ×' : '',
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

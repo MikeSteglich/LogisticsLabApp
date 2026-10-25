@@ -91,9 +91,22 @@ final pdpSpec = ModuleSpec(
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
     ], main: 'delivered'),
   ],
-  parameters: vrpSpec.parameters,
+  // dial-a-ride: the longest ride of every pair - absolute and as a factor of the direct ride, the stricter counts
+  parameters: [
+    for (final f in vrpSpec.parameters) ...[
+      if (f.key == 'maxSolvingTime') ...const [
+        FieldSpec('maxRideTime', FieldKind.number, unit: '@time', min: 0),
+        FieldSpec('maxDetour', FieldKind.number, min: 1),
+      ],
+      f,
+    ],
+  ],
   objective: (_) => 'totalDistance',
-  summary: vrpSpec.summary,
+  summary: [
+    ...vrpSpec.summary,
+    const ResultColumn('longestRide', unit: '@time'),
+    const ResultColumn('maxDetour', unit: '×'),
+  ],
 );
 
 /// Vehicle routing: tours of the vehicles from the depot to the customers and back - capacities, time windows and

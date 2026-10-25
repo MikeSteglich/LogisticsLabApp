@@ -447,9 +447,9 @@
   "ui.col.timeWindow": "Fenêtre horaire",
   "ui.solvingCancel": "Optimisation en cours – cliquer pour annuler",
   "ui.sol.totalTime": "Temps total",
-  "module.pdp": "Collecte et livraison (PDP)",
+  "module.pdp": "Collecte et livraison / transport à la demande (PDP, DARP)",
   "module.pdp.short": "PDP",
-  "module.pdp.description": "Tournées qui collectent des quantités et les livrent à leurs points de livraison – collecte avant livraison, avec capacités et fenêtres horaires",
+  "module.pdp.description": "Tournées qui collectent des quantités ou des passagers et les amènent à destination – collecte avant livraison, avec capacités, fenêtres horaires et durée maximale de trajet par passager",
   "role.pickup": "Collecte",
   "role.pickup.plural": "Collectes",
   "role.delivery": "Livraison",
@@ -465,5 +465,15 @@
   "field.stopTime": "Temps d’arrêt",
   "field.stopTime.help": "Temps fixe par arrêt (s’arrêter, se garer, aller à la porte) – une seule fois, même si plusieurs quantités sont livrées",
   "field.serviceTimePerUnit": "Temps de service par unité",
-  "field.serviceTimePerUnit.help": "Temps par unité livrée, p. ex. par colis ou par personne qui descend"
+  "field.serviceTimePerUnit.help": "Temps par unité livrée, p. ex. par colis ou par personne qui descend",
+  "field.maxRideTime": "Durée maximale de trajet par passager",
+  "field.maxRideTime.help": "Durée maximale dans le véhicule du départ de la collecte jusqu’à la destination – vide : pas de limite (PDP), sinon transport à la demande (DARP)",
+  "field.maxDetour": "Facteur de détour maximal",
+  "field.maxDetour.help": "Trajet au plus tant de fois le trajet direct, p. ex. 1,5 – avec une durée maximale, la limite la plus stricte s’applique",
+  "result.longestRide": "Trajet le plus long",
+  "result.maxDetour": "Plus grand détour",
+  "ui.sol.rides": "Trajets",
+  "ui.sol.direct": "Direct",
+  "ui.sol.ride": "Trajet",
+  "ui.sol.detour": "Détour"
 }
