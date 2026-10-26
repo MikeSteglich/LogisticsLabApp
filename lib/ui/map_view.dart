@@ -139,7 +139,16 @@ class _MapViewState extends State<MapView> {
                 (i) => s.selectFlow(i, showTab: true),
               ),
             if (_showLabels) _LabelLayer(labels: _labels(), obstacles: [for (final n in nodes) n.position]),
-            MarkerLayer(markers: [for (final n in nodes) _symbol(n)], rotate: false),
+            // the candidates below the other nodes - one at the place of a customer stays visible around it
+            MarkerLayer(
+              markers: [
+                for (final n in nodes)
+                  if (n.roles.contains('candidate')) _symbol(n),
+                for (final n in nodes)
+                  if (!n.roles.contains('candidate')) _symbol(n),
+              ],
+              rotate: false,
+            ),
             // required by the licence of OpenStreetMap (ODbL) and the tile policy - the other credits are in the about
             // dialog
             Align(
@@ -568,11 +577,21 @@ class _MapViewState extends State<MapView> {
     } else {
       // candidates (warehouses) violet - filled if open in the solution; other nodes (transit) grey
       final isCandidate = role == 'candidate' && relevant;
+      // a candidate at the place of another node: larger - a frame around its symbol
+      final shared =
+          n.roles.contains('candidate') &&
+          s.scenario.nodes.any(
+            (o) =>
+                o.id != n.id &&
+                !o.roles.contains('candidate') &&
+                (o.position.latitude - n.position.latitude).abs() < 1e-5 &&
+                (o.position.longitude - n.position.longitude).abs() < 1e-5,
+          );
       shape = Transform.rotate(
         angle: 0.785,
         child: Container(
-          width: 14,
-          height: 14,
+          width: shared ? 22 : 14,
+          height: shared ? 22 : 14,
           decoration: BoxDecoration(
             color: isCandidate && open == true ? fill : Ui.mapBackground,
             border: Border.all(

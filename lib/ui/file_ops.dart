@@ -163,6 +163,11 @@ class FileOps {
     if (path != null) _snack(state.strings('ui.saved', {'file': path.split(RegExp(r'[/\\]')).last}));
   }
 
+  /// the path with the extension exactly once - the save panel of macOS sometimes adds it to a name with another dot
+  /// (drogma.dlpx.llab -> drogma.dlpx.llab.llab)
+  static String withExtension(String path, String extension) =>
+      '${path.replaceFirst(RegExp('(\\.${RegExp.escape(extension)})+\$', caseSensitive: false), '')}.$extension';
+
   /// writes the text - path null: asks for the file (desktop) or downloads it (browser); returns the path or name
   Future<String?> _write(String text, String name, XTypeGroup type, String? path) async {
     final data = Uint8List.fromList(utf8.encode(text));
@@ -173,6 +178,7 @@ class FileOps {
       }
       path ??= (await getSaveLocation(suggestedName: name, acceptedTypeGroups: [type]))?.path;
       if (path == null) return null;
+      path = withExtension(path, type.extensions!.first);
       await XFile.fromData(data, name: name, mimeType: 'application/json').saveTo(path);
       return path;
     } catch (e) {
