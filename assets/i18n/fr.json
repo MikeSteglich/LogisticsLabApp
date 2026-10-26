@@ -513,5 +513,14 @@
   "ui.sol.uncovered": "Non couverts : {nodes}",
   "ui.check.tooManyLocations": "{p} sites souhaités, mais seulement {n} candidats",
   "field.candidateSupply": "Offre (capacité)",
-  "field.candidateSupply.help": "Combien le site peut fournir – s’applique avec « Respecter les capacités »"
+  "field.candidateSupply.help": "Combien le site peut fournir – s’applique avec « Respecter les capacités »",
+  "module.contpmedian.description": "p sites libres sur la carte – somme des distances à vol d’oiseau aux clients minimale",
+  "module.contpcentre.description": "p sites libres sur la carte – la plus grande distance à vol d’oiseau à un client minimale",
+  "field.capacityPerLocation": "Capacité par site",
+  "field.capacityPerLocation.help": "Une capacité pour tous les sites trouvés",
+  "field.isSingleSourceLocation": "Chaque client depuis exactement un site",
+  "field.nrOfStarts": "Nombre de départs",
+  "field.nrOfStarts.help": "La méthode démarre autant de fois depuis d’autres points et garde la meilleure solution – plus de départs : meilleure solution, calcul plus long",
+  "ui.sol.foundLocation": "Site {n}",
+  "ui.sol.adoptLocations": "Reprendre comme candidats"
 }

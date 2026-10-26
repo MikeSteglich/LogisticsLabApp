@@ -1,0 +1,451 @@
+{
+  "format": "logisticsLab",
+  "version": 1,
+  "id": "lds-sued",
+  "name": "lds-sued",
+  "source": "Standort/lds-sued.CLPX (CLP 5.4.0)",
+  "units": {
+    "distance": "km",
+    "time": "h"
+  },
+  "matrix": {
+    "travelmode": "car",
+    "matrixSource": "beeline",
+    "detourFactor": 1.0
+  },
+  "nodes": [
+    {
+      "id": "Groß Köris",
+      "name": "Groß Köris",
+      "coordinates": [
+        52.15966,
+        13.65573
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Groß Köris"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Schwerin",
+      "name": "Schwerin",
+      "coordinates": [
+        52.15279,
+        13.63704
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Schwerin"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Münchehofe",
+      "name": "Münchehofe",
+      "coordinates": [
+        52.14715,
+        13.8364
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Münchehofe"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Teupitz, Stadt",
+      "name": "Teupitz, Stadt",
+      "coordinates": [
+        52.13622,
+        13.61057
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Teupitz, Stadt"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Märkisch Buchholz, Stadt",
+      "name": "Märkisch Buchholz, Stadt",
+      "coordinates": [
+        52.10976,
+        13.76186
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Märkisch Buchholz, Stadt"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Unterspreewald",
+      "name": "Unterspreewald",
+      "coordinates": [
+        52.10831,
+        13.90292
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Unterspreewald"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Halbe",
+      "name": "Halbe",
+      "coordinates": [
+        52.10614,
+        13.69878
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Halbe"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Märkische Heide/Markojska Góla",
+      "name": "Märkische Heide/Markojska Góla",
+      "coordinates": [
+        52.03825,
+        14.03776
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Märkische Heide/Markojska Góla"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Krausnick-Groß Wasserburg",
+      "name": "Krausnick-Groß Wasserburg",
+      "coordinates": [
+        52.03175,
+        13.82904
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Krausnick-Groß Wasserburg"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Schlepzig/Slopišca",
+      "name": "Schlepzig/Slopišca",
+      "coordinates": [
+        52.02848,
+        13.89519
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Schlepzig/Slopišca"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Schwielochsee/Gójacki Jazor",
+      "name": "Schwielochsee/Gójacki Jazor",
+      "coordinates": [
+        52.01965,
+        14.17487
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Schwielochsee/Gójacki Jazor"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Rietzneuendorf-Staakow",
+      "name": "Rietzneuendorf-Staakow",
+      "coordinates": [
+        52.01078,
+        13.66697
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Rietzneuendorf-Staakow"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Jamlitz",
+      "name": "Jamlitz",
+      "coordinates": [
+        51.99161,
+        14.3541
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Jamlitz"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Lieberose, Stadt",
+      "name": "Lieberose, Stadt",
+      "coordinates": [
+        51.98827,
+        14.30064
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Lieberose, Stadt"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Schönwald",
+      "name": "Schönwald",
+      "coordinates": [
+        51.97777,
+        13.76492
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Schönwald"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Golßen, Stadt",
+      "name": "Golßen, Stadt",
+      "coordinates": [
+        51.97042,
+        13.60298
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Golßen, Stadt"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Bersteland",
+      "name": "Bersteland",
+      "coordinates": [
+        51.96523,
+        13.74493
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Bersteland"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Lübben (Spreewald) / Lubin (Blota), Stadt",
+      "name": "Lübben (Spreewald) / Lubin (Blota), Stadt",
+      "coordinates": [
+        51.94203,
+        13.8966
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Lübben (Spreewald) / Lubin (Blota), Stadt"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Steinreich",
+      "name": "Steinreich",
+      "coordinates": [
+        51.94193,
+        13.44253
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Steinreich"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Kasel-Golzig",
+      "name": "Kasel-Golzig",
+      "coordinates": [
+        51.93443,
+        13.69846
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Kasel-Golzig"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Spreewaldheide/Blosanska Góla",
+      "name": "Spreewaldheide/Blosanska Góla",
+      "coordinates": [
+        51.9305,
+        14.16813
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Spreewaldheide/Blosanska Góla"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Neu Zauche/Nowa Niwa",
+      "name": "Neu Zauche/Nowa Niwa",
+      "coordinates": [
+        51.92858,
+        14.09075
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Neu Zauche/Nowa Niwa"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Alt Zauche-Wußwerk/Stara Niwa-Wózwjerch",
+      "name": "Alt Zauche-Wußwerk/Stara Niwa-Wózwjerch",
+      "coordinates": [
+        51.91777,
+        14.01605
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Alt Zauche-Wußwerk/Stara Niwa-Wózwjerch"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Drahnsdorf",
+      "name": "Drahnsdorf",
+      "coordinates": [
+        51.91603,
+        13.57609
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Drahnsdorf"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Straupitz (Spreewald)/Tšupc (Blota)",
+      "name": "Straupitz (Spreewald)/Tšupc (Blota)",
+      "coordinates": [
+        51.9121,
+        14.12003
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Straupitz (Spreewald)/Tšupc (Blota)"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Byhleguhre-Byhlen/Bela Góra-Belin",
+      "name": "Byhleguhre-Byhlen/Bela Góra-Belin",
+      "coordinates": [
+        51.87927,
+        14.17216
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Byhleguhre-Byhlen/Bela Góra-Belin"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Luckau, Stadt",
+      "name": "Luckau, Stadt",
+      "coordinates": [
+        51.85266,
+        13.71589
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Luckau, Stadt"
+      },
+      "demand": 1.0
+    },
+    {
+      "id": "Heideblick",
+      "name": "Heideblick",
+      "coordinates": [
+        51.83285,
+        13.64256
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Heideblick"
+      },
+      "demand": 1.0
+    }
+  ],
+  "networks": {},
+  "vehicles": [],
+  "problems": [
+    {
+      "name": "lds-sued",
+      "type": "contpcentre",
+      "parameters": {
+        "isCapacitated": false,
+        "isDemandWeighted": false,
+        "p": 2
+      }
+    }
+  ]
+}

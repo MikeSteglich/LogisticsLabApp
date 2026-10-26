@@ -146,6 +146,18 @@ class _MapViewState extends State<MapView> {
                   if (n.roles.contains('candidate')) _symbol(n),
                 for (final n in nodes)
                   if (!n.roles.contains('candidate')) _symbol(n),
+                // continuous location: the locations found
+                if (_showSolution)
+                  for (final MapEntry(:key, :value) in s.foundLocations.entries)
+                    Marker(
+                      point: value,
+                      width: Ui.minTarget,
+                      height: Ui.minTarget,
+                      child: GestureDetector(
+                        onTap: () => s.highlightNode(key),
+                        child: Center(child: _markShape(_Mark.location, Ui.candidate, Ui.candidateDark, size: 18)),
+                      ),
+                    ),
               ],
               rotate: false,
             ),
@@ -292,9 +304,13 @@ class _MapViewState extends State<MapView> {
     final list = s.connections;
     // several tours (vrp): a colour per tour
     final tours = {for (final a in list) a['route']}.whereType<int>().length;
+    final found = s.foundLocations;
     final points = [
       for (final a in list)
-        if (s.scenario.node(a['from'] as String) case final from?)
+        // a location found (continuous location): a straight line - the distances are great-circle distances
+        if (found[a['from']] case final f?)
+          if (s.scenario.node(a['to'] as String) case final to?) (a, [f, to.position]) else (a, const <LatLng>[])
+        else if (s.scenario.node(a['from'] as String) case final from?)
           if (s.scenario.node(a['to'] as String) case final to?)
             (a, _legPoints(a) ?? s.edgePoints(from.position, to.position))
           else
@@ -489,6 +505,14 @@ class _MapViewState extends State<MapView> {
       for (final f in flows.where((f) => !f.selected)) flowLabel(f),
       for (final n in nodes.where((n) => n.id != s.selectedNode && s.isRelevant(n))) nodeLabel(n),
       for (final n in nodes.where((n) => n.id != s.selectedNode && !s.isRelevant(n))) nodeLabel(n),
+      if (_showSolution)
+        for (final MapEntry(:key, :value) in s.foundLocations.entries)
+          _Label(
+            value,
+            s.nameOf(key),
+            const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+            color: Ui.candidateDark,
+          ),
     ];
   }
 
@@ -909,6 +933,9 @@ class _MapViewState extends State<MapView> {
                 const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
               ),
             ),
+          // continuous location: the locations found
+          if (_showSolution && s.foundLocations.isNotEmpty)
+            item(_markShape(_Mark.location, Ui.candidate, Ui.candidateDark, size: 10), t('ui.sol.locations')),
           if (tours.length > 1)
             for (final (i, name) in tours.indexed)
               item(

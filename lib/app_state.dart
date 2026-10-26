@@ -289,6 +289,29 @@ class AppState extends ChangeNotifier {
     return '$v';
   }
 
+  /// continuous location: the locations found - not nodes of the scenario - id (F1, ...) -> position
+  Map<String, LatLng> get foundLocations => {
+    for (final MapEntry(:key, :value) in ((solution?.results?['nodes'] as Map?) ?? const {}).entries)
+      if ((value as Map)['coordinates'] case [final num lat, final num lon] when scenario.node('$key') == null)
+        key as String: LatLng(lat.toDouble(), lon.toDouble()),
+  };
+
+  /// position of a node of the scenario or of a location found
+  LatLng? positionOf(String id) => scenario.node(id)?.position ?? foundLocations[id];
+
+  /// name of a node of the scenario or of a location found ("Standort 1")
+  String nameOf(String id) =>
+      scenario.node(id)?.name ??
+      (foundLocations.containsKey(id) ? strings('ui.sol.foundLocation', {'n': id.replaceAll(RegExp(r'\D'), '')}) : id);
+
+  /// the locations found become candidates - e.g. for a warehouse location problem afterwards
+  void adoptFoundLocations() => edit(() {
+    for (final MapEntry(:key, :value) in foundLocations.entries) {
+      final n = scenario.addNode(value, roles: const ['candidate']);
+      n.name = nameOf(key);
+    }
+  });
+
   /// warehouses of the solution (multistagewlp): id -> open
   Map<String, bool> get openNodes => {
     for (final MapEntry(:key, :value) in ((solution?.results?['nodes'] as Map?) ?? const {}).entries)
@@ -416,7 +439,8 @@ class AppState extends ChangeNotifier {
       if (n == null || !n.active) out.add(strings('ui.check.nodeParam', {'field': strings(f.label), 'node': '$id'}));
     }
     // p-median, p-centre: at most as many locations as candidates
-    if (p.parameters['p'] case final int n when s.group == ModuleGroup.location) {
+    if (p.parameters['p'] case final int n
+        when s.group == ModuleGroup.location && s.roles.first.defaultRole == 'candidate') {
       final role = s.nodeRole(s.roles.first, p.parameters);
       final candidates = scenario.nodes.where((x) => x.active && x.roles.contains(role)).length;
       if (n > candidates) out.add(strings('ui.check.tooManyLocations', {'p': n, 'n': candidates}));

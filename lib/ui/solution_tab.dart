@@ -829,11 +829,14 @@ class _Locations extends StatelessWidget {
     final s = state;
     final t = s.strings;
     final res = s.solution!.results!;
-    String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
+    String name(Object? id) => s.nameOf('$id');
     String percent(Object? v) => v is num ? '${t.number(v * 100, decimals: 0)} %' : '';
     final nodes = (res['nodes'] as Map).cast<String, dynamic>();
     // the open locations first
-    final ids = nodes.keys.toList()..sort((a, b) => (nodes[b]['open'] as int).compareTo(nodes[a]['open'] as int));
+    // continuous location: the locations found are open
+    int open(String id) => (nodes[id]['open'] as int?) ?? 1;
+    final ids = nodes.keys.toList()..sort((a, b) => open(b).compareTo(open(a)));
+    final found = s.foundLocations;
     final withCapacity = nodes.values.any((n) => n['capacity'] != null);
     final withFixed = nodes.values.any((n) => n['fixedCost'] != null);
     final assignments = s.connections;
@@ -869,9 +872,9 @@ class _Locations extends StatelessWidget {
                     onTap: () => s.highlightNode(id),
                     [
                       name(id),
-                      t(n['open'] == 1 ? 'ui.sol.isOpen' : 'ui.sol.isClosed'),
-                      n['open'] == 1 ? '${n['nrOfAssigned'] ?? 0}' : '',
-                      n['open'] == 1 ? t.number(n['load'] as num? ?? 0) : '',
+                      t(open(id) == 1 ? 'ui.sol.isOpen' : 'ui.sol.isClosed'),
+                      open(id) == 1 ? '${n['nrOfAssigned'] ?? 0}' : '',
+                      open(id) == 1 ? t.number(n['load'] as num? ?? 0) : '',
                       if (withCapacity) ...[
                         n['capacity'] is num ? t.number(n['capacity'] as num) : '',
                         percent(n['utilization']),
@@ -917,6 +920,18 @@ class _Locations extends StatelessWidget {
             ],
           ),
         ),
+        // continuous location: the locations found as candidates of the scenario
+        if (found.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+              label: Text(t('ui.sol.adoptLocations')),
+              onPressed: s.adoptFoundLocations,
+            ),
+          ),
+        ],
         // maximal covering: outside the radius of every open location
         if (uncovered.isNotEmpty) ...[
           const SizedBox(height: 12),

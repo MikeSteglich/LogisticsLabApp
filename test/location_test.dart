@@ -33,7 +33,7 @@ void main() {
   test('the location problems in the menu', () {
     expect(
       [for (final m in modulesByGroup()[ModuleGroup.location]!) m.type],
-      ['wlp', 'pmedian', 'pcentre', 'scp', 'mcp'],
+      ['wlp', 'pmedian', 'pcentre', 'scp', 'mcp', 'contpmedian', 'contpcentre'],
     );
   });
 
@@ -140,6 +140,37 @@ void main() {
     state.edit(() => state.problem!.parameters['radius'] = 10);
     await tester.runAsync(state.solve);
     expect(state.message, contains('no candidate within the radius'));
+    await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+  });
+
+  testWidgets('continuous location: the locations found on the map, adopted as candidates', skip: _stdio, (
+    tester,
+  ) async {
+    MapView.showTiles = false;
+    tester.view.physicalSize = const Size(1440, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = await _state(tester, 'lds-sued.clpx.llab');
+    await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+    state.chooseProblem('lds-sued');
+    expect(state.problemRoles, ['customer']);
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.runAsync(state.solve);
+    await tester.pump();
+    expect(state.message, isNull);
+    // two locations anywhere, every customer assigned to one of them
+    expect(state.foundLocations.keys, ['F1', 'F2']);
+    expect(state.connections.length, 28);
+    expect(state.connections.every((c) => state.foundLocations.containsKey(c['from'])), isTrue);
+    expect(state.nameOf('F2'), 'Standort 2');
+    expect(find.text('Standort 1'), findsWidgets); // map and table
+    // the locations become candidates of the scenario
+    await tester.tap(find.text('Als Kandidaten übernehmen'));
+    await tester.pump();
+    final candidates = state.scenario.nodes.where((n) => n.roles.contains('candidate')).toList();
+    expect([for (final n in candidates) n.name], ['Standort 1', 'Standort 2']);
+    expect(candidates.first.position.latitude, closeTo(state.foundLocations['F1']!.latitude, 1e-5));
+    expect(candidates.first.position.longitude, closeTo(state.foundLocations['F1']!.longitude, 1e-5));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
   });
 }

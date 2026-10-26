@@ -513,5 +513,14 @@
   "ui.sol.uncovered": "Nicht abgedeckt: {nodes}",
   "ui.check.tooManyLocations": "{p} Standorte gewünscht, aber nur {n} Kandidaten",
   "field.candidateSupply": "Angebot (Kapazität)",
-  "field.candidateSupply.help": "Wie viel der Standort liefern kann – wirkt mit „Kapazitäten beachten“"
+  "field.candidateSupply.help": "Wie viel der Standort liefern kann – wirkt mit „Kapazitäten beachten“",
+  "module.contpmedian.description": "p Standorte frei auf der Karte – Summe der Luftlinien-Entfernungen zu den Kunden minimal",
+  "module.contpcentre.description": "p Standorte frei auf der Karte – die längste Luftlinien-Entfernung zu einem Kunden minimal",
+  "field.capacityPerLocation": "Kapazität je Standort",
+  "field.capacityPerLocation.help": "Eine Kapazität für alle gefundenen Standorte",
+  "field.isSingleSourceLocation": "Jeder Kunde von genau einem Standort",
+  "field.nrOfStarts": "Anzahl Startlösungen",
+  "field.nrOfStarts.help": "Das Verfahren beginnt so oft mit anderen Startpunkten und nimmt die beste Lösung – mehr Starts: bessere Lösung, längere Rechnung",
+  "ui.sol.foundLocation": "Standort {n}",
+  "ui.sol.adoptLocations": "Als Kandidaten übernehmen"
 }

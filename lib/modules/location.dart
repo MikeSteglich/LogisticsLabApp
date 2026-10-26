@@ -148,4 +148,60 @@ final mcpSpec = ModuleSpec(
   ],
 );
 
-final locationSpecs = [wlpSpec, pMedianSpec, pCentreSpec, scpSpec, mcpSpec];
+//*************** continuous location problems ************************************
+//
+// p locations anywhere on the map (great-circle distances) - their places are a result, not nodes.
+
+List<FieldSpec> _continuousParameters() => [
+  _p,
+  const FieldSpec('isDemandWeighted', FieldKind.boolean, defaultValue: true),
+  _isCapacitated,
+  // one capacity for all locations
+  FieldSpec(
+    'capacities',
+    FieldKind.number,
+    required: true,
+    min: 0,
+    labelKey: 'field.capacityPerLocation',
+    visibleIf: _capacitated,
+  ),
+  FieldSpec(
+    'isSingleSource',
+    FieldKind.boolean,
+    defaultValue: true,
+    labelKey: 'field.isSingleSourceLocation',
+    visibleIf: _capacitated,
+  ),
+  const FieldSpec('nrOfStarts', FieldKind.integer, min: 1, hint: 'hint.auto'),
+  const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
+];
+
+final contPMedianSpec = ModuleSpec(
+  type: 'contpmedian',
+  group: ModuleGroup.location,
+  roles: [_customers(withCostFactor: true)],
+  parameters: _continuousParameters(),
+  objective: _objVal,
+  summary: const [
+    ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
+    ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfAssignments'),
+    ResultColumn('longestAssignment', unit: '€'),
+    ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
+  ],
+);
+
+final contPCentreSpec = ModuleSpec(
+  type: 'contpcentre',
+  group: ModuleGroup.location,
+  roles: [_customers()],
+  parameters: _continuousParameters(),
+  objective: _objVal,
+  summary: const [
+    ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
+    ResultColumn('longestAssignment', unit: '€'),
+    ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfAssignments'),
+    ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
+  ],
+);
+
+final locationSpecs = [wlpSpec, pMedianSpec, pCentreSpec, scpSpec, mcpSpec, contPMedianSpec, contPCentreSpec];

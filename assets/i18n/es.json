@@ -513,5 +513,14 @@
   "ui.sol.uncovered": "No cubiertos: {nodes}",
   "ui.check.tooManyLocations": "Se desean {p} ubicaciones, pero solo hay {n} candidatos",
   "field.candidateSupply": "Oferta (capacidad)",
-  "field.candidateSupply.help": "Cuánto puede suministrar la ubicación – se aplica con «Respetar capacidades»"
+  "field.candidateSupply.help": "Cuánto puede suministrar la ubicación – se aplica con «Respetar capacidades»",
+  "module.contpmedian.description": "p ubicaciones libres en el mapa – suma de distancias en línea recta a los clientes mínima",
+  "module.contpcentre.description": "p ubicaciones libres en el mapa – la mayor distancia en línea recta a un cliente mínima",
+  "field.capacityPerLocation": "Capacidad por ubicación",
+  "field.capacityPerLocation.help": "Una capacidad para todas las ubicaciones encontradas",
+  "field.isSingleSourceLocation": "Cada cliente desde exactamente una ubicación",
+  "field.nrOfStarts": "Número de arranques",
+  "field.nrOfStarts.help": "El método arranca tantas veces desde otros puntos y toma la mejor solución – más arranques: mejor solución, cálculo más largo",
+  "ui.sol.foundLocation": "Ubicación {n}",
+  "ui.sol.adoptLocations": "Adoptar como candidatos"
 }

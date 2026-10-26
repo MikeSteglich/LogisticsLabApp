@@ -513,5 +513,14 @@
   "ui.sol.uncovered": "Not covered: {nodes}",
   "ui.check.tooManyLocations": "{p} locations wanted, but only {n} candidates",
   "field.candidateSupply": "Supply (capacity)",
-  "field.candidateSupply.help": "How much the location can supply – applies with “Respect capacities”"
+  "field.candidateSupply.help": "How much the location can supply – applies with “Respect capacities”",
+  "module.contpmedian.description": "p locations anywhere on the map – sum of the great-circle distances to the customers as low as possible",
+  "module.contpcentre.description": "p locations anywhere on the map – the longest great-circle distance to a customer as short as possible",
+  "field.capacityPerLocation": "Capacity per location",
+  "field.capacityPerLocation.help": "One capacity for all locations found",
+  "field.isSingleSourceLocation": "Every customer from exactly one location",
+  "field.nrOfStarts": "Number of starts",
+  "field.nrOfStarts.help": "The method starts this often from other points and takes the best solution – more starts: better solution, longer computation",
+  "ui.sol.foundLocation": "Location {n}",
+  "ui.sol.adoptLocations": "Adopt as candidates"
 }

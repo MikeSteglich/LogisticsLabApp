@@ -246,6 +246,12 @@ void main() {
     state.tapNode('D1');
     await shot('16a-wlp-location');
     state.highlightNode(null);
+    // continuous location: the locations found anywhere on the map
+    state.chooseProblem('Freie Standorte');
+    await tester.runAsync(state.solve);
+    await tester.pump();
+    await settle(() => false, seconds: 3);
+    await shot('17-clp');
     // pickup and delivery: the requests as dashed lines, the tours with the load
     state.chooseProblem('Abholen und Zustellen');
     state.setTab(DataTab.nodes);
