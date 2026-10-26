@@ -67,4 +67,11 @@ python3 dist/buildDist.py --sign "Developer ID Application: ..." --notarize <key
 - Windows: Der CMPL-Kern wird mit MSYS2/MinGW gebaut, die App mit Visual Studio. Die Werkzeuge von MSYS2 stehen nur für diesen Schritt und ganz hinten im `PATH`.
 - Linux: GTK-3-Entwicklungspakete, `clang`, `cmake`, `ninja`.
 - Die fertige App wird auf den Rechnern nicht gestartet (`--no-launch-test`, kein Bildschirm). Der Test des Rechenkerns in der App läuft.
-- macOS: ad hoc signiert, mit `.dmg`. Für andere Rechner muss die macOS-Version weiter lokal signiert und notarisiert werden.
+- macOS: ohne weitere Secrets ad hoc signiert, mit `.dmg`. Mit diesen Secrets wird mit der Developer ID signiert und das `.dmg` notarisiert (Ticket angeheftet):
+  - `MACOS_CERTIFICATE`: Zertifikat „Developer ID Application“ mit privatem Schlüssel als `.p12`, base64 (`base64 -i zert.p12 | pbcopy`)
+  - `MACOS_CERTIFICATE_PASSWORD`: Passwort des `.p12`
+  - `MACOS_SIGN_IDENTITY`: z. B. `Developer ID Application: Mike Steglich (QPNW56NP5J)`
+  - `NOTARY_KEY`: App Store Connect API Key (`AuthKey_….p8`), base64
+  - `NOTARY_KEY_ID`, `NOTARY_ISSUER_ID`: Key ID und Issuer ID des API Keys
+
+  Der Workflow legt das Zertifikat in einen temporären Schlüsselbund und den API Key als Profil `loglab-notary` für `notarytool` ab, beides wird am Ende entfernt.

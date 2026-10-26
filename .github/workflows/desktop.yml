@@ -39,6 +39,9 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      # macOS with a Developer ID: signed and notarized - without these secrets signed ad hoc
+      HAS_SIGNING: ${{ secrets.MACOS_CERTIFICATE != '' && secrets.NOTARY_KEY != '' }}
 
     steps:
       - name: Check out LogisticsLabApp
@@ -91,6 +94,36 @@ jobs:
           install: mingw-w64-x86_64-gcc make
           path-type: inherit
 
+      # the certificate in a temporary keychain (the default keychain of this run), the API key of App Store Connect
+      # for notarytool as the profile loglab-notary - removed at the end
+      - name: macOS - certificate and notarization
+        if: runner.os == 'macOS' && env.HAS_SIGNING == 'true'
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_SIGN_IDENTITY: ${{ secrets.MACOS_SIGN_IDENTITY }}
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          kc="$RUNNER_TEMP/signing.keychain-db"
+          kp="$(openssl rand -base64 24)"
+          security create-keychain -p "$kp" "$kc"
+          security set-keychain-settings -lut 21600 "$kc"
+          security unlock-keychain -p "$kp" "$kc"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$kc" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$kp" "$kc" > /dev/null
+          security list-keychains -d user -s "$kc" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -s "$kc"
+          security find-identity -v -p codesigning "$kc"
+          echo "$NOTARY_KEY" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+          xcrun notarytool store-credentials loglab-notary --key "$RUNNER_TEMP/notary.p8" \
+            --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --keychain "$kc"
+          rm "$RUNNER_TEMP/notary.p8"
+          echo "SIGN_IDENTITY=$MACOS_SIGN_IDENTITY" >> "$GITHUB_ENV"
+
       # the computing core (Nuitka, CMPL, HiGHS) and the app - with the test of the core in the app; the app is not
       # started (no screen on the runners)
       # Windows: g++ of MinGW first in the PATH, the tools of MSYS2 (rm, sed for the makefile of CMPL) last - so that
@@ -104,7 +137,16 @@ jobs:
             msys=$(cygpath -u "$MSYS2_LOCATION")
             export PATH="$msys/mingw64/bin:$PATH:$msys/usr/bin"
           fi
-          python dist/buildDist.py --build-stdio --no-launch-test ${{ matrix.extra }}
+          args=(--build-stdio --no-launch-test)
+          # macOS with a Developer ID: signed, the .dmg notarized with the ticket stapled to it
+          if [ -n "${SIGN_IDENTITY:-}" ]; then
+            args+=(--sign "$SIGN_IDENTITY" --notarize loglab-notary)
+          fi
+          python dist/buildDist.py "${args[@]}" ${{ matrix.extra }}
+
+      - name: macOS - remove the keychain
+        if: always() && runner.os == 'macOS' && env.HAS_SIGNING == 'true'
+        run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
 
       - name: Archives
         uses: actions/upload-artifact@v4
