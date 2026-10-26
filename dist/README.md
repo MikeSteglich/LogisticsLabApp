@@ -57,3 +57,14 @@ python3 dist/buildDist.py --sign "Developer ID Application: ..." --notarize <key
 - Gebaut wird immer für das eigene System. Windows und Linux brauchen einen Rechner (oder eine CI) mit diesem System, mit Flutter und den Werkzeugen für `buildStdio.py`.
 - macOS: Die App läuft ohne Sandbox (`macos/Runner/Release.entitlements`), weil sie den Rechenkern startet. Der Rechenkern wird mit `dist/resources/stdio.entitlements` signiert (`disable-library-validation` für die Erweiterungsmodule).
 - Windows ist nicht getestet. Der Rechenkern ist ein Konsolenprogramm (`--windows-console-mode=force` in `buildStdio.py`). Startet ihn die App, kann ein Konsolenfenster aufgehen. Falls ja, muss `buildStdio.py` ihn ohne eigene Konsole bauen.
+
+## Windows, Linux und macOS mit GitHub Actions
+
+`.github/workflows/desktop.yml` baut die App auf GitHub-Rechnern für Windows, Linux und macOS, jeweils auf dem eigenen System. Gestartet wird der Workflow von Hand (*Actions → Desktop builds → Run workflow*) oder durch einen Tag `v*`. Die Archive liegen danach als Artefakte am Lauf. Bei einem Tag entsteht zusätzlich ein Release mit den Archiven.
+
+- Ausgecheckt werden die drei Repositories nebeneinander, wie `buildDist.py` sie erwartet: `LogisticsLabApp`, `pyLogisticsLab` (privat) und `Cmpl2` (öffentlich).
+- pyLogisticsLab und pyCmpl sind privat. Der Workflow braucht deshalb das Secret `LOGLAB_REPOS_TOKEN`: einen *fine-grained personal access token* mit Lesezugriff (*Contents: Read-only*) auf pyLogisticsLab und pyCmpl. Er wird unter *Settings → Secrets and variables → Actions* des Repositorys LogisticsLabApp eingetragen.
+- Windows: Der CMPL-Kern wird mit MSYS2/MinGW gebaut, die App mit Visual Studio. Die Werkzeuge von MSYS2 stehen nur für diesen Schritt und ganz hinten im `PATH`.
+- Linux: GTK-3-Entwicklungspakete, `clang`, `cmake`, `ninja`.
+- Die fertige App wird auf den Rechnern nicht gestartet (`--no-launch-test`, kein Bildschirm). Der Test des Rechenkerns in der App läuft.
+- macOS: ad hoc signiert, mit `.dmg`. Für andere Rechner muss die macOS-Version weiter lokal signiert und notarisiert werden.

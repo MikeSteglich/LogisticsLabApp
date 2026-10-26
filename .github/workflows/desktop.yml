@@ -1,0 +1,120 @@
+# Desktop builds of LogisticsLab Studio for Windows, Linux and macOS - each on its own system, because Flutter,
+# Nuitka and CMPL build native code (dist/buildDist.py, dist/README.md).
+#
+#   started by hand (Actions -> Desktop builds -> Run workflow) or by a tag v*; a tag also makes a release
+#   with the archives
+#
+# The three repositories lie side by side as dist/buildDist.py expects them:
+#   LogisticsLabApp/  pyLogisticsLab/ (private)  Cmpl2/ (public)
+# pyLogisticsLab and pyCmpl (installed by pip from GitHub) are private - the secret LOGLAB_REPOS_TOKEN is a
+# fine-grained personal access token with read access ("Contents: Read-only") to these repositories.
+
+name: Desktop builds
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write          # the release of a tag
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false     # one system failing does not stop the others
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            extra: ''
+          - name: Linux
+            os: ubuntu-22.04
+            extra: ''
+          - name: macOS
+            os: macos-14
+            extra: --dmg
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Check out LogisticsLabApp
+        uses: actions/checkout@v4
+        with:
+          path: LogisticsLabApp
+
+      - name: Check out pyLogisticsLab
+        uses: actions/checkout@v4
+        with:
+          repository: MikeSteglich/pyLogisticsLab
+          path: pyLogisticsLab
+          token: ${{ secrets.LOGLAB_REPOS_TOKEN }}
+
+      - name: Check out Cmpl2
+        uses: actions/checkout@v4
+        with:
+          repository: MikeSteglich/Cmpl2
+          path: Cmpl2
+
+      # pip installs pyCmpl from its private repository (pyLogisticsLab/requirements.txt)
+      - name: Access to the private repositories for git and pip
+        run: git config --global url."https://x-access-token:${{ secrets.LOGLAB_REPOS_TOKEN }}@github.com/".insteadOf "https://github.com/"
+
+      - name: Python (base of the Nuitka build environment)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.4
+          cache: true
+
+      - name: Linux - GTK and the compilers
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev g++ make
+
+      # CMPL is compiled with MinGW (Cmpl2/dist/README.md) - g++ and make of MSYS2 in the PATH
+      - name: Windows - MSYS2 with MinGW
+        if: runner.os == 'Windows'
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc make
+          path-type: inherit
+
+      # the computing core (Nuitka, CMPL, HiGHS) and the app - with the test of the core in the app; the app is not
+      # started (no screen on the runners)
+      # Windows: g++ of MinGW first in the PATH, the tools of MSYS2 (rm, sed for the makefile of CMPL) last - so that
+      # they do not hide the tools of Visual Studio (link) for the build of the app
+      - name: Build
+        working-directory: LogisticsLabApp
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            msys=$(cygpath -u "$MSYS2_LOCATION")
+            export PATH="$msys/mingw64/bin:$PATH:$msys/usr/bin"
+          fi
+          python dist/buildDist.py --build-stdio --no-launch-test ${{ matrix.extra }}
+
+      - name: Archives
+        uses: actions/upload-artifact@v4
+        with:
+          name: LogisticsLabStudio-${{ matrix.name }}
+          path: LogisticsLabApp/dist/out/*
+          if-no-files-found: error
+
+      - name: Release of the tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: LogisticsLabApp/dist/out/*
