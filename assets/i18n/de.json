@@ -318,7 +318,7 @@
   "ui.sol.contribution": "Deckungsbeitrag",
   "ui.sol.utilization": "Auslastung",
   "ui.sol.ofCapacity": "von {capacity}",
-  "ui.sol.throughput": "Durchsatz",
+  "ui.sol.throughput": "Durchfluss",
   "ui.sol.full": "Voll ausgelastet",
   "ui.sol.shareOrUtilization": "Anteil / Auslastung",
   "choice.objSense.maxflow": "Menge maximieren",

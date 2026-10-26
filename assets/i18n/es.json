@@ -318,7 +318,7 @@
   "ui.sol.contribution": "Margen",
   "ui.sol.utilization": "Utilización",
   "ui.sol.ofCapacity": "de {capacity}",
-  "ui.sol.throughput": "Caudal",
+  "ui.sol.throughput": "Flujo",
   "ui.sol.full": "Plenamente utilizados",
   "ui.sol.shareOrUtilization": "Proporción / utilización",
   "choice.objSense.maxflow": "Maximizar la cantidad",

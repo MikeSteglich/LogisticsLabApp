@@ -164,6 +164,11 @@ void main() {
     expect(state.connections.every((c) => state.foundLocations.containsKey(c['from'])), isTrue);
     expect(state.nameOf('F2'), 'Standort 2');
     expect(find.text('Standort 1'), findsWidgets); // map and table
+    // hover of a location found: its name, coordinates, customers and quantity
+    expect(
+      find.byWidgetPredicate((w) => w is Tooltip && (w.richMessage?.toPlainText() ?? '').startsWith('Standort 1\n')),
+      findsOneWidget,
+    );
     // the coordinates of the locations found in the table
     final f1 = state.foundLocations['F1']!;
     expect(

@@ -153,9 +153,16 @@ class _MapViewState extends State<MapView> {
                       point: value,
                       width: Ui.minTarget,
                       height: Ui.minTarget,
-                      child: GestureDetector(
-                        onTap: () => s.highlightNode(key),
-                        child: Center(child: _markShape(_Mark.location, Ui.candidate, Ui.candidateDark, size: 18)),
+                      child: Tooltip(
+                        richMessage: _foundInfo(key, value),
+                        waitDuration: const Duration(milliseconds: 300),
+                        child: GestureDetector(
+                          onTap: () => s.highlightNode(key),
+                          child: MouseRegion(
+                            cursor: SystemMouseCursors.click,
+                            child: Center(child: _markShape(_Mark.location, Ui.candidate, Ui.candidateDark, size: 20)),
+                          ),
+                        ),
                       ),
                     ),
               ],
@@ -547,15 +554,18 @@ class _MapViewState extends State<MapView> {
               (o.position.latitude - n.position.latitude).abs() < 1e-5 &&
               (o.position.longitude - n.position.longitude).abs() < 1e-5,
         );
+    // network flows: the flow through a transshipment node and its utilization
+    final transit = _showSolution && kind == _Mark.transit && relevant ? _transitUse(n.id) : null;
     final Widget shape = switch (kind) {
       // level from the bottom - full: everything shipped, empty: not used
       _Mark.source when use != null => Container(
-        width: 16,
-        height: 16,
+        width: 18,
+        height: 18,
         decoration: BoxDecoration(
           color: Ui.surface,
           borderRadius: BorderRadius.circular(2),
           border: Border.all(color: use.unused ? Ui.pale : line, width: 2),
+          boxShadow: _halo(18),
         ),
         alignment: Alignment.bottomCenter,
         child: FractionallySizedBox(
@@ -565,20 +575,37 @@ class _MapViewState extends State<MapView> {
         ),
       ),
       // pie of the demand met - an orange ring if it is not met completely
-      _Mark.sink when use != null => CustomPaint(
-        size: const Size(18, 18),
-        painter: _PiePainter(
-          share: use.share ?? 1,
-          fill: fill,
-          ring: use.notFull ? Ui.warning : line,
-          ringWidth: use.notFull ? 3 : 2,
+      _Mark.sink when use != null => DecoratedBox(
+        decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _halo(19)),
+        child: CustomPaint(
+          size: const Size(19, 19),
+          painter: _PiePainter(
+            share: use.share ?? 1,
+            fill: fill,
+            ring: use.notFull ? Ui.warning : line,
+            ringWidth: use.notFull ? 3 : 2.5,
+          ),
+        ),
+      ),
+      // a transshipment node in the solution: its utilization as a pie (flow / capacity) - orange ring if full;
+      // without a capacity filled if something flows through it
+      _Mark.transit when transit != null => DecoratedBox(
+        decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _halo(15)),
+        child: CustomPaint(
+          size: const Size(15, 15),
+          painter: _PiePainter(
+            share: transit.utilization ?? (transit.flow > 0 ? 1 : 0),
+            fill: Ui.textMuted,
+            ring: transit.flow <= 0 ? Ui.pale : ((transit.utilization ?? 0) >= 0.999 ? Ui.warning : Ui.text),
+            ringWidth: 2,
+          ),
         ),
       ),
       _ => _markShape(
         kind,
         fill,
         line,
-        size: shared ? 22 : 16,
+        size: shared ? 24 : 18,
         // a location: filled if open in the solution, pale if closed
         filled: kind != _Mark.location || open == true,
         faded: open == false,
@@ -609,6 +636,13 @@ class _MapViewState extends State<MapView> {
               if (use != null)
                 TextSpan(
                   text: '\n${_useInfo(use)}',
+                  style: const TextStyle(fontSize: 12, color: Ui.textMuted),
+                ),
+              if (transit != null)
+                TextSpan(
+                  text:
+                      '\n${s.strings('ui.sol.throughput')}: ${s.strings.number(transit.flow)}'
+                      '${transit.utilization != null ? ' (${s.strings.number(transit.utilization! * 100, decimals: 0)} %)' : ''}',
                   style: const TextStyle(fontSize: 12, color: Ui.textMuted),
                 ),
             ],
@@ -645,6 +679,40 @@ class _MapViewState extends State<MapView> {
           ),
         ),
       ),
+    );
+  }
+
+  /// network flows: flow through a transshipment node and its utilization (null without a capacity)
+  ({num flow, double? utilization})? _transitUse(String id) {
+    // only network flows have flows through their nodes - not the other nodes of a shortest way or a postman tour
+    final nodes = s.solution?.results?['nodes'];
+    if (s.spec?.group != ModuleGroup.network || nodes is! Map || nodes.isEmpty) return null;
+    if (const ['shortestpath', 'cpp'].contains(s.spec?.type)) return null;
+    final r = nodes[id];
+    if (r is! Map) return (flow: 0, utilization: null);
+    final f = r['flow'];
+    final flow = f is num ? f : (f is List ? f.fold<num>(0, (a, b) => a + (b as num)) : 0);
+    return (flow: flow, utilization: (r['utilization'] as num?)?.toDouble());
+  }
+
+  /// hover of a location found (continuous location): name, coordinates, customers and quantity
+  TextSpan _foundInfo(String id, LatLng p) {
+    final t = s.strings;
+    final r = ((s.solution?.results?['nodes'] as Map?) ?? const {})[id] as Map? ?? const {};
+    return TextSpan(
+      children: [
+        TextSpan(
+          text: s.nameOf(id),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Ui.text),
+        ),
+        TextSpan(
+          text:
+              '\n${t.fixed(p.latitude, 5)} / ${t.fixed(p.longitude, 5)}'
+              '\n${t('ui.sol.customers')}: ${r['nrOfAssigned'] ?? 0} · ${t('ui.sol.amount')}: ${t.number(r['load'] as num? ?? 0)}'
+              '${r['utilization'] is num ? ' (${t.number((r['utilization'] as num) * 100, decimals: 0)} %)' : ''}',
+          style: const TextStyle(fontSize: 12, color: Ui.textSecondary),
+        ),
+      ],
     );
   }
 
@@ -1281,7 +1349,8 @@ Widget _markShape(_Mark kind, Color fill, Color line, {double size = 16, bool fi
         decoration: BoxDecoration(
           color: fill,
           borderRadius: BorderRadius.circular(size / 8),
-          border: Border.all(color: line, width: size / 10),
+          border: Border.all(color: line, width: size / 8),
+          boxShadow: _halo(size),
         ),
       ),
       _Mark.sink => Container(
@@ -1290,7 +1359,8 @@ Widget _markShape(_Mark kind, Color fill, Color line, {double size = 16, bool fi
         decoration: BoxDecoration(
           color: Ui.surface,
           shape: BoxShape.circle,
-          border: Border.all(color: fill, width: size * 0.22),
+          border: Border.all(color: fill, width: size * 0.25),
+          boxShadow: _halo(size),
         ),
       ),
       // the diagonal of the diamond about the width of the other symbols
@@ -1300,8 +1370,9 @@ Widget _markShape(_Mark kind, Color fill, Color line, {double size = 16, bool fi
           width: size * 0.82,
           height: size * 0.82,
           decoration: BoxDecoration(
-            color: filled ? fill : Ui.mapBackground,
-            border: Border.all(color: faded ? Ui.pale : line, width: size * 0.18),
+            color: filled ? fill : Ui.surface,
+            border: Border.all(color: faded ? Ui.pale : line, width: size * 0.2),
+            boxShadow: _halo(size),
           ),
         ),
       ),
@@ -1311,7 +1382,14 @@ Widget _markShape(_Mark kind, Color fill, Color line, {double size = 16, bool fi
         decoration: BoxDecoration(
           color: fill,
           shape: BoxShape.circle,
-          border: Border.all(color: Ui.surface, width: 1.5),
+          border: Border.all(color: Ui.surface, width: size / 10),
+          boxShadow: _halo(size, spread: false),
         ),
       ),
     };
+
+/// a white halo and a soft shadow around a symbol - it stands out on the map tiles and on the lines
+List<BoxShadow> _halo(double size, {bool spread = true}) => [
+  if (spread) BoxShadow(color: Colors.white, spreadRadius: size / 12),
+  BoxShadow(color: Colors.black.withValues(alpha: 0.28), blurRadius: size / 6, offset: Offset(0, size / 18)),
+];
