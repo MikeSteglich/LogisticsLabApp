@@ -67,3 +67,11 @@ LOGLAB_SHOTS=/tmp/shots flutter test test/screenshot_test.dart
 - The map uses the public OpenStreetMap tile server, which is fine for a prototype. A release needs its own tile server or a provider, following the [OSM Tile Usage Policy](https://operations.osmfoundation.org/policies/tiles).
 - On macOS the app runs without sandbox, because it starts the local core as child process.
 - Not done yet: the other problem types, editing edges, geocoding of addresses.
+
+## License
+
+© 2026 Mike Steglich, Technical University of Applied Sciences Wildau
+
+LogisticsLab Studio is free software under the [GNU Affero General Public License v3](LICENSE) or any later version (AGPL-3.0-or-later). Anyone who offers a modified version as a network service, for example as a web app, must make the source code of the changes available to its users.
+
+Third-party software: Flutter and the Dart packages from `pubspec.yaml` with their own licenses, map data © OpenStreetMap contributors (ODbL). For contributions see [CONTRIBUTING.md](CONTRIBUTING.md).
