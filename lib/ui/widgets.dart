@@ -544,7 +544,10 @@ class SpecField extends StatelessWidget {
           hint: spec.hint != null ? s(spec.hint!) : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null),
           help: s.has(spec.help) ? s(spec.help) : null,
           check: (v) => spec.validate(v),
-          onChanged: onChanged,
+          // whole numbers as int - the core expects e.g. p as an integer, not 5.0
+          onChanged: spec.kind == FieldKind.integer
+              ? (v) => onChanged(v is num && v == v.roundToDouble() ? v.toInt() : v)
+              : onChanged,
         );
     }
   }

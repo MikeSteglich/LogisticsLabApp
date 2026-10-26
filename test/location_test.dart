@@ -52,6 +52,23 @@ void main() {
     ], contains('field.maxLocations'));
   });
 
+  testWidgets('the number of locations entered in the parameters: an integer', (tester) async {
+    MapView.showTiles = false;
+    tester.view.physicalSize = const Size(1440, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = await _state(tester, 'drogma.dlpx.llab');
+    state.chooseProblem('drogma');
+    state.setTab(DataTab.parameters);
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    final field = find.descendant(of: find.byKey(const ValueKey('drogma|de|p')), matching: find.byType(TextField));
+    await tester.enterText(field, '5');
+    await tester.pump();
+    expect(state.problem!.parameters['p'], isA<int>());
+    expect(state.problem!.parameters['p'], 5);
+  });
+
   testWidgets('p-median solved: the open locations, every customer assigned', skip: _stdio, (tester) async {
     final state = await _state(tester, 'drogma.dlpx.llab');
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
@@ -60,6 +77,11 @@ void main() {
     expect(state.message, isNull);
     expect(state.openNodes.values.where((o) => o).length, 4);
     expect(state.connections.length, 30);
+    // p as written by older versions of the number field: 5.0
+    state.edit(() => state.problem!.parameters['p'] = 5.0);
+    await tester.runAsync(state.solve);
+    expect(state.message, isNull);
+    expect(state.openNodes.values.where((o) => o).length, 5);
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
   });
 
