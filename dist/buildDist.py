@@ -137,6 +137,19 @@ def stdio_place(t, app):
     return app / "Contents" / "Resources" / STDIO if t.is_mac else app / STDIO
 
 
+def show_logs(files):
+    """bei einem Fehler: Fehlerausgabe und das Ende der Logs des Rechenkerns - auch im Protokoll einer CI zu sehen"""
+    for f in files:
+        try:
+            lines = Path(f).read_text(encoding="utf-8", errors="replace").splitlines()
+        except OSError:
+            continue
+        if lines:
+            print(f"\n    ---- {f} (letzte {min(len(lines), 60)} von {len(lines)} Zeilen)")
+            for line in lines[-60:]:
+                print("    " + line[:400])
+
+
 def stdio_test(exe, tdir):
     """JSON-RPC wie die App: convert (Import einer alten Datei), solveScenario mit dem Beispiel (Luftlinie - ohne
     Netz), dann result - ein Rechenkern, der aelter als die App ist, faellt hier auf."""
@@ -149,9 +162,11 @@ def stdio_test(exe, tdir):
     env["LOGLAB_LOG_DIR"] = str(tdir / "logs")
     env["PATH"] = os.pathsep.join(p for p in env.get("PATH", "").split(os.pathsep)
                                   if "conda" not in p.lower() and "python" not in p.lower())
-    proc = subprocess.Popen([str(exe), "--logPath", str(tdir / "logs")], stdin=subprocess.PIPE,
-                            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, encoding="utf-8",
-                            bufsize=1, cwd=tdir, env=env)
+    stderrFile = tdir / "stdio-stderr.txt"
+    with open(stderrFile, "w", encoding="utf-8") as err:
+        proc = subprocess.Popen([str(exe), "--logPath", str(tdir / "logs")], stdin=subprocess.PIPE,
+                                stdout=subprocess.PIPE, stderr=err, text=True, encoding="utf-8",
+                                bufsize=1, cwd=tdir, env=env)
 
     def send(id, method, params):
         proc.stdin.write(json.dumps({"jsonrpc": "2.0", "id": id, "method": method, "params": params}) + "\n")
@@ -159,10 +174,15 @@ def stdio_test(exe, tdir):
 
     result = None
     job = None
+    readies = 0                 # more than one: a solver process has started the interface again (spawn)
     try:
         for line in proc.stdout:
             msg = json.loads(line)
             if msg.get("method") == "ready":
+                readies += 1
+                if readies > 1:
+                    print(f"    noch einmal 'ready' ({readies}) - ein Solver-Prozess startet die Schnittstelle neu")
+                    continue
                 print(f"    bereit: Version {msg['params'].get('version')}")
                 raw = OLD_FILE.read_bytes()
                 try:
@@ -196,6 +216,7 @@ def stdio_test(exe, tdir):
             proc.kill()
     sol = (result or {}).get("solution") or {}
     if sol.get("status") != "solution":
+        show_logs([stderrFile, *sorted((tdir / "logs").rglob("*.log"))])
         raise BuildError(f"keine Loesung: {result}")
     print(f"    {problem}: {sol['status']}, Zielwert {sol['results']['objVal']}")
     print("    ok")
