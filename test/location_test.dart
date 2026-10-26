@@ -164,6 +164,12 @@ void main() {
     expect(state.connections.every((c) => state.foundLocations.containsKey(c['from'])), isTrue);
     expect(state.nameOf('F2'), 'Standort 2');
     expect(find.text('Standort 1'), findsWidgets); // map and table
+    // the coordinates of the locations found in the table
+    final f1 = state.foundLocations['F1']!;
+    expect(
+      find.text('${state.strings.fixed(f1.latitude, 5)} / ${state.strings.fixed(f1.longitude, 5)}'),
+      findsOneWidget,
+    );
     // the locations become candidates of the scenario
     await tester.tap(find.text('Als Kandidaten übernehmen'));
     await tester.pump();

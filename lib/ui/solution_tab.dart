@@ -863,6 +863,8 @@ class _Locations extends StatelessWidget {
                 t('ui.sol.amount'),
                 if (withCapacity) ...[t('field.capacity'), t('ui.sol.utilization')],
                 if (withFixed) t('field.openingCost'),
+                // continuous location: where the locations are
+                if (found.isNotEmpty) t('ui.col.coords'),
               ]),
               for (final id in ids)
                 if ((nodes[id] as Map).cast<String, dynamic>() case final n)
@@ -880,6 +882,8 @@ class _Locations extends StatelessWidget {
                         percent(n['utilization']),
                       ],
                       if (withFixed) n['fixedCost'] is num ? '${t.fixed(n['fixedCost'] as num, 2)} €' : '',
+                      if (found.isNotEmpty)
+                        if (found[id] case final p?) '${t.fixed(p.latitude, 5)} / ${t.fixed(p.longitude, 5)}' else '',
                     ],
                   ),
             ],

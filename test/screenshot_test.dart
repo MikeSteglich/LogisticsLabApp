@@ -247,7 +247,7 @@ void main() {
     await shot('16a-wlp-location');
     state.highlightNode(null);
     // continuous location: the locations found anywhere on the map
-    state.chooseProblem('Freie Standorte');
+    state.chooseProblem('Freie Standorte (CLP, p-Median)');
     await tester.runAsync(state.solve);
     await tester.pump();
     await settle(() => false, seconds: 3);
