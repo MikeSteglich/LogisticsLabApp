@@ -289,6 +289,24 @@ class AppState extends ChangeNotifier {
     return '$v';
   }
 
+  /// total demand of the customers of the problem - an empty demand counts as 1 (location problems)
+  num get totalDemand {
+    final s = spec, p = problem;
+    if (s == null || p == null) return 0;
+    final role = s.nodeRole(s.roles.last, p.parameters);
+    return scenario.nodes
+        .where((n) => n.active && n.roles.contains(role))
+        .fold<num>(0, (sum, n) => sum + (n['demand'] as num? ?? 1));
+  }
+
+  /// continuous location with capacities: the smallest capacity per location for the total demand and p
+  num? get minCapacity {
+    final n = problem?.parameters['p'];
+    if (spec?.group != ModuleGroup.location || spec!.roles.first.defaultRole == 'candidate') return null;
+    if (n is! int || n < 1) return null;
+    return (totalDemand / n).ceil();
+  }
+
   /// continuous location: the locations found - not nodes of the scenario - id (F1, ...) -> position
   Map<String, LatLng> get foundLocations => {
     for (final MapEntry(:key, :value) in ((solution?.results?['nodes'] as Map?) ?? const {}).entries)
@@ -437,6 +455,32 @@ class AppState extends ChangeNotifier {
       if (id == null) continue; // required: checked with the parameters
       final n = scenario.node('$id');
       if (n == null || !n.active) out.add(strings('ui.check.nodeParam', {'field': strings(f.label), 'node': '$id'}));
+    }
+    // capacities of the locations: enough for the total demand
+    if (s.group == ModuleGroup.location && p.parameters['isCapacitated'] == true) {
+      final total = totalDemand;
+      final candidates = s.roles.first.defaultRole == 'candidate';
+      if (!candidates) {
+        // continuous location: one capacity for the p locations
+        final cap = p.parameters['capacities'];
+        if (minCapacity case final min? when cap is num && cap < min) {
+          out.add(
+            strings('ui.check.capacityPerLocation', {'min': strings.number(min), 'total': strings.number(total)}),
+          );
+        }
+      } else {
+        // the capacities of the candidates - p-median and p-centre: the p largest
+        final role = s.nodeRole(s.roles.first, p.parameters);
+        final caps = [
+          for (final x in scenario.nodes)
+            if (x.active && x.roles.contains(role)) x['capacity'] is num ? (x['capacity'] as num) : double.infinity,
+        ]..sort((a, b) => b.compareTo(a));
+        final n = p.parameters['p'] is int ? p.parameters['p'] as int : caps.length;
+        final sum = caps.take(n).fold<num>(0, (a, b) => a + b);
+        if (sum < total) {
+          out.add(strings('ui.check.capacities', {'sum': strings.number(sum), 'total': strings.number(total)}));
+        }
+      }
     }
     // p-median, p-centre: at most as many locations as candidates
     if (p.parameters['p'] case final int n

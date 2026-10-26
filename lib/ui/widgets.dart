@@ -311,6 +311,7 @@ class SpecField extends StatelessWidget {
   final Scenario? scenario; // nodes, commodities and modes for the fields that refer to them
   final VoidCallback? onEditRecords; // commodities, modes: opens their list (parameters tab)
   final String? measure; // matrixMode of the problem - unit of the fields with @measure (radius)
+  final String? hintText; // text of the empty field instead of the hint of the spec, e.g. a suggested value
 
   const SpecField({
     super.key,
@@ -321,6 +322,7 @@ class SpecField extends StatelessWidget {
     this.scenario,
     this.onEditRecords,
     this.measure,
+    this.hintText,
   });
 
   /// unit of the field - @time and @distance: the units of the scenario
@@ -541,7 +543,9 @@ class SpecField extends StatelessWidget {
           strings: s,
           unit: _unit(spec.unit),
           decimals: spec.kind == FieldKind.integer ? 0 : 6,
-          hint: spec.hint != null ? s(spec.hint!) : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null),
+          hint:
+              hintText ??
+              (spec.hint != null ? s(spec.hint!) : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
           help: s.has(spec.help) ? s(spec.help) : null,
           check: (v) => spec.validate(v),
           // whole numbers as int - the core expects e.g. p as an integer, not 5.0

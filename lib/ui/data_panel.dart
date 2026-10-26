@@ -131,6 +131,10 @@ class _ParametersTab extends StatelessWidget {
     Widget field(FieldSpec f, Map<String, dynamic> target) => SpecField(
       scenario: s.scenario,
       measure: values['matrixMode'] as String?,
+      // continuous location: the smallest capacity per location as suggestion
+      hintText: f.key == 'capacities' && s.minCapacity != null
+          ? t('hint.minCapacity', {'min': t.number(s.minCapacity!)})
+          : null,
       key: ValueKey('$k|${f.key}'),
       spec: f,
       value: target[f.key] ?? f.defaultValue,

@@ -179,4 +179,31 @@ void main() {
     expect(candidates.first.position.longitude, closeTo(state.foundLocations['F1']!.longitude, 1e-5));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
   });
+
+  testWidgets('capacities: the smallest capacity per location suggested, too small capacities refused', (tester) async {
+    MapView.showTiles = false;
+    tester.view.physicalSize = const Size(1440, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = await _state(tester, 'lds-sued.clpx.llab');
+    state.chooseProblem('lds-sued');
+    state.edit(() => state.problem!.parameters['isCapacitated'] = true);
+    final total = state.totalDemand;
+    // two locations: at least half of the total demand each
+    expect(state.minCapacity, (total / 2).ceil());
+    state.setTab(DataTab.parameters);
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    expect(find.text('mindestens ${state.strings.number(state.minCapacity!)}'), findsOneWidget);
+    state.edit(() => state.problem!.parameters['capacities'] = state.minCapacity! - 1);
+    expect(state.nodeProblems, contains(startsWith('Kapazität je Standort zu klein')));
+    state.edit(() => state.problem!.parameters['capacities'] = state.minCapacity!);
+    expect(state.nodeProblems, isEmpty);
+    // discrete: the p largest capacities of the candidates (drogma: 350 each)
+    state.openScenario(Scenario.parse(File('test/fixtures/drogma.dlpx.llab').readAsStringSync()));
+    state.chooseProblem('drogma');
+    expect(state.nodeProblems, isEmpty);
+    state.edit(() => state.problem!.parameters['p'] = 1);
+    expect(state.nodeProblems, contains(startsWith('Die Kapazitäten der Kandidaten (350)')));
+  });
 }
