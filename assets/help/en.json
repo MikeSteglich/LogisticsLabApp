@@ -81,7 +81,7 @@
   "id": "map",
   "title": "Map",
   "keywords": "map layers legend colours centre zoom labels hover",
-  "body": "- Top left: add nodes and draw edges. Top right: layers (network, solution, labels). Bottom right: centre the problem and zoom.\n- Colours: suppliers blue, customers green, candidates violet, transshipment nodes grey diamonds. Used edges are blue, unused ones petrol, the selected connection orange.\n- The mouse pointer over an edge or a node shows its values. Labels that would overlap are hidden."
+  "body": "- Top left: add nodes and draw edges. Top right: layers (network, solution, labels). Bottom right: centre the problem and zoom.\n- Colours: suppliers blue, customers green, candidates violet, transshipment nodes grey diamonds. Used edges are blue, unused ones petrol, the selected connection orange.\n- The mouse pointer over an edge or a node shows its values. Labels that would overlap are hidden.\n\nThe symbols are the same in all problems: square – source or start (supplier, depot, pickup, start), ring – destination or demand (customer, delivery, stops, end), diamond – location (candidate, filled if open), grey dot – transit (transshipment node, other nodes of the network)."
  },
  {
   "id": "matrix",

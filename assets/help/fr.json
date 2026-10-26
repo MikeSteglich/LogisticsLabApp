@@ -81,7 +81,7 @@
   "id": "map",
   "title": "Carte",
   "keywords": "carte calques légende couleurs centrer zoom étiquettes survol",
-  "body": "- En haut à gauche : ajouter des nœuds et tracer des arcs. En haut à droite : calques (réseau, solution, étiquettes). En bas à droite : centrer le problème et zoom.\n- Couleurs : fournisseurs en bleu, demandeurs en vert, candidats en violet, nœuds de transbordement en losanges gris. Les arcs utilisés sont bleus, les arcs non utilisés pétrole, la liaison choisie orange.\n- Le pointeur sur un arc ou un nœud affiche ses valeurs. Les étiquettes qui se chevaucheraient sont masquées."
+  "body": "- En haut à gauche : ajouter des nœuds et tracer des arcs. En haut à droite : calques (réseau, solution, étiquettes). En bas à droite : centrer le problème et zoom.\n- Couleurs : fournisseurs en bleu, demandeurs en vert, candidats en violet, nœuds de transbordement en losanges gris. Les arcs utilisés sont bleus, les arcs non utilisés pétrole, la liaison choisie orange.\n- Le pointeur sur un arc ou un nœud affiche ses valeurs. Les étiquettes qui se chevaucheraient sont masquées.\n\nLes symboles sont les mêmes dans tous les problèmes : carré – source ou départ (fournisseur, dépôt, collecte, départ), anneau – destination ou demande (client, livraison, arrêts, arrivée), losange – site (candidat, plein s’il est ouvert), point gris – transit (nœud de transbordement, autres nœuds du réseau)."
  },
  {
   "id": "matrix",

@@ -81,7 +81,7 @@
   "id": "map",
   "title": "Mapa",
   "keywords": "mapa capas leyenda colores centrar zoom etiquetas puntero",
-  "body": "- Arriba a la izquierda: añadir nodos y dibujar aristas. Arriba a la derecha: capas (red, solución, etiquetas). Abajo a la derecha: centrar el problema y zoom.\n- Colores: proveedores en azul, demandantes en verde, candidatos en violeta, nodos de transbordo como rombos grises. Las aristas usadas son azules, las no usadas petróleo y la conexión elegida naranja.\n- El puntero sobre una arista o un nodo muestra sus valores. Las etiquetas que se solaparían se ocultan."
+  "body": "- Arriba a la izquierda: añadir nodos y dibujar aristas. Arriba a la derecha: capas (red, solución, etiquetas). Abajo a la derecha: centrar el problema y zoom.\n- Colores: proveedores en azul, demandantes en verde, candidatos en violeta, nodos de transbordo como rombos grises. Las aristas usadas son azules, las no usadas petróleo y la conexión elegida naranja.\n- El puntero sobre una arista o un nodo muestra sus valores. Las etiquetas que se solaparían se ocultan.\n\nLos símbolos son iguales en todos los problemas: cuadrado – origen o inicio (proveedor, depósito, recogida, inicio), anillo – destino o demanda (cliente, entrega, paradas, fin), rombo – ubicación (candidato, relleno si está abierto), punto gris – tránsito (nodo de transbordo, otros nodos de la red)."
  },
  {
   "id": "matrix",

@@ -81,7 +81,7 @@
   "id": "map",
   "title": "Karte",
   "keywords": "karte ebenen legende farben zentrieren zoom beschriftung hover",
-  "body": "- Oben links: Knoten setzen und Kante zeichnen. Oben rechts: Ebenen (Netz, Lösung, Beschriftungen). Unten rechts: Problem zentrieren und Zoom.\n- Farben: Anbieter blau, Nachfrager grün, Kandidaten violett, Umladeknoten graue Rauten. Genutzte Kanten sind blau, ungenutzte petrol, die gewählte Verbindung orange.\n- Der Mauszeiger über einer Kante oder einem Knoten zeigt dessen Werte. Beschriftungen, die sich überlappen würden, werden ausgeblendet."
+  "body": "- Oben links: Knoten setzen und Kante zeichnen. Oben rechts: Ebenen (Netz, Lösung, Beschriftungen). Unten rechts: Problem zentrieren und Zoom.\n- Farben: Anbieter blau, Nachfrager grün, Kandidaten violett, Umladeknoten graue Rauten. Genutzte Kanten sind blau, ungenutzte petrol, die gewählte Verbindung orange.\n- Der Mauszeiger über einer Kante oder einem Knoten zeigt dessen Werte. Beschriftungen, die sich überlappen würden, werden ausgeblendet.\n\nDie Symbole sind in allen Problemen gleich: Quadrat – Quelle oder Start (Anbieter, Depot, Abholort, Start), Ring – Ziel oder Nachfrage (Nachfrager, Zustellort, Stopps, Ziel), Raute – Standort (Kandidat, gefüllt wenn geöffnet), grauer Punkt – Durchgang (Umladeknoten, übrige Netzknoten)."
  },
  {
   "id": "matrix",

@@ -498,110 +498,68 @@ class _MapViewState extends State<MapView> {
     // shape by the roles in the problem - a depot is no supplier of a tpp
     final roles = s.symbolRoles(n);
     final relevant = s.isRelevant(n);
-    final color = relevant ? Ui.text : Ui.pale;
     // with a solution: how far the supply is shipped / the demand is met
     final use = _analysis?.use(n.id);
-    // suppliers blue, customers green - pale without a role in the problem
-    final role = roles.contains('customer') || roles.contains('delivery')
-        ? 'customer'
-        : roles.contains('pickup')
-        ? 'pickup'
-        : roles.contains('candidate')
-        ? 'candidate'
-        : roles.isEmpty
-        ? 'transit'
-        : 'supplier';
+    // one language of symbols for all problems: square - source or start, ring - destination or demand, diamond -
+    // location, small dot - transit; the colour by the role, pale without a role in the problem
+    final kind = _markOf(roles);
+    final role = switch (kind) {
+      _Mark.source => 'supplier',
+      _Mark.pickup => 'pickup',
+      _Mark.sink => 'customer',
+      _Mark.location => 'candidate',
+      _Mark.transit => 'transit',
+    };
     final (fill, line) = relevant ? Ui.roleColors(role) : (Ui.pale, Ui.pale);
-    // warehouse of a multi-stage WLP: open or closed in the solution
+    // location problems: candidate open or closed in the solution
     final open = _showSolution ? s.openNodes[n.id] : null;
-    final Widget shape;
-    if (roles.contains('supplier') || roles.contains('depot')) {
-      shape = use == null
-          ? Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: fill,
-                borderRadius: BorderRadius.circular(2),
-                border: Border.all(color: line, width: 1.5),
-              ),
-            )
-          // level from the bottom - full: everything shipped, empty: not used
-          : Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: Ui.surface,
-                borderRadius: BorderRadius.circular(2),
-                border: Border.all(color: use.unused ? Ui.pale : line, width: 2),
-              ),
-              alignment: Alignment.bottomCenter,
-              child: FractionallySizedBox(
-                heightFactor: use.share ?? 1,
-                widthFactor: 1,
-                child: ColoredBox(color: fill),
-              ),
-            );
-    } else if (roles.contains('pickup')) {
-      // pickup and delivery: the pickups filled, their deliveries rings
-      shape = Container(
+    // a candidate at the place of another node: larger - a frame around its symbol
+    final shared =
+        kind == _Mark.location &&
+        s.scenario.nodes.any(
+          (o) =>
+              o.id != n.id &&
+              !o.roles.contains('candidate') &&
+              (o.position.latitude - n.position.latitude).abs() < 1e-5 &&
+              (o.position.longitude - n.position.longitude).abs() < 1e-5,
+        );
+    final Widget shape = switch (kind) {
+      // level from the bottom - full: everything shipped, empty: not used
+      _Mark.source when use != null => Container(
         width: 16,
         height: 16,
         decoration: BoxDecoration(
-          color: fill,
-          shape: BoxShape.circle,
-          border: Border.all(color: line, width: 1.5),
+          color: Ui.surface,
+          borderRadius: BorderRadius.circular(2),
+          border: Border.all(color: use.unused ? Ui.pale : line, width: 2),
         ),
-      );
-    } else if (roles.contains('customer') || roles.contains('delivery')) {
-      shape = use == null
-          ? Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: Ui.surface,
-                shape: BoxShape.circle,
-                border: Border.all(color: fill, width: 3.5),
-              ),
-            )
-          // pie of the demand met - an orange ring if it is not met completely
-          : CustomPaint(
-              size: const Size(18, 18),
-              painter: _PiePainter(
-                share: use.share ?? 1,
-                fill: fill,
-                ring: use.notFull ? Ui.warning : line,
-                ringWidth: use.notFull ? 3 : 2,
-              ),
-            );
-    } else {
-      // candidates (warehouses) violet - filled if open in the solution; other nodes (transit) grey
-      final isCandidate = role == 'candidate' && relevant;
-      // a candidate at the place of another node: larger - a frame around its symbol
-      final shared =
-          n.roles.contains('candidate') &&
-          s.scenario.nodes.any(
-            (o) =>
-                o.id != n.id &&
-                !o.roles.contains('candidate') &&
-                (o.position.latitude - n.position.latitude).abs() < 1e-5 &&
-                (o.position.longitude - n.position.longitude).abs() < 1e-5,
-          );
-      shape = Transform.rotate(
-        angle: 0.785,
-        child: Container(
-          width: shared ? 22 : 14,
-          height: shared ? 22 : 14,
-          decoration: BoxDecoration(
-            color: isCandidate && open == true ? fill : Ui.mapBackground,
-            border: Border.all(
-              color: isCandidate ? (open == false ? Ui.pale : line) : (relevant ? Ui.textMuted : color),
-              width: 3,
-            ),
-          ),
+        alignment: Alignment.bottomCenter,
+        child: FractionallySizedBox(
+          heightFactor: use.share ?? 1,
+          widthFactor: 1,
+          child: ColoredBox(color: fill),
         ),
-      );
-    }
+      ),
+      // pie of the demand met - an orange ring if it is not met completely
+      _Mark.sink when use != null => CustomPaint(
+        size: const Size(18, 18),
+        painter: _PiePainter(
+          share: use.share ?? 1,
+          fill: fill,
+          ring: use.notFull ? Ui.warning : line,
+          ringWidth: use.notFull ? 3 : 2,
+        ),
+      ),
+      _ => _markShape(
+        kind,
+        fill,
+        line,
+        size: shared ? 22 : 16,
+        // a location: filled if open in the solution, pale if closed
+        filled: kind != _Mark.location || open == true,
+        faded: open == false,
+      ),
+    };
     return Marker(
       point: n.position,
       width: Ui.minTarget,
@@ -926,18 +884,13 @@ class _MapViewState extends State<MapView> {
         children: [
           for (final role in roles)
             item(
-              Container(
-                width: 9,
-                height: 9,
-                decoration: BoxDecoration(
-                  color: Ui.roleColors(role == 'depot' ? 'supplier' : role).$1,
-                  shape: const ['customer', 'pickup', 'delivery'].contains(role) ? BoxShape.circle : BoxShape.rectangle,
-                  borderRadius: const ['customer', 'pickup', 'delivery'].contains(role)
-                      ? null
-                      : BorderRadius.circular(1.5),
-                ),
-                transform: role == 'candidate' ? Matrix4.rotationZ(0.785) : null,
-                transformAlignment: Alignment.center,
+              _markShape(
+                _markOf([role]),
+                Ui.roleColors(role == 'depot' ? 'supplier' : role).$1,
+                Ui.roleColors(role == 'depot' ? 'supplier' : role).$2,
+                size: 10,
+                // candidates as before solving: outlined
+                filled: role != 'candidate',
               ),
               tsp
                   ? t(
@@ -947,20 +900,11 @@ class _MapViewState extends State<MapView> {
                     )
                   : t('role.$role.plural'),
             ),
-          // nodes without a role of the problem in its network: grey diamonds - transshipment nodes of a flow, the
+          // nodes without a role of the problem in its network: grey dots - transshipment nodes of a flow, the
           // other nodes of the network of a shortest path
           if (s.scenario.nodes.any((n) => s.isRelevant(n) && s.symbolRoles(n).isEmpty))
             item(
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Ui.mapBackground,
-                  border: Border.all(color: Ui.textMuted, width: 1.5),
-                ),
-                transform: Matrix4.rotationZ(0.785),
-                transformAlignment: Alignment.center,
-              ),
+              _markShape(_Mark.transit, Ui.textMuted, Ui.text, size: 10),
               t(
                 const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
               ),
@@ -1285,3 +1229,62 @@ class _PiePainter extends CustomPainter {
   bool shouldRepaint(_PiePainter old) =>
       old.share != share || old.fill != fill || old.ring != ring || old.ringWidth != ringWidth;
 }
+
+/// kinds of the symbols of the nodes - the same in every problem and in the legend
+enum _Mark { source, pickup, sink, location, transit }
+
+/// the kind of symbol of the roles of a node in the problem
+_Mark _markOf(List<String> roles) => roles.contains('supplier') || roles.contains('depot')
+    ? _Mark.source
+    : roles.contains('pickup')
+    ? _Mark.pickup
+    : roles.contains('customer') || roles.contains('delivery')
+    ? _Mark.sink
+    : roles.contains('candidate')
+    ? _Mark.location
+    : _Mark.transit;
+
+/// the symbol of a node: square (source, start, pickup), ring (destination, demand), diamond (location), small dot
+/// (transit) - [size] the width of a square or ring
+Widget _markShape(_Mark kind, Color fill, Color line, {double size = 16, bool filled = true, bool faded = false}) =>
+    switch (kind) {
+      _Mark.source || _Mark.pickup => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: fill,
+          borderRadius: BorderRadius.circular(size / 8),
+          border: Border.all(color: line, width: size / 10),
+        ),
+      ),
+      _Mark.sink => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Ui.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: fill, width: size * 0.22),
+        ),
+      ),
+      // the diagonal of the diamond about the width of the other symbols
+      _Mark.location => Transform.rotate(
+        angle: 0.785,
+        child: Container(
+          width: size * 0.82,
+          height: size * 0.82,
+          decoration: BoxDecoration(
+            color: filled ? fill : Ui.mapBackground,
+            border: Border.all(color: faded ? Ui.pale : line, width: size * 0.18),
+          ),
+        ),
+      ),
+      _Mark.transit => Container(
+        width: size * 0.72,
+        height: size * 0.72,
+        decoration: BoxDecoration(
+          color: fill,
+          shape: BoxShape.circle,
+          border: Border.all(color: Ui.surface, width: 1.5),
+        ),
+      ),
+    };
