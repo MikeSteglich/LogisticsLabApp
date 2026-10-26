@@ -324,14 +324,17 @@ class AppState extends ChangeNotifier {
   }
 
   /// how the nodes are served in the solution of the problem (shares, partners) - null without solution
-  SolutionAnalysis? get analysis => SolutionAnalysis.of(
-    scenario,
-    spec,
-    problem?.parameters ?? const {},
-    solution?.results,
-    networkNodes: spec?.network == NetworkUse.required ? networkNodeIds : const [],
-    part: spec?.usesCommodities == true ? solutionPart : null, // modes: the nodes have no values per mode
-  );
+  /// supply shipped and demand met - not for locations (their customers are assigned, not supplied)
+  SolutionAnalysis? get analysis => spec?.group == ModuleGroup.location
+      ? null
+      : SolutionAnalysis.of(
+          scenario,
+          spec,
+          problem?.parameters ?? const {},
+          solution?.results,
+          networkNodes: spec?.network == NetworkUse.required ? networkNodeIds : const [],
+          part: spec?.usesCommodities == true ? solutionPart : null, // modes: the nodes have no values per mode
+        );
 
   /// deletes a commodity or mode of the scenario and its values at the nodes and edges
   void deleteRecord(String kind, Map<String, dynamic> record) => edit(() {
@@ -410,6 +413,12 @@ class AppState extends ChangeNotifier {
       if (id == null) continue; // required: checked with the parameters
       final n = scenario.node('$id');
       if (n == null || !n.active) out.add(strings('ui.check.nodeParam', {'field': strings(f.label), 'node': '$id'}));
+    }
+    // p-median, p-centre: at most as many locations as candidates
+    if (p.parameters['p'] case final int n when s.group == ModuleGroup.location) {
+      final role = s.nodeRole(s.roles.first, p.parameters);
+      final candidates = scenario.nodes.where((x) => x.active && x.roles.contains(role)).length;
+      if (n > candidates) out.add(strings('ui.check.tooManyLocations', {'p': n, 'n': candidates}));
     }
     // pickup and delivery: the delivery node of every pickup - a node with the role delivery
     if (s.type == 'pdp') {

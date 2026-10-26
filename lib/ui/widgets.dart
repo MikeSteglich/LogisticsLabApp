@@ -310,6 +310,7 @@ class SpecField extends StatelessWidget {
   final Strings strings;
   final Scenario? scenario; // nodes, commodities and modes for the fields that refer to them
   final VoidCallback? onEditRecords; // commodities, modes: opens their list (parameters tab)
+  final String? measure; // matrixMode of the problem - unit of the fields with @measure (radius)
 
   const SpecField({
     super.key,
@@ -319,12 +320,20 @@ class SpecField extends StatelessWidget {
     required this.strings,
     this.scenario,
     this.onEditRecords,
+    this.measure,
   });
 
   /// unit of the field - @time and @distance: the units of the scenario
   String? _unit(String? unit) => switch (unit) {
     '@time' => scenario?.units['time'] as String?,
     '@distance' => scenario?.units['distance'] as String?,
+    // the unit of the matrix of the problem: distances, times or costs
+    '@measure' => switch (measure) {
+      'times' => scenario?.units['time'] as String?,
+      'costs' => '€',
+      _ => scenario?.units['distance'] as String?,
+    },
+    'EUR' => '€',
     _ => unit,
   };
 

@@ -130,6 +130,7 @@ class _ParametersTab extends StatelessWidget {
     final k = '${p.name}|${t.language}';
     Widget field(FieldSpec f, Map<String, dynamic> target) => SpecField(
       scenario: s.scenario,
+      measure: values['matrixMode'] as String?,
       key: ValueKey('$k|${f.key}'),
       spec: f,
       value: target[f.key] ?? f.defaultValue,

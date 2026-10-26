@@ -1,0 +1,614 @@
+{
+  "format": "logisticsLab",
+  "version": 1,
+  "id": "drogma",
+  "name": "Drogeriemärkte",
+  "source": "Standort/drogma.DLPX (DLP 5.4.0)",
+  "units": {
+    "distance": "km",
+    "time": "h"
+  },
+  "matrix": {
+    "travelmode": "car"
+  },
+  "nodes": [
+    {
+      "id": "KITZINGEN",
+      "name": "KITZINGEN",
+      "coordinates": [
+        49.73198,
+        10.15867
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "postcode": "97318",
+        "country": "Bayern"
+      },
+      "fixedCost": 0,
+      "capacity": 350
+    },
+    {
+      "id": "NÜRNBERG",
+      "name": "NÜRNBERG",
+      "coordinates": [
+        49.4508,
+        11.08041
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "postcode": "90402",
+        "country": "Bayern"
+      },
+      "fixedCost": 0,
+      "capacity": 350
+    },
+    {
+      "id": "KULMBACH",
+      "name": "KULMBACH",
+      "coordinates": [
+        50.11434,
+        11.46268
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "postcode": "95326",
+        "country": "Bayern"
+      },
+      "fixedCost": 0,
+      "capacity": 350
+    },
+    {
+      "id": "BAYREUTH",
+      "name": "BAYREUTH",
+      "coordinates": [
+        49.94798,
+        11.57509
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "postcode": "95444",
+        "country": "Bayern"
+      },
+      "fixedCost": 0,
+      "capacity": 350
+    },
+    {
+      "id": "ERLANGEN",
+      "name": "ERLANGEN",
+      "coordinates": [
+        49.5852,
+        10.98487
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "postcode": "91052",
+        "country": "Bayern"
+      },
+      "fixedCost": 0,
+      "capacity": 350
+    },
+    {
+      "id": "FÜRTH",
+      "name": "FÜRTH",
+      "coordinates": [
+        49.46998,
+        10.99005
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "postcode": "90762",
+        "country": "Bayern"
+      },
+      "fixedCost": 0,
+      "capacity": 350
+    },
+    {
+      "id": "Amberg",
+      "name": "Amberg",
+      "coordinates": [
+        49.42942,
+        11.86795
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "92224",
+        "country": "Bayern"
+      },
+      "demand": 25
+    },
+    {
+      "id": "Ansbach",
+      "name": "Ansbach",
+      "coordinates": [
+        49.30583,
+        10.58828
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "91522",
+        "country": "Bayern"
+      },
+      "demand": 35
+    },
+    {
+      "id": "Bad Mergentheim",
+      "name": "Bad Mergentheim",
+      "coordinates": [
+        49.4938,
+        9.77209
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "97980",
+        "country": "Bayern"
+      },
+      "demand": 35
+    },
+    {
+      "id": "Bamberg",
+      "name": "Bamberg",
+      "coordinates": [
+        49.89238,
+        10.8957
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "96047",
+        "country": "Bayern"
+      },
+      "demand": 70
+    },
+    {
+      "id": "Bayreuth",
+      "name": "Bayreuth",
+      "coordinates": [
+        49.94798,
+        11.57509
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "95444",
+        "country": "Bayern"
+      },
+      "demand": 85
+    },
+    {
+      "id": "Cham",
+      "name": "Cham",
+      "coordinates": [
+        49.22077,
+        12.66277
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "93413",
+        "country": "Bayern"
+      },
+      "demand": 10
+    },
+    {
+      "id": "Coburg",
+      "name": "Coburg",
+      "coordinates": [
+        50.24993,
+        10.92514
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "96450",
+        "country": "Bayern"
+      },
+      "demand": 30
+    },
+    {
+      "id": "Eichstätt",
+      "name": "Eichstätt",
+      "coordinates": [
+        48.89333,
+        11.18073
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "85072",
+        "country": "Bayern"
+      },
+      "demand": 15
+    },
+    {
+      "id": "Erlangen",
+      "name": "Erlangen",
+      "coordinates": [
+        49.5852,
+        10.98487
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "91052",
+        "country": "Bayern"
+      },
+      "demand": 90
+    },
+    {
+      "id": "Fürth",
+      "name": "Fürth",
+      "coordinates": [
+        49.46998,
+        10.99005
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "90762",
+        "country": "Bayern"
+      },
+      "demand": 55
+    },
+    {
+      "id": "Höchstadt",
+      "name": "Höchstadt",
+      "coordinates": [
+        49.70383,
+        10.80654
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "91315",
+        "country": "Bayern"
+      },
+      "demand": 15
+    },
+    {
+      "id": "Hof",
+      "name": "Hof",
+      "coordinates": [
+        50.31712,
+        11.92178
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "95028",
+        "country": "Bayern"
+      },
+      "demand": 40
+    },
+    {
+      "id": "Ingolstadt",
+      "name": "Ingolstadt",
+      "coordinates": [
+        48.77824,
+        11.37662
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "85049",
+        "country": "Bayern"
+      },
+      "demand": 20
+    },
+    {
+      "id": "Kelheim",
+      "name": "Kelheim",
+      "coordinates": [
+        48.92107,
+        11.88697
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "93309",
+        "country": "Bayern"
+      },
+      "demand": 5
+    },
+    {
+      "id": "Kitzingen",
+      "name": "Kitzingen",
+      "coordinates": [
+        49.73198,
+        10.15867
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "97318",
+        "country": "Bayern"
+      },
+      "demand": 20
+    },
+    {
+      "id": "Kronach",
+      "name": "Kronach",
+      "coordinates": [
+        50.23964,
+        11.3201
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "96317",
+        "country": "Bayern"
+      },
+      "demand": 10
+    },
+    {
+      "id": "Kulmbach",
+      "name": "Kulmbach",
+      "coordinates": [
+        50.11434,
+        11.46268
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "95326",
+        "country": "Bayern"
+      },
+      "demand": 50
+    },
+    {
+      "id": "Lichtenfels",
+      "name": "Lichtenfels",
+      "coordinates": [
+        50.15455,
+        11.07686
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "96215",
+        "country": "Bayern"
+      },
+      "demand": 5
+    },
+    {
+      "id": "Marktredwitz",
+      "name": "Marktredwitz",
+      "coordinates": [
+        50.00565,
+        12.0889
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "95615",
+        "country": "Bayern"
+      },
+      "demand": 10
+    },
+    {
+      "id": "Neumarkt",
+      "name": "Neumarkt",
+      "coordinates": [
+        49.28589,
+        11.4858
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "92318",
+        "country": "Bayern"
+      },
+      "demand": 20
+    },
+    {
+      "id": "Nürnberg",
+      "name": "Nürnberg",
+      "coordinates": [
+        49.4508,
+        11.08041
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "90402",
+        "country": "Bayern"
+      },
+      "demand": 75
+    },
+    {
+      "id": "Regensburg",
+      "name": "Regensburg",
+      "coordinates": [
+        49.01658,
+        12.0958
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "93047",
+        "country": "Bayern"
+      },
+      "demand": 40
+    },
+    {
+      "id": "Rothenburg",
+      "name": "Rothenburg",
+      "coordinates": [
+        49.3878,
+        10.187
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "91541",
+        "country": "Bayern"
+      },
+      "demand": 70
+    },
+    {
+      "id": "Schwabach",
+      "name": "Schwabach",
+      "coordinates": [
+        49.3355,
+        11.04053
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "91126",
+        "country": "Bayern"
+      },
+      "demand": 10
+    },
+    {
+      "id": "Schwandorf",
+      "name": "Schwandorf",
+      "coordinates": [
+        49.3016,
+        12.08327
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "92421",
+        "country": "Bayern"
+      },
+      "demand": 5
+    },
+    {
+      "id": "Schweinfurt",
+      "name": "Schweinfurt",
+      "coordinates": [
+        50.04622,
+        10.20433
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "97421",
+        "country": "Bayern"
+      },
+      "demand": 25
+    },
+    {
+      "id": "Sulzbach-Rosenberg",
+      "name": "Sulzbach-Rosenberg",
+      "coordinates": [
+        49.48606,
+        11.77998
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "92237",
+        "country": "Bayern"
+      },
+      "demand": 5
+    },
+    {
+      "id": "Weiden",
+      "name": "Weiden",
+      "coordinates": [
+        49.66208,
+        12.18019
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "92637",
+        "country": "Bayern"
+      },
+      "demand": 5
+    },
+    {
+      "id": "Weißenburg",
+      "name": "Weißenburg",
+      "coordinates": [
+        49.03118,
+        10.96765
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "91781",
+        "country": "Bayern"
+      },
+      "demand": 5
+    },
+    {
+      "id": "Würzburg",
+      "name": "Würzburg",
+      "coordinates": [
+        49.7928,
+        9.93917
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "postcode": "97070",
+        "country": "Bayern"
+      },
+      "demand": 55
+    }
+  ],
+  "networks": {},
+  "vehicles": [],
+  "problems": [
+    {
+      "name": "drogma",
+      "type": "pmedian",
+      "parameters": {
+        "matrixMode": "distances",
+        "maxSolvingTime": 10,
+        "p": 4,
+        "isCapacitated": true,
+        "isDemandWeighted": true
+      }
+    }
+  ],
+  "description": "Drogeriemärkte"
+}

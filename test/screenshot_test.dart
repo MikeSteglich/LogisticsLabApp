@@ -237,6 +237,12 @@ void main() {
     state.setTab(DataTab.parameters);
     await tester.pump();
     await shot('14c-vrp-parameters');
+    // warehouse location: the open candidates, the assignments
+    state.chooseProblem('Lagerstandorte (WLP)');
+    await tester.runAsync(state.solve);
+    await tester.pump();
+    await settle(() => false, seconds: 3);
+    await shot('16-wlp');
     // pickup and delivery: the requests as dashed lines, the tours with the load
     state.chooseProblem('Abholen und Zustellen');
     state.setTab(DataTab.nodes);

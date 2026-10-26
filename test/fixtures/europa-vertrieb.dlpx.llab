@@ -1,0 +1,301 @@
+{
+  "format": "logisticsLab",
+  "version": 1,
+  "id": "europa-vertrieb",
+  "name": "europa-vertrieb",
+  "source": "Standort/europa-vertrieb.DLPX (DLP 5.4.0)",
+  "units": {
+    "distance": "km",
+    "time": "h"
+  },
+  "matrix": {
+    "travelmode": "car"
+  },
+  "nodes": [
+    {
+      "id": "S0001",
+      "name": "S0001",
+      "coordinates": [
+        45.61415,
+        8.75455
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "city": "Ferno",
+        "country": "Italy"
+      },
+      "fixedCost": 1000000,
+      "capacity": 0
+    },
+    {
+      "id": "S0002",
+      "name": "S0002",
+      "coordinates": [
+        51.10898,
+        17.03267
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "city": "Wroclaw",
+        "country": "Poland"
+      },
+      "fixedCost": 1200000,
+      "capacity": 0
+    },
+    {
+      "id": "S0003",
+      "name": "S0003",
+      "coordinates": [
+        50.90253,
+        -1.40419
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "city": "Southampton",
+        "country": "United Kingdom"
+      },
+      "fixedCost": 800000,
+      "capacity": 0
+    },
+    {
+      "id": "S0004",
+      "name": "S0004",
+      "coordinates": [
+        51.2254,
+        6.77631
+      ],
+      "roles": [
+        "candidate"
+      ],
+      "addressDetails": {
+        "city": "Düsseldorf",
+        "country": "Germany"
+      },
+      "fixedCost": 900000,
+      "capacity": 0
+    },
+    {
+      "id": "D0001",
+      "name": "D0001",
+      "coordinates": [
+        49.47041,
+        8.43816
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Ludwigshafen am Rhein",
+        "country": "Germany"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0002",
+      "name": "D0002",
+      "coordinates": [
+        46.76611,
+        14.82361
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Sankt Andrä",
+        "country": "Austria"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0003",
+      "name": "D0003",
+      "coordinates": [
+        52.01252,
+        8.69874
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Leopoldshöhe",
+        "country": "Germany"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0004",
+      "name": "D0004",
+      "coordinates": [
+        45.04201,
+        7.35199
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Giaveno",
+        "country": "Italy"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0005",
+      "name": "D0005",
+      "coordinates": [
+        52.39523,
+        20.93083
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Legionowo",
+        "country": "Poland"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0006",
+      "name": "D0006",
+      "coordinates": [
+        55.91393,
+        21.85339
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Plunge",
+        "country": "Lithuania"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0007",
+      "name": "D0007",
+      "coordinates": [
+        49.69504,
+        22.01965
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Brzozów",
+        "country": "Poland"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0008",
+      "name": "D0008",
+      "coordinates": [
+        53.68295,
+        -1.49673
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Wakefield",
+        "country": "United Kingdom"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0009",
+      "name": "D0009",
+      "coordinates": [
+        50.24016,
+        24.13855
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Velyki Mosty",
+        "country": "Ukraine"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0010",
+      "name": "D0010",
+      "coordinates": [
+        43.13577,
+        5.75236
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Bandol",
+        "country": "France"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0011",
+      "name": "D0011",
+      "coordinates": [
+        46.05003,
+        14.50693
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Ljubljana",
+        "country": "Slovenia"
+      },
+      "demand": 1
+    },
+    {
+      "id": "D0012",
+      "name": "D0012",
+      "coordinates": [
+        55.83652,
+        -4.51228
+      ],
+      "roles": [
+        "customer"
+      ],
+      "addressDetails": {
+        "city": "Johnstone",
+        "country": "United Kingdom"
+      },
+      "demand": 1
+    }
+  ],
+  "networks": {},
+  "vehicles": [],
+  "problems": [
+    {
+      "name": "europa-vertrieb (Maximal Covering)",
+      "type": "mcp",
+      "parameters": {
+        "matrixMode": "distances",
+        "maxSolvingTime": 10,
+        "radius": 1000.0,
+        "maxSrcCost": 2200000,
+        "useFixedCosts": true
+      }
+    },
+    {
+      "name": "europa-vertrieb (Set Covering)",
+      "type": "scp",
+      "parameters": {
+        "matrixMode": "distances",
+        "maxSolvingTime": 10,
+        "radius": 1000.0,
+        "useFixedCosts": true
+      }
+    }
+  ]
+}

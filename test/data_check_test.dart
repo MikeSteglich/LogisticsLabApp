@@ -38,8 +38,9 @@ void main() {
     });
     for (final p in state.scenario.problems) {
       final spec = modules[p.type];
-      // tours and ways need no quantities
+      // tours and ways need no quantities, locations count an empty demand as 1
       if (spec == null || const ['tsp', 'cpp', 'shortestpath'].contains(spec.type)) continue;
+      if (spec.group == ModuleGroup.location) continue;
       state.chooseProblem(p.name);
       expect(state.nodeProblems, isNotEmpty, reason: p.name);
       expect(

@@ -121,6 +121,8 @@ class _MapViewState extends State<MapView> {
                 _edgeHit,
                 (i) => s.selectEdge(i, showTab: true),
               ),
+            // set and maximal covering: the radius around the candidates (distances)
+            if (_coverCircles() case final circles when circles.isNotEmpty) CircleLayer(circles: circles),
             // pickup and delivery: from every pickup a dashed line to its delivery node
             if (s.spec?.type == 'pdp') PolylineLayer(polylines: _requestLines()),
             if (_showSolution)
@@ -334,6 +336,31 @@ class _MapViewState extends State<MapView> {
           ),
     ];
     return [...flows.where((f) => !f.selected), ...flows.where((f) => f.selected)];
+  }
+
+  /// set and maximal covering with distances: the radius around every candidate - with a solution around the open
+  /// ones. On the roads the radius is a distance along them, the circle shows it as the crow flies.
+  List<CircleMarker> _coverCircles() {
+    final spec = s.spec;
+    final p = s.problem?.parameters ?? const <String, dynamic>{};
+    if (spec == null || !const ['scp', 'mcp'].contains(spec.type)) return const [];
+    final radius = p['radius'];
+    if (radius is! num || radius <= 0 || (p['matrixMode'] ?? 'distances') != 'distances') return const [];
+    final meters = radius * (s.scenario.units['distance'] == 'm' ? 1 : 1000);
+    final open = _showSolution ? s.openNodes : const <String, bool>{};
+    final candidates = spec.nodeRole(spec.roles.first, p);
+    return [
+      for (final n in s.scenario.nodes)
+        if (n.active && n.roles.contains(candidates) && (open.isEmpty || open[n.id] == true))
+          CircleMarker(
+            point: n.position,
+            radius: meters.toDouble(),
+            useRadiusInMeter: true,
+            color: Ui.candidate.withValues(alpha: open.isEmpty ? 0.04 : 0.10),
+            borderColor: Ui.candidate.withValues(alpha: open.isEmpty ? 0.35 : 0.7),
+            borderStrokeWidth: 1.5,
+          ),
+    ];
   }
 
   /// pickup and delivery: a dashed line from every pickup to its delivery node - fainter with a solution

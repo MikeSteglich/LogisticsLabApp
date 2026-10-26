@@ -157,6 +157,8 @@ class SolutionTab extends StatelessWidget {
                             ? money(v)
                             : col.unit == '@time'
                             ? s.clock.duration(v)
+                            : col.unit == 'EUR'
+                            ? '${t.fixed(v, 2)} €'
                             : col.unit == '×'
                             ? '${t.fixed(v, 2)} ×'
                             : col.unit == '%'
@@ -185,6 +187,8 @@ class SolutionTab extends StatelessWidget {
           if (parts.isNotEmpty) ...[PartChooser(state: s), const SizedBox(height: 8)],
           if (s.isRoute)
             _Route(state: s)
+          else if (spec.group == ModuleGroup.location && res['nodes'] != null)
+            _Locations(state: s, money: money)
           else
             Section(
               padding: EdgeInsets.zero,
@@ -221,7 +225,7 @@ class SolutionTab extends StatelessWidget {
               ),
             ),
           // warehouses of a multi-stage WLP
-          if (open.isNotEmpty) ...[
+          if (open.isNotEmpty && spec.group != ModuleGroup.location) ...[
             const SizedBox(height: 16),
             Text(t('ui.sol.open'), style: Ui.title),
             const SizedBox(height: 6),
@@ -803,6 +807,109 @@ class PartChooser extends StatelessWidget {
             side: BorderSide(color: s.solutionPart == id ? Ui.accent : Ui.inputBorder),
             onSelected: (_) => s.setSolutionPart(id),
           ),
+      ],
+    );
+  }
+}
+
+/// discrete location: the candidates (open or not, customers, quantity, capacity, opening costs) and the assignments
+/// of the customers - maximal covering: the customers outside the radius of every open location
+class _Locations extends StatelessWidget {
+  final AppState state;
+  final String Function(num) money; // a value in the unit of the matrix
+  const _Locations({required this.state, required this.money});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = state;
+    final t = s.strings;
+    final res = s.solution!.results!;
+    String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
+    String percent(Object? v) => v is num ? '${t.number(v * 100, decimals: 0)} %' : '';
+    final nodes = (res['nodes'] as Map).cast<String, dynamic>();
+    // the open locations first
+    final ids = nodes.keys.toList()..sort((a, b) => (nodes[b]['open'] as int).compareTo(nodes[a]['open'] as int));
+    final withCapacity = nodes.values.any((n) => n['capacity'] != null);
+    final withFixed = nodes.values.any((n) => n['fixedCost'] != null);
+    final assignments = s.connections;
+    final withCosts = assignments.any((a) => a['costs'] != null);
+    final assigned = {for (final a in assignments) a['to']};
+    final customers = s.spec!.nodeRole(s.spec!.roles.last, s.problem?.parameters ?? const {});
+    final uncovered = [
+      for (final n in s.scenario.nodes)
+        if (n.active && n.roles.contains(customers) && !assigned.contains(n.id)) n.name,
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(t('ui.sol.locations'), style: Ui.title),
+        const SizedBox(height: 8),
+        Section(
+          padding: EdgeInsets.zero,
+          child: WideTable(
+            rows: [
+              SolutionTab._row(numericFrom: 2, header: true, [
+                t('ui.sol.location'),
+                t('ui.sol.status'),
+                t('ui.sol.customers'),
+                t('ui.sol.amount'),
+                if (withCapacity) ...[t('field.capacity'), t('ui.sol.utilization')],
+                if (withFixed) t('field.openingCost'),
+              ]),
+              for (final id in ids)
+                if ((nodes[id] as Map).cast<String, dynamic>() case final n)
+                  SolutionTab._row(numericFrom: 2, selected: id == s.selectedNode, onTap: () => s.selectNode(id), [
+                    name(id),
+                    t(n['open'] == 1 ? 'ui.sol.isOpen' : 'ui.sol.isClosed'),
+                    n['open'] == 1 ? '${n['nrOfAssigned'] ?? 0}' : '',
+                    n['open'] == 1 ? t.number(n['load'] as num? ?? 0) : '',
+                    if (withCapacity) ...[
+                      n['capacity'] is num ? t.number(n['capacity'] as num) : '',
+                      percent(n['utilization']),
+                    ],
+                    if (withFixed) n['fixedCost'] is num ? '${t.fixed(n['fixedCost'] as num, 2)} €' : '',
+                  ]),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(t('ui.sol.assignments'), style: Ui.title),
+        const SizedBox(height: 8),
+        Section(
+          padding: EdgeInsets.zero,
+          child: WideTable(
+            rows: [
+              SolutionTab._row(numericFrom: 2, header: true, [
+                t('ui.sol.location'),
+                t('role.customer'),
+                t('ui.sol.amount'),
+                // the value of an assignment in the measure of the problem: distance, time or cost rate
+                t(switch (s.solution!.document['valueUnit']) {
+                  'costs' => 'result.rate',
+                  final u when u == s.scenario.units['time'] => 'ui.sol.travelTime',
+                  _ => 'ui.sol.value',
+                }),
+                if (withCosts) t('ui.sol.costs'),
+              ]),
+              for (final (i, a) in assignments.indexed)
+                SolutionTab._row(numericFrom: 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
+                  name(a['from']),
+                  name(a['to']),
+                  t.number(a['flow'] as num? ?? 0),
+                  a['value'] is num ? money(a['value'] as num) : '',
+                  if (withCosts) a['costs'] is num ? money(a['costs'] as num) : '',
+                ]),
+            ],
+          ),
+        ),
+        // maximal covering: outside the radius of every open location
+        if (uncovered.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text(
+            t('ui.sol.uncovered', {'nodes': uncovered.join(', ')}),
+            style: const TextStyle(fontSize: 13, color: Ui.warning),
+          ),
+        ],
       ],
     );
   }
