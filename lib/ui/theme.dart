@@ -50,6 +50,8 @@ abstract final class Ui {
     'supplier' || 'depot' => (supplier, supplierDark),
     'customer' || 'delivery' => (customer, customerDark),
     'pickup' => (pickup, pickupDark),
+    // transshipment nodes and the other nodes of a network: the petrol of the network
+    'transit' => (network, networkSelected),
     'candidate' => (candidate, candidateDark),
     _ => (textMuted, text),
   };

@@ -590,14 +590,14 @@ class _MapViewState extends State<MapView> {
       // a transshipment node in the solution: its utilization as a pie (flow / capacity) - orange ring if full;
       // without a capacity filled if something flows through it
       _Mark.transit when transit != null => DecoratedBox(
-        decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _halo(15)),
+        decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _halo(18)),
         child: CustomPaint(
-          size: const Size(15, 15),
+          size: const Size(18, 18),
           painter: _PiePainter(
             share: transit.utilization ?? (transit.flow > 0 ? 1 : 0),
-            fill: Ui.textMuted,
-            ring: transit.flow <= 0 ? Ui.pale : ((transit.utilization ?? 0) >= 0.999 ? Ui.warning : Ui.text),
-            ringWidth: 2,
+            fill: Ui.network,
+            ring: transit.flow <= 0 ? Ui.pale : ((transit.utilization ?? 0) >= 0.999 ? Ui.warning : Ui.networkSelected),
+            ringWidth: 2.5,
           ),
         ),
       ),
@@ -996,7 +996,7 @@ class _MapViewState extends State<MapView> {
           // other nodes of the network of a shortest path
           if (s.scenario.nodes.any((n) => s.isRelevant(n) && s.symbolRoles(n).isEmpty))
             item(
-              _markShape(_Mark.transit, Ui.textMuted, Ui.text, size: 10),
+              _markShape(_Mark.transit, Ui.network, Ui.networkSelected, size: 10),
               t(
                 const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
               ),
@@ -1377,13 +1377,13 @@ Widget _markShape(_Mark kind, Color fill, Color line, {double size = 16, bool fi
         ),
       ),
       _Mark.transit => Container(
-        width: size * 0.72,
-        height: size * 0.72,
+        width: size * 0.8,
+        height: size * 0.8,
         decoration: BoxDecoration(
           color: fill,
           shape: BoxShape.circle,
-          border: Border.all(color: Ui.surface, width: size / 10),
-          boxShadow: _halo(size, spread: false),
+          border: Border.all(color: line, width: size / 9),
+          boxShadow: _halo(size),
         ),
       ),
     };
