@@ -67,6 +67,11 @@ void main() {
     await tester.pump();
     expect(state.problem!.parameters['p'], isA<int>());
     expect(state.problem!.parameters['p'], 5);
+    // the list of all nodes: the supply (capacity) of the candidates
+    state.setTab(DataTab.nodes);
+    await tester.pump();
+    expect(find.text('Angebot'), findsOneWidget);
+    expect(find.text('350'), findsWidgets);
   });
 
   testWidgets('p-median solved: the open locations, every customer assigned', skip: _stdio, (tester) async {
@@ -109,6 +114,20 @@ void main() {
       tester.widget<CircleLayer>(find.byType(CircleLayer)).circles.length,
       state.openNodes.values.where((o) => o).length,
     );
+    // a location tapped on the map (solution shown): all its assignments highlighted - one assignment instead of it
+    state.setTab(DataTab.solution);
+    final location = state.openNodes.entries.firstWhere((e) => e.value).key;
+    state.tapNode(location);
+    expect(state.highlightedNode, location);
+    expect(state.tab, DataTab.solution);
+    final own = state.connections.where((c) => c['from'] == location).length;
+    expect(state.connections.where(state.touchesHighlighted).length, own);
+    state.selectFlow(0);
+    expect(state.highlightedNode, isNull);
+    // the list of all nodes: the candidates of a covering with their operating costs (no capacities)
+    state.setTab(DataTab.nodes);
+    await tester.pump();
+    expect(find.text('Betriebskosten'), findsWidgets);
     // maximal covering with a budget: not every customer
     state.chooseProblem('europa-vertrieb (Maximal Covering)');
     await tester.runAsync(state.solve);

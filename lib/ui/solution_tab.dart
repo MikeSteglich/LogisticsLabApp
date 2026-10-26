@@ -210,17 +210,22 @@ class SolutionTab extends StatelessWidget {
                     if (withUtilization) t('ui.sol.utilization'),
                   ]),
                   for (final (i, a) in assignments.indexed)
-                    _row(numericFrom: withSplit ? 3 : 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
-                      name(a['from']),
-                      name(a['to']),
-                      if (withSplit) s.split(a),
-                      t.number(a['flow'] as num),
-                      if (withRates) ...[
-                        a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
-                        a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
+                    _row(
+                      numericFrom: withSplit ? 3 : 2,
+                      selected: i == s.selectedFlow || s.touchesHighlighted(a),
+                      onTap: () => s.selectFlow(i),
+                      [
+                        name(a['from']),
+                        name(a['to']),
+                        if (withSplit) s.split(a),
+                        t.number(a['flow'] as num),
+                        if (withRates) ...[
+                          a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
+                          a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
+                        ],
+                        if (withUtilization) percent(a['utilization']),
                       ],
-                      if (withUtilization) percent(a['utilization']),
-                    ]),
+                    ),
                 ],
               ),
             ),
@@ -590,7 +595,7 @@ class _Route extends StatelessWidget {
               if (a['value'] case final num v)
                 SolutionTab._row(
                   numericFrom: 3,
-                  selected: i == s.selectedFlow,
+                  selected: i == s.selectedFlow || s.touchesHighlighted(a),
                   onTap: () => s.selectFlow(i),
                   cells(a, v),
                 ),
@@ -858,17 +863,22 @@ class _Locations extends StatelessWidget {
               ]),
               for (final id in ids)
                 if ((nodes[id] as Map).cast<String, dynamic>() case final n)
-                  SolutionTab._row(numericFrom: 2, selected: id == s.selectedNode, onTap: () => s.selectNode(id), [
-                    name(id),
-                    t(n['open'] == 1 ? 'ui.sol.isOpen' : 'ui.sol.isClosed'),
-                    n['open'] == 1 ? '${n['nrOfAssigned'] ?? 0}' : '',
-                    n['open'] == 1 ? t.number(n['load'] as num? ?? 0) : '',
-                    if (withCapacity) ...[
-                      n['capacity'] is num ? t.number(n['capacity'] as num) : '',
-                      percent(n['utilization']),
+                  SolutionTab._row(
+                    numericFrom: 2,
+                    selected: id == s.highlightedNode,
+                    onTap: () => s.highlightNode(id),
+                    [
+                      name(id),
+                      t(n['open'] == 1 ? 'ui.sol.isOpen' : 'ui.sol.isClosed'),
+                      n['open'] == 1 ? '${n['nrOfAssigned'] ?? 0}' : '',
+                      n['open'] == 1 ? t.number(n['load'] as num? ?? 0) : '',
+                      if (withCapacity) ...[
+                        n['capacity'] is num ? t.number(n['capacity'] as num) : '',
+                        percent(n['utilization']),
+                      ],
+                      if (withFixed) n['fixedCost'] is num ? '${t.fixed(n['fixedCost'] as num, 2)} €' : '',
                     ],
-                    if (withFixed) n['fixedCost'] is num ? '${t.fixed(n['fixedCost'] as num, 2)} €' : '',
-                  ]),
+                  ),
             ],
           ),
         ),
@@ -892,13 +902,18 @@ class _Locations extends StatelessWidget {
                 if (withCosts) t('ui.sol.costs'),
               ]),
               for (final (i, a) in assignments.indexed)
-                SolutionTab._row(numericFrom: 2, selected: i == s.selectedFlow, onTap: () => s.selectFlow(i), [
-                  name(a['from']),
-                  name(a['to']),
-                  t.number(a['flow'] as num? ?? 0),
-                  a['value'] is num ? money(a['value'] as num) : '',
-                  if (withCosts) a['costs'] is num ? money(a['costs'] as num) : '',
-                ]),
+                SolutionTab._row(
+                  numericFrom: 2,
+                  selected: i == s.selectedFlow || s.touchesHighlighted(a),
+                  onTap: () => s.selectFlow(i),
+                  [
+                    name(a['from']),
+                    name(a['to']),
+                    t.number(a['flow'] as num? ?? 0),
+                    a['value'] is num ? money(a['value'] as num) : '',
+                    if (withCosts) a['costs'] is num ? money(a['costs'] as num) : '',
+                  ],
+                ),
             ],
           ),
         ),

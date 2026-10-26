@@ -511,5 +511,7 @@
   "ui.sol.assignments": "Zuordnung der Kunden",
   "ui.sol.value": "Entfernung",
   "ui.sol.uncovered": "Nicht abgedeckt: {nodes}",
-  "ui.check.tooManyLocations": "{p} Standorte gewünscht, aber nur {n} Kandidaten"
+  "ui.check.tooManyLocations": "{p} Standorte gewünscht, aber nur {n} Kandidaten",
+  "field.candidateSupply": "Angebot (Kapazität)",
+  "field.candidateSupply.help": "Wie viel der Standort liefern kann – wirkt mit „Kapazitäten beachten“"
 }

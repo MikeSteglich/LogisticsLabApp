@@ -243,6 +243,9 @@ void main() {
     await tester.pump();
     await settle(() => false, seconds: 3);
     await shot('16-wlp');
+    state.tapNode('D1');
+    await shot('16a-wlp-location');
+    state.highlightNode(null);
     // pickup and delivery: the requests as dashed lines, the tours with the load
     state.chooseProblem('Abholen und Zustellen');
     state.setTab(DataTab.nodes);

@@ -320,6 +320,7 @@ class AppState extends ChangeNotifier {
     solutionPart = part;
     selectedFlow = null; // the indexes of the connections change
     selectedRoute = null;
+    highlightedNode = null;
     notifyListeners();
   }
 
@@ -495,6 +496,7 @@ class AppState extends ChangeNotifier {
     edgeStart = null;
     selectedFlow = null;
     selectedRoute = null;
+    highlightedNode = null;
     tab = DataTab.nodes;
     placing = false;
     message = null;
@@ -525,6 +527,7 @@ class AppState extends ChangeNotifier {
     problemName = name;
     selectedFlow = null;
     selectedRoute = null;
+    highlightedNode = null;
     solutionPart = null;
     selectedEdge = null;
     drawingEdge = false;
@@ -549,11 +552,31 @@ class AppState extends ChangeNotifier {
     if (selectedFlow != null) {
       selectedEdge = null; // only one highlight on the map
       selectedRoute = null;
+      highlightedNode = null;
     }
     notifyListeners();
   }
 
   int? selectedRoute; // a whole tour of the solution (vrp) - all its sections highlighted on the map
+
+  /// a node of the solution (supplier, location) - all its connections highlighted, until one connection is chosen
+  String? highlightedNode;
+
+  /// the connection touches the highlighted node
+  bool touchesHighlighted(Map<String, dynamic> a) =>
+      highlightedNode != null && (a['from'] == highlightedNode || a['to'] == highlightedNode);
+
+  /// highlights the connections of a node - a second tap removes it
+  void highlightNode(String? id) {
+    highlightedNode = id == highlightedNode ? null : id;
+    if (highlightedNode != null) {
+      selectedFlow = null;
+      selectedRoute = null;
+      selectedEdge = null;
+      selectedNode = highlightedNode;
+    }
+    notifyListeners();
+  }
 
   /// a tour of the overview: highlighted on the map, a second tap removes it - instead of a section or an edge
   void selectRoute(int? r) {
@@ -742,6 +765,7 @@ class AppState extends ChangeNotifier {
     if (i != null) {
       selectedFlow = null; // only one highlight on the map
       selectedRoute = null;
+      highlightedNode = null;
     }
     notifyListeners();
   }
@@ -758,7 +782,12 @@ class AppState extends ChangeNotifier {
   /// is not allowed
   String? tapNode(String id) {
     if (!drawingEdge) {
-      selectNode(id);
+      // the solution shown: the connections of the node - else the node in its list
+      if (tab == DataTab.solution && connections.any((a) => a['from'] == id || a['to'] == id)) {
+        highlightNode(id);
+      } else {
+        selectNode(id);
+      }
       return null;
     }
     if (edgeStart == null) {
@@ -1046,6 +1075,7 @@ class AppState extends ChangeNotifier {
         solutions[name] = SolutionState(answer.solution!, rev);
         selectedFlow = null;
         selectedRoute = null;
+        highlightedNode = null;
         if (problemName == name) tab = DataTab.solution;
       }
       message = answer.status == 'solution' ? null : '${strings('ui.status.${answer.status}')}: ${answer.message}';

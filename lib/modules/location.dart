@@ -16,8 +16,16 @@ bool _fixed(Map<String, dynamic> p, {required bool byDefault}) => (p['useFixedCo
 /// candidates: their opening costs and (capacitated) their capacity
 RoleSpec _candidates({FieldCondition? withFixedCosts, bool withCapacity = false}) => RoleSpec('sources', 'candidate', [
   FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, labelKey: 'field.openingCost', visibleIf: withFixedCosts),
-  if (withCapacity) const FieldSpec('capacity', FieldKind.unlimited, min: 0, visibleIf: _capacitated),
-]);
+  if (withCapacity)
+    const FieldSpec(
+      'capacity',
+      FieldKind.unlimited,
+      min: 0,
+      labelKey: 'field.candidateSupply',
+      visibleIf: _capacitated,
+    ),
+  // the list of all nodes: their supply - without capacities (coverings) their operating costs
+], main: withCapacity ? 'capacity' : 'fixedCost');
 
 /// customers: demand (empty: 1) and - for costs per unit - their cost factor
 RoleSpec _customers({bool withCostFactor = false}) => RoleSpec('destinations', 'customer', [

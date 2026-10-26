@@ -329,7 +329,10 @@ class _MapViewState extends State<MapView> {
             // quantity - the number of the section of a tour
             label: a['leg'] != null ? '${a['leg']}' : s.strings.number(a['flow'] as num),
             // the section or its whole tour (overview)
-            selected: i == s.selectedFlow || (s.selectedRoute != null && a['route'] == s.selectedRoute),
+            selected:
+                i == s.selectedFlow ||
+                (s.selectedRoute != null && a['route'] == s.selectedRoute) ||
+                s.touchesHighlighted(a),
             repeated: a['passes'] != null,
             offsets: offsets(a, pts),
             color: tours > 1 ? Ui.routeColors[(a['route'] as int) % Ui.routeColors.length] : Ui.accent,

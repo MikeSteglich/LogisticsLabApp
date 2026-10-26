@@ -511,5 +511,7 @@
   "ui.sol.assignments": "Asignación de los clientes",
   "ui.sol.value": "Distancia",
   "ui.sol.uncovered": "No cubiertos: {nodes}",
-  "ui.check.tooManyLocations": "Se desean {p} ubicaciones, pero solo hay {n} candidatos"
+  "ui.check.tooManyLocations": "Se desean {p} ubicaciones, pero solo hay {n} candidatos",
+  "field.candidateSupply": "Oferta (capacidad)",
+  "field.candidateSupply.help": "Cuánto puede suministrar la ubicación – se aplica con «Respetar capacidades»"
 }
