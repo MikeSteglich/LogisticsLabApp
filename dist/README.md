@@ -64,7 +64,7 @@ python3 dist/buildDist.py --sign "Developer ID Application: ..." --notarize <key
 
 - Ausgecheckt werden die drei Repositories nebeneinander, wie `buildDist.py` sie erwartet: `LogisticsLabApp`, `pyLogisticsLab` (privat) und `Cmpl2` (öffentlich).
 - pyLogisticsLab und pyCmpl sind privat. Der Workflow braucht deshalb das Secret `LOGLAB_REPOS_TOKEN`: einen *fine-grained personal access token* mit Lesezugriff (*Contents: Read-only*) auf pyLogisticsLab und pyCmpl. Er wird unter *Settings → Secrets and variables → Actions* des Repositorys LogisticsLabApp eingetragen.
-- Windows: Der CMPL-Kern wird mit MSYS2/MinGW gebaut, die App mit Visual Studio. Die Werkzeuge von MSYS2 stehen nur für diesen Schritt und ganz hinten im `PATH`.
+- Windows: Der CMPL-Kern wird mit MSYS2/MinGW-w64 (UCRT64) gebaut, die App mit Visual Studio. Die Werkzeuge von MSYS2 stehen nur für diesen Schritt und ganz hinten im `PATH`.
 - Linux: GTK-3-Entwicklungspakete, `clang`, `cmake`, `ninja`.
 - Die fertige App wird auf den Rechnern nicht gestartet (`--no-launch-test`, kein Bildschirm). Der Test des Rechenkerns in der App läuft.
 - macOS: ohne weitere Secrets ad hoc signiert, mit `.dmg`. Mit diesen Secrets wird mit der Developer ID signiert und das `.dmg` notarisiert (Ticket angeheftet):
