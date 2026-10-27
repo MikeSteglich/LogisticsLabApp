@@ -94,6 +94,15 @@ jobs:
           install: mingw-w64-x86_64-gcc make
           path-type: inherit
 
+      # diagnosis: solver processes have hung while loading DLLs - the virus scanner of the runner and the debugger
+      # cdb (native stacks of a process that hangs, logisticsLabCore/jobs.py)
+      - name: Windows - Defender and debugger
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Get-MpComputerStatus | Select-Object AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, OnAccessProtectionEnabled | Format-List
+          Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Debuggers\x64\cdb.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+
       # the certificate in a temporary keychain (the default keychain of this run), the API key of App Store Connect
       # for notarytool as the profile loglab-notary - removed at the end
       - name: macOS - certificate and notarization
