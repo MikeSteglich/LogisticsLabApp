@@ -103,6 +103,14 @@ jobs:
           Get-MpComputerStatus | Select-Object AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, OnAccessProtectionEnabled | Format-List
           Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\Debuggers\x64\cdb.exe" -ErrorAction SilentlyContinue | Select-Object FullName
 
+      # the C files Nuitka has compiled - a new build compiles only what has changed; saved also after a failure
+      - name: Nuitka cache - restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/nuitka-cache
+          key: nuitka-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: nuitka-${{ runner.os }}-
+
       # the certificate in a temporary keychain (the default keychain of this run), the API key of App Store Connect
       # for notarytool as the profile loglab-notary - removed at the end
       - name: macOS - certificate and notarization
@@ -141,6 +149,7 @@ jobs:
         working-directory: LogisticsLabApp
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+          NUITKA_CACHE_DIR: ${{ runner.temp }}/nuitka-cache
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
             msys=$(cygpath -u "$MSYS2_LOCATION")
@@ -152,6 +161,13 @@ jobs:
             args+=(--sign "$SIGN_IDENTITY" --notarize loglab-notary)
           fi
           python dist/buildDist.py "${args[@]}" ${{ matrix.extra }}
+
+      - name: Nuitka cache - save
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/nuitka-cache
+          key: nuitka-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: macOS - remove the keychain
         if: always() && runner.os == 'macOS' && env.HAS_SIGNING == 'true'
