@@ -171,6 +171,7 @@
   "ui.geo.allStart": "Rechercher",
   "ui.geo.allDone": "Coordonnées trouvées : {n}",
   "ui.geo.allMissing": "introuvables : {names}",
+  "ui.newWindow": "Nouvelle fenêtre",
   "ui.export.overview": "Aperçu",
   "ui.export.menu": "Exporter la solution vers Excel …",
   "ui.export.button": "Exporter vers Excel",

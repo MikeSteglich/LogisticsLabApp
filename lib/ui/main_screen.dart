@@ -17,6 +17,7 @@ import 'help_dialog.dart';
 import 'logo.dart';
 import 'map_view.dart';
 import 'messages.dart';
+import 'new_window.dart';
 import 'settings_dialog.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -50,6 +51,10 @@ class MainScreen extends StatelessWidget {
       const CharacterActivator('?', meta: true): () => showHelp(context, state),
       const CharacterActivator('?', control: true): () => showHelp(context, state),
       const SingleActivator(LogicalKeyboardKey.f1): () => showHelp(context, state),
+      if (newWindowSupported) ...{
+        const SingleActivator(LogicalKeyboardKey.keyN, meta: true, shift: true): () => _newWindow(context, state),
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true): () => _newWindow(context, state),
+      },
     };
     return _ExitGuard(
       state: state,
@@ -145,6 +150,15 @@ class _Header extends StatelessWidget {
                   MenuItemButton(onPressed: () => files.save(saveAs: true), child: Text(t('ui.saveAs'))),
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
+                  // a second instance of the app - e.g. two variants side by side
+                  if (newWindowSupported)
+                    MenuItemButton(
+                      onPressed: () => _newWindow(context, s),
+                      shortcut: defaultTargetPlatform == TargetPlatform.macOS
+                          ? const SingleActivator(LogicalKeyboardKey.keyN, meta: true, shift: true)
+                          : const SingleActivator(LogicalKeyboardKey.keyN, control: true, shift: true),
+                      child: Text(t('ui.newWindow')),
+                    ),
                   MenuItemButton(
                     onPressed: s.solution?.results == null ? null : files.exportSolution,
                     child: Text(t('ui.export.menu')),
@@ -193,6 +207,15 @@ class _Header extends StatelessWidget {
         );
       },
     );
+  }
+}
+
+/// another instance of the app - an error (e.g. the program moved) as message
+Future<void> _newWindow(BuildContext context, AppState s) async {
+  try {
+    await openNewWindow();
+  } catch (e) {
+    if (context.mounted) await showError(context, s.strings, '$e');
   }
 }
 

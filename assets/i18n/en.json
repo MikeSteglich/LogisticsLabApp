@@ -171,6 +171,7 @@
   "ui.geo.allStart": "Look up",
   "ui.geo.allDone": "Coordinates found: {n}",
   "ui.geo.allMissing": "not found: {names}",
+  "ui.newWindow": "New window",
   "ui.export.overview": "Overview",
   "ui.export.menu": "Export solution to Excel …",
   "ui.export.button": "Export to Excel",
