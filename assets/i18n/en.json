@@ -224,6 +224,7 @@
   "ui.layers": "Layers",
   "ui.layer.solution": "Solution",
   "ui.layer.network": "Network",
+  "ui.layer.cover": "Covering radius",
   "ui.edges.osm": "Edges: road network (OSM)",
   "ui.edges.beeline": "Edges: straight line",
   "ui.discard": "Discard unsaved changes?",

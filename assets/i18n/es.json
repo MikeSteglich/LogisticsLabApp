@@ -224,6 +224,7 @@
   "ui.layers": "Capas",
   "ui.layer.solution": "Solución",
   "ui.layer.network": "Red",
+  "ui.layer.cover": "Radio de cobertura",
   "ui.edges.osm": "Aristas: red de carreteras (OSM)",
   "ui.edges.beeline": "Aristas: línea recta",
   "ui.discard": "¿Descartar los cambios no guardados?",

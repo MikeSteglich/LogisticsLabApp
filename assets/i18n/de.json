@@ -224,6 +224,7 @@
   "ui.layers": "Ebenen",
   "ui.layer.solution": "Lösung",
   "ui.layer.network": "Netz",
+  "ui.layer.cover": "Abdeckungsradius",
   "ui.edges.osm": "Kanten: Straßenverlauf (OSM)",
   "ui.edges.beeline": "Kanten: Luftlinie",
   "ui.discard": "Ungespeicherte Änderungen verwerfen?",

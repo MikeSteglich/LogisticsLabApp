@@ -31,6 +31,7 @@ class _MapViewState extends State<MapView> {
   bool _showSolution = true;
   bool _showNetwork = true;
   bool _showLabels = true;
+  bool _showCover = true; // the circles of the covering radius
   bool _layersOpen = false; // the switches of the layers - closed: a small button
 
   // edge under the mouse - index in the edges of the network or in the connections of the solution
@@ -122,7 +123,8 @@ class _MapViewState extends State<MapView> {
                 (i) => s.selectEdge(i, showTab: true),
               ),
             // set and maximal covering: the radius around the candidates (distances)
-            if (_coverCircles() case final circles when circles.isNotEmpty) CircleLayer(circles: circles),
+            if (_showCover)
+              if (_coverCircles() case final circles when circles.isNotEmpty) CircleLayer(circles: circles),
             // pickup and delivery: from every pickup a dashed line to its delivery node
             if (s.spec?.type == 'pdp') PolylineLayer(polylines: _requestLines()),
             if (_showSolution)
@@ -937,6 +939,7 @@ class _MapViewState extends State<MapView> {
           check(t('ui.layer.labels'), _showLabels, (v) => setState(() => _showLabels = v)),
           if (s.problem?.network != null)
             check(t('ui.layer.network'), _showNetwork, (v) => setState(() => _showNetwork = v)),
+          if (_coverCircles().isNotEmpty) check(t('ui.layer.cover'), _showCover, (v) => setState(() => _showCover = v)),
         ],
       ),
     );

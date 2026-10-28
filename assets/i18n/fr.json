@@ -224,6 +224,7 @@
   "ui.layers": "Calques",
   "ui.layer.solution": "Solution",
   "ui.layer.network": "Réseau",
+  "ui.layer.cover": "Rayon de couverture",
   "ui.edges.osm": "Arcs : réseau routier (OSM)",
   "ui.edges.beeline": "Arcs : ligne droite",
   "ui.discard": "Abandonner les modifications non enregistrées ?",
