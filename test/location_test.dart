@@ -150,6 +150,13 @@ void main() {
     expect(state.customerServed(unserved.first.id), isFalse);
     expect(state.customerServed(customers.firstWhere((n) => assigned.contains(n.id)).id), isTrue);
     expect(state.customerServed(state.openNodes.keys.first), isNull); // a candidate
+    // the evaluation as for a transportation problem: the demand not met, customers and open locations
+    final analysis = state.analysis!;
+    num demand(Node n) => (n['demand'] as num?) ?? 1;
+    expect(analysis.missing('customer'), closeTo(unserved.fold<num>(0, (a, n) => a + demand(n)), 1e-6));
+    expect(analysis.ofRole('candidate').length, state.openNodes.values.where((o) => o).length);
+    expect(find.text('Ungedeckter Bedarf'), findsOneWidget);
+    expect(find.text('Kunden mit mehreren Standorten'), findsOneWidget);
     // a radius no candidate reaches: refused before solving
     state.chooseProblem('europa-vertrieb (Set Covering)');
     state.edit(() => state.problem!.parameters['radius'] = 10);
@@ -206,6 +213,16 @@ void main() {
       find.text('${state.strings.fixed(f1.latitude, 5)} / ${state.strings.fixed(f1.longitude, 5)}'),
       findsOneWidget,
     );
+    // the evaluation as for the discrete problems: the locations found and every customer served
+    final analysis = state.analysis!;
+    expect([for (final u in analysis.ofRole('candidate')) u.node.name], ['Standort 1', 'Standort 2']);
+    expect(analysis.ofRole('customer').length, 28);
+    expect(analysis.missing('customer'), closeTo(0, 1e-6));
+    expect(
+      analysis.ofRole('candidate').fold<num>(0, (a, u) => a + u.actual),
+      closeTo(analysis.ofRole('customer').fold<num>(0, (a, u) => a + u.actual), 1e-6),
+    );
+    expect(find.text('Ungedeckter Bedarf'), findsOneWidget);
     // the locations become candidates of the scenario
     await tester.tap(find.text('Als Kandidaten übernehmen'));
     await tester.pump();

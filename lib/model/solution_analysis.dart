@@ -143,6 +143,55 @@ class SolutionAnalysis {
     return SolutionAnalysis(uses, roles);
   }
 
+  /// location problems: the open locations (their capacity and the quantity assigned to them) and the customers
+  /// (their demand - empty: 1 - and the quantity assigned); null without a solution. found: the locations found of a
+  /// continuous location as nodes (not in the scenario)
+  static SolutionAnalysis? ofLocations(
+    Scenario scenario,
+    ModuleSpec spec,
+    Map<String, dynamic> parameters,
+    Map<String, dynamic>? results, {
+    Map<String, Node> found = const {},
+  }) {
+    final nodeResults = (results?['nodes'] as Map?)?.cast<String, dynamic>();
+    if (results == null || nodeResults == null || results['assignments'] == null) return null;
+    // continuous: only customers - the locations found are candidates
+    final candidate = spec.roles.length < 2 ? 'candidate' : spec.nodeRole(spec.roles.first, parameters);
+    final customer = spec.nodeRole(spec.roles.last, parameters);
+    final connections = connectionsOf(results);
+    final uses = <NodeUse>[];
+    for (final MapEntry(:key, :value) in nodeResults.entries) {
+      final r = (value as Map).cast<String, dynamic>();
+      final n = scenario.node(key) ?? found[key];
+      if (n == null || (r['open'] ?? 1) != 1) continue; // continuous: the locations found are open
+      uses.add(
+        NodeUse(
+          n,
+          candidate,
+          true,
+          r['capacity'] as num?,
+          r['load'] as num? ?? 0,
+          [
+            for (final a in connections)
+              if (a['from'] == key) ('${a['to']}', a['flow'] as num),
+          ],
+          capacity: r['capacity'] as num?,
+          utilization: r['utilization'] as num?,
+        ),
+      );
+    }
+    for (final n in scenario.nodes) {
+      if (!n.active || !n.roles.contains(customer)) continue;
+      final partners = [
+        for (final a in connections)
+          if (a['to'] == n.id) ('${a['from']}', a['flow'] as num),
+      ];
+      final actual = partners.fold<num>(0, (sum, p) => sum + p.$2);
+      uses.add(NodeUse(n, customer, false, total(n['demand']) ?? 1, actual, partners));
+    }
+    return SolutionAnalysis(uses, [candidate, customer]);
+  }
+
   /// a number or the sum of the values per commodity - null if there is none
   static num? total(Object? v) => v is num
       ? v

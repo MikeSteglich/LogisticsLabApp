@@ -654,7 +654,7 @@ class _MapViewState extends State<MapView> {
                   text: '\n${_useInfo(use)}',
                   style: const TextStyle(fontSize: 12, color: Ui.textMuted),
                 ),
-              if (served != null)
+              if (served != null && use == null)
                 TextSpan(
                   text:
                       '\n${served ? s.strings('ui.sol.servedBy', {
@@ -764,7 +764,10 @@ class _MapViewState extends State<MapView> {
         : ' · ${t('ui.sol.utilization')} ${t.number(u.utilization! * 100, decimals: 0)} % '
               '${t('ui.sol.ofCapacity', {'capacity': t.number(u.capacity ?? 0)})}';
     if (u.through) return '${t('ui.sol.throughput')} ${t.number(u.actual)}$used';
-    final target = u.target == null ? '' : '${t(u.sends ? 'field.supply' : 'field.demand')} ${t.number(u.target!)} · ';
+    final target = u.target == null
+        ? ''
+        : '${t(u.role == 'candidate' ? 'field.capacity' : (u.sends ? 'field.supply' : 'field.demand'))} '
+              '${t.number(u.target!)} · ';
     final share = u.share == null ? '' : ' (${t.number(u.share! * 100, decimals: 0)} %)';
     final partners = u.partners.map((p) => '${_name(p.$1)} ${t.number(p.$2)}').join(', ');
     return '$target${t(u.sends ? 'ui.sol.shipped' : 'ui.sol.received')} ${t.number(u.actual)}$share'

@@ -480,9 +480,23 @@ class AppState extends ChangeNotifier {
   }
 
   /// how the nodes are served in the solution of the problem (shares, partners) - null without solution
-  /// supply shipped and demand met - not for locations (their customers are assigned, not supplied)
+  /// supply shipped and demand met - location problems: the open locations and the demand of the customers assigned
   SolutionAnalysis? get analysis => spec?.group == ModuleGroup.location
-      ? null
+      ? SolutionAnalysis.ofLocations(
+          scenario,
+          spec!,
+          problem?.parameters ?? const {},
+          solution?.results,
+          found: {
+            for (final MapEntry(:key, :value) in foundLocations.entries)
+              key: Node({
+                'id': key,
+                'name': nameOf(key),
+                'coordinates': [value.latitude, value.longitude],
+                'roles': const ['candidate'],
+              }),
+          },
+        )
       : SolutionAnalysis.of(
           scenario,
           spec,
@@ -705,6 +719,7 @@ class AppState extends ChangeNotifier {
     tab = DataTab.nodes;
     placing = false;
     message = null;
+    _checkFailed = false;
     notifyListeners();
   }
 
@@ -742,6 +757,15 @@ class AppState extends ChangeNotifier {
     _keepSelectionVisible();
     dirty = true;
     revision++;
+    // the message of the checks follows the data - it goes once the data are complete
+    if (_checkFailed) {
+      final missing = problem == null ? const <String>[] : _checks(problem!);
+      message = missing.isEmpty ? null : missing.join('\n');
+      if (missing.isEmpty) {
+        _checkFailed = false;
+        lastResult = null;
+      }
+    }
     notifyListeners();
   }
 
@@ -749,6 +773,12 @@ class AppState extends ChangeNotifier {
 
   void chooseProblem(String name) {
     problemName = name;
+    // the checks were of the other problem
+    if (_checkFailed) {
+      _checkFailed = false;
+      message = null;
+      lastResult = null;
+    }
     selectedFlow = null;
     selectedRoute = null;
     highlightedNode = null;
@@ -1271,23 +1301,29 @@ class AppState extends ChangeNotifier {
     await starting?.close();
   }
 
+  /// checks of the app before solving - the core would refuse the problem
+  List<String> _checks(Problem p) => [
+    if (spec?.network == NetworkUse.required && network == null) strings('ui.net.required'),
+    for (final e in spec?.validateParameters(p.parameters) ?? const <Message>[]) strings.message(e),
+    ...nodeProblems,
+  ];
+
+  bool _checkFailed = false; // the message is of the checks before solving - checked again with every edit
+
   Future<void> solve() async {
     final p = problem;
     if (p == null || solving) return;
     final name = p.name;
     final rev = revision;
-    // checks of the app - the core would refuse the problem
-    final missing = [
-      if (spec?.network == NetworkUse.required && network == null) strings('ui.net.required'),
-      for (final e in spec?.validateParameters(p.parameters) ?? const <Message>[]) strings.message(e),
-      ...nodeProblems,
-    ];
+    final missing = _checks(p);
     if (missing.isNotEmpty) {
       message = missing.join('\n');
       lastResult = 'error';
+      _checkFailed = true;
       notifyListeners();
       return;
     }
+    _checkFailed = false;
     // the data at the start - edits while solving do not reach the solver, they make the solution stale
     final data = jsonDecode(jsonEncode(scenario.json)) as Map<String, dynamic>;
     message = null;

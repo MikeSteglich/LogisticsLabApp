@@ -177,16 +177,19 @@ class SolutionTab extends StatelessWidget {
                         objective: col.key == objectiveKey,
                       ),
                   // how the nodes are served: supply left, demand not met, customers with several suppliers
+                  // location problems: the free capacity of the open locations (with capacities), customers with
+                  // several locations
                   if (analysis != null) ...[
                     for (final (i, role) in analysis.roles.take(2).indexed)
-                      card(
-                        w,
-                        t('ui.sol.missing.$role'),
-                        t.number(analysis.missing(role)),
-                        warn: i == 1 && analysis.missing(role) > 0,
-                      ),
+                      if (role != 'candidate' || analysis.ofRole(role).any((u) => u.target != null))
+                        card(
+                          w,
+                          t('ui.sol.missing.$role'),
+                          t.number(analysis.missing(role)),
+                          warn: i == 1 && analysis.missing(role) > 0,
+                        ),
                     if (analysis.roles.length > 1)
-                      card(w, t('ui.sol.multipleCount.${analysis.roles[1]}'), '${analysis.multipleReceivers}'),
+                      card(w, t('ui.sol.multipleCount.${_receiving(analysis)}'), '${analysis.multipleReceivers}'),
                   ],
                 ],
               );
@@ -341,6 +344,9 @@ class SolutionTab extends StatelessWidget {
 }
 
 /// The nodes in the solution: target, actual quantity, share and partners - with a filter, e.g. demand not met.
+/// the receiving role for the texts of several senders - location problems: customers with several locations
+String _receiving(SolutionAnalysis a) => a.roles.first == 'candidate' ? 'location' : a.roles[1];
+
 class _NodeUses extends StatefulWidget {
   final AppState state;
   final SolutionAnalysis analysis;
@@ -372,7 +378,7 @@ class _NodeUsesState extends State<_NodeUses> {
       ('all', t('ui.filter.all'), a.uses.length),
       for (final r in roles)
         ('notFull:$r', t('ui.sol.notFull.$r'), a.ofRole(r).where((u) => u.notFull && !u.through).length),
-      if (roles.length > 1) ('multiple', t('ui.sol.multiple.${roles[1]}'), a.multipleReceivers),
+      if (roles.length > 1) ('multiple', t('ui.sol.multiple.${_receiving(a)}'), a.multipleReceivers),
       if (through > 0) ('through', t('role.transit.plural'), through),
       if (full > 0) ('full', t('ui.sol.full'), full),
     ];
@@ -496,7 +502,10 @@ class _NodeUsesState extends State<_NodeUses> {
               for (final u in shown)
                 row(
                   [
-                    cell(text(u.node.name, bold: u.node.id == s.selectedNode), flex: 3),
+                    cell(
+                      text(u.node.name, bold: u.node.id == s.selectedNode || u.node.id == s.highlightedNode),
+                      flex: 3,
+                    ),
                     cell(text(t('role.${u.role}'), color: Ui.textMuted)),
                     cell(text(u.target == null ? '' : t.number(u.target!)), right: true),
                     cell(text(t.number(u.actual)), right: true),
@@ -512,7 +521,10 @@ class _NodeUsesState extends State<_NodeUses> {
                   ],
                   selected: u.node.id == s.selectedNode,
                   background: u.node.id == s.selectedNode ? Ui.accentLight : null,
-                  onTap: () => s.selectNode(u.node.id, keepTab: true),
+                  // a location found (continuous): its connections highlighted - it is no node of the scenario
+                  onTap: () => s.scenario.node(u.node.id) == null
+                      ? s.highlightNode(u.node.id)
+                      : s.selectNode(u.node.id, keepTab: true),
                 ),
             ],
           ),
