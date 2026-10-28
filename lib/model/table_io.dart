@@ -179,6 +179,27 @@ String copySolution(AppState s) {
   return tableText(out);
 }
 
+// headers of the parts of an address - in a table without a column of the address they make it up
+const _streetParts = ['strasse', 'str', 'street', 'hausnummer', 'hausnr', 'housenumber', 'number', 'anschrift'];
+const _placeParts = ['ort', 'stadt', 'city', 'town', 'gemeinde', 'place', 'wohnort', 'ortsteil'];
+const _otherParts = [
+  'plz',
+  'postleitzahl',
+  'postcode',
+  'postalcode',
+  'zip',
+  'zipcode',
+  'land',
+  'country',
+  'staat',
+  'bundesland',
+  'state',
+  'region',
+  'kreis',
+  'landkreis',
+  'district',
+];
+
 //*************** paste ************************************************
 
 class ImportError {
@@ -205,6 +226,7 @@ class TableImport {
   late List<String?> mapping; // column key of every column of the table - null: ignored
   ImportMode mode = ImportMode.add;
   String? role; // nodes without a column of the roles: this role
+  List<int> addressParts = []; // without a column of the address: the columns it is made of (joined by commas)
 
   TableImport(this.state, this.kind, String text)
     : rows = parseTable(text),
@@ -229,8 +251,38 @@ class TableImport {
       if (nameColumn >= 0 && data.isNotEmpty && data.every((r) => names.contains(normalize(r[nameColumn])))) {
         mode = ImportMode.update;
       }
+      _proposeAddress();
     }
   }
+
+  /// nodes without columns of the coordinates and of the address: the address of the name and the other columns -
+  /// with a header those named as parts of an address (the name only without a street or a place), else all others
+  void _proposeAddress() {
+    if (['latitude', 'longitude', 'address'].any(mapping.contains)) return;
+    final name = mapping.indexOf('name');
+    final parts = <int>[];
+    var street = false;
+    for (var i = 0; i < width; i++) {
+      if (mapping[i] != null) continue;
+      if (!header) {
+        if (data.any((r) => r[i].isNotEmpty)) parts.add(i);
+        continue;
+      }
+      final h = _header(rows.first[i]);
+      if (_streetParts.contains(h) || _placeParts.contains(h)) street = true;
+      if (_streetParts.contains(h) || _placeParts.contains(h) || _otherParts.contains(h)) parts.add(i);
+    }
+    addressParts = [if (name >= 0 && !street) name, ...parts]..sort();
+  }
+
+  /// the header of a column of the table - or Spalte n
+  String columnName(int i) =>
+      header && rows.first[i].isNotEmpty ? rows.first[i] : state.strings('ui.import.column', {'n': i + 1});
+
+  /// the address of a row made of the columns of addressParts
+  String composedAddress(List<String> row) => [
+    for (final i in addressParts) row[i].replaceAll(RegExp(r'\s+'), ' ').trim(),
+  ].where((p) => p.isNotEmpty).join(', ');
 
   int get width => rows.isEmpty ? 0 : rows.first.length;
 
@@ -375,7 +427,9 @@ class TableImport {
         }
 
         final lat = coordinate('latitude', 90), lon = coordinate('longitude', 180);
-        final address = col.containsKey('address') ? cell('address') : null;
+        final address = col.containsKey('address')
+            ? cell('address')
+            : (addressParts.isNotEmpty ? composedAddress(row) : null);
         // without coordinates: those of the address - for an existing node only if its address has changed
         final locate =
             (lat == null || lon == null) &&

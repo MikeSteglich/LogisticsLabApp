@@ -127,6 +127,30 @@ void main() {
     expect(templin['timeWindow'], [480, 720]);
   });
 
+  testWidgets('names and postal codes without an address: the address made of their columns', (tester) async {
+    final state = await _state(tester, 'Touren ab Wildau');
+    final paste = TableImport(state, TableKind.nodes, 'Name\tPost code\nBestensee\t15741\nMittenwalde\t15749\n');
+    expect(paste.header, isTrue);
+    expect(paste.mapping, ['name', null]);
+    expect(paste.addressParts, [0, 1]);
+    expect(paste.columnName(1), 'Post code');
+    expect(paste.check().toLocate, [(2, 'Bestensee, 15741'), (3, 'Mittenwalde, 15749')]);
+    // street and place: the name is no part of the address; a column named otherwise is none
+    final full = TableImport(
+      state,
+      TableKind.nodes,
+      'Name\tStraße\tPLZ\tOrt\tBemerkung\nLager\tHochschulring 1\t15745\tWildau\tneu\n',
+    );
+    expect(full.mapping, ['name', null, null, null, null]);
+    expect(full.check().toLocate.single.$2, 'Hochschulring 1, 15745, Wildau');
+    // without a header: the name and all other columns; with coordinates no address
+    expect(TableImport(state, TableKind.nodes, 'Bestensee\t15741\nHalbe\t15757\n').addressParts, [0, 1]);
+    expect(TableImport(state, TableKind.nodes, 'Eberswalde\t52,83\t13,82\n').addressParts, isEmpty);
+    // chosen in the dialog: only the name
+    paste.addressParts = [0];
+    expect(paste.check().toLocate.first.$2, 'Bestensee');
+  });
+
   testWidgets('the dialog of a paste: text pasted, columns shown, applied', (tester) async {
     MapView.showTiles = false;
     tester.view.physicalSize = const Size(1440, 1200);
@@ -204,6 +228,13 @@ void main() {
     final wildau = state.scenario.nodes.firstWhere((n) => n.name == 'TH Wildau');
     expect(wildau.position.latitude, closeTo(52.32, 0.05));
     expect(wildau.position.longitude, closeTo(13.63, 0.05));
+    // names and postal codes: the address made of both
+    final plain = TableImport(state, TableKind.nodes, 'Name\tPost code\nBestensee\t15741\nGroß Köris\t15746\n');
+    expect((await tester.runAsync(plain.apply))!.added, 2);
+    final bestensee = state.scenario.nodes.firstWhere((n) => n.name == 'Bestensee');
+    expect(bestensee.address, 'Bestensee, 15741');
+    expect(bestensee.position.latitude, closeTo(52.24, 0.05));
+    expect(bestensee.position.longitude, closeTo(13.65, 0.05));
     // all nodes of the list with an address: looked up again
     final (found, missing) = (await tester.runAsync(() => locateNodes(state, [wildau])))!;
     expect(found, 1);

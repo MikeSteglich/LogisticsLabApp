@@ -201,6 +201,43 @@ class _PasteDialogState extends State<_PasteDialog> {
                 ),
                 const SizedBox(height: 8),
                 _Preview(state: s, import: imp, onChanged: busy ? null : _recheck),
+                // without a column of the address: the columns it is made of
+                if (nodes && !imp.mapping.contains('address')) ...[
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(t('ui.import.addressFrom'), style: const TextStyle(fontSize: 13)),
+                      for (var i = 0; i < imp.width; i++)
+                        FilterChip(
+                          label: Text(imp.columnName(i), style: const TextStyle(fontSize: 12)),
+                          visualDensity: VisualDensity.compact,
+                          selected: imp.addressParts.contains(i),
+                          onSelected: busy
+                              ? null
+                              : (on) {
+                                  imp.addressParts = on
+                                      ? ([...imp.addressParts, i]..sort())
+                                      : [
+                                          for (final p in imp.addressParts)
+                                            if (p != i) p,
+                                        ];
+                                  _recheck();
+                                },
+                        ),
+                    ],
+                  ),
+                  if (imp.addressParts.isNotEmpty && imp.data.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        t('ui.import.addressExample', {'address': imp.composedAddress(imp.data.first)}),
+                        style: Ui.small,
+                      ),
+                    ),
+                ],
               ],
               if (check != null) ...[
                 const SizedBox(height: 12),
