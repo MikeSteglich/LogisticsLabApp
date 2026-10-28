@@ -144,6 +144,7 @@
   "ui.import.add": "Añadir",
   "ui.import.update": "Actualizar",
   "ui.import.role": "Rol de los nodos nuevos:",
+  "ui.import.autoRole": "automático (de oferta, demanda …)",
   "ui.import.ignore": "– ignorar –",
   "ui.import.addressFrom": "Dirección a partir de las columnas:",
   "ui.import.addressExample": "p. ej. «{address}»",

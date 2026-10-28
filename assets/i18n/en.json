@@ -144,6 +144,7 @@
   "ui.import.add": "Add",
   "ui.import.update": "Update",
   "ui.import.role": "Role of new nodes:",
+  "ui.import.autoRole": "automatic (from supply, demand …)",
   "ui.import.ignore": "– ignore –",
   "ui.import.addressFrom": "Address from the columns:",
   "ui.import.addressExample": "e.g. “{address}”",

@@ -144,6 +144,7 @@
   "ui.import.add": "Ajouter",
   "ui.import.update": "Mettre à jour",
   "ui.import.role": "Rôle des nouveaux nœuds :",
+  "ui.import.autoRole": "automatique (offre, demande …)",
   "ui.import.ignore": "– ignorer –",
   "ui.import.addressFrom": "Adresse à partir des colonnes :",
   "ui.import.addressExample": "p. ex. « {address} »",

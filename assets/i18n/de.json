@@ -144,6 +144,7 @@
   "ui.import.add": "Hinzufügen",
   "ui.import.update": "Aktualisieren",
   "ui.import.role": "Rolle neuer Knoten:",
+  "ui.import.autoRole": "automatisch (aus Angebot, Nachfrage …)",
   "ui.import.ignore": "– ignorieren –",
   "ui.import.addressFrom": "Adresse aus den Spalten:",
   "ui.import.addressExample": "z. B. „{address}“",

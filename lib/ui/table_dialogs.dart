@@ -177,25 +177,34 @@ class _PasteDialogState extends State<_PasteDialog> {
                     ),
                     // nodes without a column of their roles get this one
                     if (nodes && !imp.mapping.contains('roles') && imp.mode == ImportMode.add)
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(t('ui.import.role'), style: const TextStyle(fontSize: 13)),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: imp.role,
-                            items: [
-                              for (final r in s.problemRoles.isEmpty ? const ['customer'] : s.problemRoles)
-                                DropdownMenuItem(value: r, child: Text(t('role.$r'))),
-                            ],
-                            onChanged: busy
-                                ? null
-                                : (v) {
-                                    imp.role = v;
-                                    _recheck();
-                                  },
+                      // a field as the others of the app - the role from the values of the row (supply, demand) or
+                      // one role for all
+                      SizedBox(
+                        width: 320,
+                        child: DropdownButtonFormField<String>(
+                          key: ValueKey('role|${imp.role}|${imp.canDetectRoles}'),
+                          initialValue: imp.role,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: t('ui.import.role').replaceAll(RegExp(r'\s*:\s*$'), ''),
+                            isDense: true,
                           ),
-                        ],
+                          items: [
+                            if (imp.canDetectRoles)
+                              DropdownMenuItem(
+                                value: TableImport.autoRole,
+                                child: Text(t('ui.import.autoRole'), overflow: TextOverflow.ellipsis),
+                              ),
+                            for (final r in s.assignableRoles.isEmpty ? const ['customer'] : s.assignableRoles)
+                              DropdownMenuItem(value: r, child: Text(t('role.$r'))),
+                          ],
+                          onChanged: busy
+                              ? null
+                              : (v) {
+                                  imp.role = v;
+                                  _recheck();
+                                },
+                        ),
                       ),
                   ],
                 ),

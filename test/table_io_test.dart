@@ -151,6 +151,33 @@ void main() {
     expect(paste.check().toLocate.first.$2, 'Bestensee');
   });
 
+  testWidgets('a network flow: the roles from supply and demand, transshipment nodes, their capacity', (tester) async {
+    final state = await _state(tester, 'Distribution über die Lager');
+    expect(state.assignableRoles, contains('transit'));
+    final paste = TableImport(
+      state,
+      TableKind.nodes,
+      'Name\tBreite\tLänge\tAngebot\tNachfrage\tKapazität\n'
+      'Werk Süd\t51,9\t14,3\t500\t\t\n'
+      'Laden Nord\t53,0\t13,9\t\t40\t\n'
+      'Umschlag Mitte\t52,4\t13,6\t0\t0\t300\n',
+    );
+    expect(paste.mapping, ['name', 'latitude', 'longitude', 'supply', 'demand', 'maxCap']);
+    expect(paste.role, TableImport.autoRole);
+    await tester.runAsync(paste.apply);
+    Node node(String name) => state.scenario.nodes.firstWhere((n) => n.name == name);
+    expect(node('Werk Süd').roles, ['supplier']);
+    expect(node('Laden Nord').roles, ['customer']);
+    expect(node('Umschlag Mitte').roles, ['transit']);
+    expect(node('Umschlag Mitte')['maxCap'], 300);
+    expect(state.isTransit(node('Umschlag Mitte')), isTrue); // not yet in the network
+    // one role for all
+    final one = TableImport(state, TableKind.nodes, 'Name\tBreite\tLänge\tAngebot\nWerk West\t52,0\t12,0\t50\n');
+    one.role = 'transit';
+    await tester.runAsync(one.apply);
+    expect(node('Werk West').roles, ['transit']);
+  });
+
   testWidgets('the dialog of a paste: text pasted, columns shown, applied', (tester) async {
     MapView.showTiles = false;
     tester.view.physicalSize = const Size(1440, 1200);

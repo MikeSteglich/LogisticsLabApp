@@ -57,6 +57,9 @@ const _aliases = {
   'from': ['from', 'von', 'start', 'source'],
   'to': ['to', 'nach', 'ziel', 'target'],
   'directed': ['directed', 'gerichtet'],
+  // the capacity of a node of a network flow (throughput)
+  'maxCap': ['kapazitat', 'capacity', 'maxcap', 'durchsatz', 'maxdurchsatz', 'hochstdurchsatz'],
+  'minCap': ['mincap', 'mindestdurchsatz'],
   // usual headers of fields
   'demand': ['bedarf', 'demand', 'menge', 'nachfrage'],
   'supply': ['supply', 'angebot', 'kapazitat'],
@@ -247,6 +250,8 @@ class TableImport {
     }
     final problemRoles = state.problemRoles;
     role = problemRoles.isEmpty ? 'customer' : problemRoles.last;
+    // the role of a row from its values: supply, demand, ... - with a column of a main value of a role
+    if (canDetectRoles) role = autoRole;
     // update if the names or ids exist already
     if (kind == TableKind.nodes) {
       final names = {for (final n in state.scenario.nodes) normalize(n.name)};
@@ -256,6 +261,37 @@ class TableImport {
       }
       _proposeAddress();
     }
+  }
+
+  /// the role of a new node: from the values of its row (autoRole) or this role
+  static const autoRole = '@auto';
+
+  /// the roles of the problem with the column of their main value (tpp: supplier - supply, customer - demand)
+  List<(String, int)> get _roleColumns {
+    final spec = state.spec;
+    if (spec == null) return const [];
+    final params = state.problem?.parameters ?? const <String, dynamic>{};
+    return [
+      for (final r in spec.activeRoles(params))
+        if (r.mainField case final f? when mapping.contains(f.key)) (spec.nodeRole(r, params), mapping.indexOf(f.key)),
+    ];
+  }
+
+  /// the role of a row can be taken from its values
+  bool get canDetectRoles => kind == TableKind.nodes && _roleColumns.isNotEmpty;
+
+  /// autoRole: the first role whose main value in the row is not 0 - else a transshipment node (network flow) or the
+  /// last role of the problem
+  String rowRole(List<String> row) {
+    if (role != autoRole) return role ?? 'customer';
+    for (final (r, i) in _roleColumns) {
+      final text = row[i].trim();
+      if (text.isEmpty) continue;
+      final v = _num(text);
+      if (v == null || v != 0) return r; // a value - also of several commodities
+    }
+    final roles = state.assignableRoles;
+    return roles.contains('transit') ? 'transit' : (roles.isEmpty ? 'customer' : roles.last);
   }
 
   /// nodes without columns of the coordinates and of the address: the address of the name and the other columns -
@@ -298,9 +334,13 @@ class TableImport {
   String? _columnOf(String headerText) {
     final h = _header(headerText);
     if (h.isEmpty) return null;
+    // the labels and keys first, then the further headers - Kapazität: the capacity of a candidate before the
+    // throughput of a node
     for (final c in columns) {
       if (_header(state.strings(c.label)) == h || normalize(c.key) == h) return c.key;
-      if (_aliases[c.key]?.contains(h) ?? false) return c.key;
+    }
+    for (final c in columns) {
+      if (_aliasesOf(c).contains(h)) return c.key;
     }
     // the label of the same field in another problem type, e.g. Bedarf (vrp) for Nachfrage (tpp)
     for (final c in columns) {
@@ -308,10 +348,20 @@ class TableImport {
     }
     // another form of the word: Kapazitäten for Kapazität, capacities for capacity
     for (final c in columns) {
-      final names = {_header(state.strings(c.label)), normalize(c.key), ...?_aliases[c.key]};
+      final names = {_header(state.strings(c.label)), normalize(c.key), ..._aliasesOf(c)};
       if (names.any((n) => _sameWord(h, n))) return c.key;
     }
     return null;
+  }
+
+  /// the further headers of a column - Kapazität the supply (tpp), with a throughput of the nodes (network flow) that
+  List<String> _aliasesOf(TableColumn c) {
+    final all = _aliases[c.key] ?? const <String>[];
+    if (c.key != 'supply' || !columns.any((o) => o.key == 'maxCap')) return all;
+    return [
+      for (final a in all)
+        if (a != 'kapazitat') a,
+    ];
   }
 
   /// two forms of a word - plural and singular: the same beginning, at most three letters more at the end
@@ -364,6 +414,8 @@ class TableImport {
 
   /// what the paste would do - the errors with their rows
   ImportCheck check() {
+    // the columns of the values changed: one role for all
+    if (role == autoRole && !canDetectRoles) role = state.problemRoles.lastOrNull ?? 'customer';
     final result = ImportCheck();
     final s = state;
     final scenario = s.scenario;
@@ -490,6 +542,7 @@ class TableImport {
           });
         } else {
           final id = idText.isNotEmpty ? idText : newId();
+          final newRole = rowRole(row);
           byId[id] = id;
           byName[normalize(name)] = id;
           result.added++;
@@ -497,7 +550,7 @@ class TableImport {
             final position =
                 located[line] ?? (lat != null && lon != null ? LatLng(lat.toDouble(), lon.toDouble()) : null);
             if (position == null) return; // the address has not been found
-            final n = sc.addNode(position, roles: roles ?? [role ?? 'customer']);
+            final n = sc.addNode(position, roles: roles ?? [newRole]);
             n.id = id;
             n.name = name;
             if (address != null && address.isNotEmpty) n.address = address;

@@ -153,12 +153,19 @@ class AppState extends ChangeNotifier {
   /// roles of the nodes used by the problem - all roles without a problem (type)
   List<String> get problemRoles => spec?.problemRoles(problem?.parameters ?? const {}) ?? nodeRoles;
 
+  /// the roles a node can get for the problem - a network flow also transshipment nodes (they pass quantities
+  /// through; also every node of its network without a role of the problem)
+  List<String> get assignableRoles => [
+    ...problemRoles,
+    if (spec?.network == NetworkUse.required && spec!.roles.isNotEmpty && !problemRoles.contains('transit')) 'transit',
+  ];
+
   /// active and with a role in the problem - other nodes are pale in the list and on the map
   bool isRelevant(Node n) =>
       n.active &&
       (spec?.allNodes == true ||
           n.roles.any(problemRoles.contains) ||
-          (spec?.network == NetworkUse.required && _inNetwork(n.id)));
+          (spec?.network == NetworkUse.required && (_inNetwork(n.id) || isTransit(n))));
 
   /// a value of the solution in its unit - costs with two decimals and €, else with the unit (km, min)
   String valueText(num v, {String? unit}) {
@@ -1067,7 +1074,9 @@ class AppState extends ChangeNotifier {
 
   /// network flow: nodes of its network without a role of the problem pass quantities through
   bool isTransit(Node n) =>
-      spec?.network == NetworkUse.required && !n.roles.any(problemRoles.contains) && _inNetwork(n.id);
+      spec?.network == NetworkUse.required &&
+      !n.roles.any(problemRoles.contains) &&
+      (_inNetwork(n.id) || (n.roles.contains('transit') && assignableRoles.contains('transit')));
 
   bool _passes(Node n, String? filter) => filter == null
       ? true
@@ -1437,14 +1446,21 @@ class AppState extends ChangeNotifier {
       for (final n in scenario.nodes)
         if (n.id != exceptNode) n.position,
     ];
-    final near = others.isEmpty
-        ? null
-        : LatLng(
-            others.map((p) => p.latitude).reduce((a, b) => a + b) / others.length,
-            others.map((p) => p.longitude).reduce((a, b) => a + b) / others.length,
-          );
     final backend = await _getBackend();
-    return backend.geocode(address, near: near);
+    return backend.geocode(address, near: geocodeBias(others));
+  }
+
+  /// the middle of the nodes for hits near them - only if they lie in a region: the core prefers hits some 10 km
+  /// around it, the middle of nodes all over Europe would hide the places far from it (Lützen near Aachen)
+  static LatLng? geocodeBias(List<LatLng> nodes, {double maxSpreadKm = 100}) {
+    if (nodes.isEmpty) return null;
+    final middle = LatLng(
+      nodes.map((p) => p.latitude).reduce((a, b) => a + b) / nodes.length,
+      nodes.map((p) => p.longitude).reduce((a, b) => a + b) / nodes.length,
+    );
+    const distance = Distance();
+    final spread = nodes.map((p) => distance.as(LengthUnit.Kilometer, middle, p)).reduce((a, b) => a > b ? a : b);
+    return spread <= maxSpreadKm ? middle : null;
   }
 
   //*********** course of the edges on the map ************

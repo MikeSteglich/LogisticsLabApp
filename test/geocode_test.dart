@@ -10,6 +10,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
@@ -48,6 +49,15 @@ void main() {
     final direct = (await tester.runAsync(() => state.geocode('Hochschulring 1, Wildau')))!;
     expect(direct, isNotEmpty);
     expect(direct.first.position.latitude, closeTo(52.318, 0.01));
+    // nodes all over Europe: no preference of the middle of them - the town Lützen, not the places near Aachen
+    expect(AppState.geocodeBias([for (final n in state.scenario.nodes) n.position]), isNotNull); // Brandenburg
+    final far = state.scenario.addNode(const LatLng(49.03, 1.15)); // Evreux
+    final nodes = [for (final n in state.scenario.nodes) n.position];
+    expect(AppState.geocodeBias(nodes), isNull);
+    final lutzen = (await tester.runAsync(() => state.geocode('Lützen, DE')))!;
+    expect(lutzen.first.position.latitude, closeTo(51.26, 0.05));
+    expect(lutzen.first.position.longitude, closeTo(12.14, 0.05));
+    state.scenario.removeNode(far.id);
 
     state.selectNode('W');
     state.edit(() => state.node!.address = 'Hochschulring 1, Wildau');

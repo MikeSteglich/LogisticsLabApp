@@ -673,7 +673,8 @@ class _RoleChipsState extends State<_RoleChips> {
     final s = widget.state;
     final t = s.strings;
     final n = widget.node;
-    final problemRoles = s.problemRoles;
+    // a network flow: also transshipment nodes - one of these roles per node
+    final problemRoles = s.assignableRoles;
     final shown = _all ? nodeRoles : problemRoles;
     final others = [
       for (final r in nodeRoles)

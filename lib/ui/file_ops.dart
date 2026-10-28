@@ -15,7 +15,6 @@ import '../app_state.dart';
 import '../backend/backend.dart';
 import '../model/scenario.dart';
 import '../model/solution_export.dart';
-import '../modules/modules.dart';
 import 'messages.dart';
 
 const _llab = XTypeGroup(label: 'LogisticsLab', extensions: ['llab']);
@@ -54,9 +53,8 @@ class FileOps {
 
   Future<void> newScenario() async {
     if (!await _discardChanges()) return;
-    final s = Scenario.empty();
-    s.addProblem('tpp', state.strings(tppSpec.label), tppSpec.defaultParameters());
-    state.openScenario(s);
+    // without a problem - it is chosen in the problem menu (new problem)
+    state.openScenario(Scenario.empty());
   }
 
   Future<void> open() async {
