@@ -3,7 +3,7 @@ library;
 
 import 'dart:ui' show AppExitResponse;
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -148,6 +148,29 @@ class _Header extends StatelessWidget {
                 ),
                 menuChildren: [
                   MenuItemButton(onPressed: () => files.save(saveAs: true), child: Text(t('ui.saveAs'))),
+                  // the files opened or saved last - name and folder
+                  if (!kIsWeb)
+                    SubmenuButton(
+                      menuChildren: [
+                        for (final path in s.recentFiles)
+                          MenuItemButton(
+                            onPressed: () => files.openRecent(path),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(path.split(RegExp(r'[/\\]')).last),
+                                Text(_folder(path), style: Ui.small),
+                              ],
+                            ),
+                          ),
+                        if (s.recentFiles.isNotEmpty) ...[
+                          const Divider(),
+                          MenuItemButton(onPressed: s.clearRecent, child: Text(t('ui.recent.clear'))),
+                        ],
+                      ],
+                      child: Text(t('ui.recent')),
+                    ),
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
                   // a second instance of the app - e.g. two variants side by side
@@ -211,6 +234,14 @@ class _Header extends StatelessWidget {
 }
 
 /// another instance of the app - an error (e.g. the program moved) as message
+/// the folder of a file - the home folder as ~
+String _folder(String path) {
+  final i = path.lastIndexOf(RegExp(r'[/\\]'));
+  final folder = i <= 0 ? path : path.substring(0, i);
+  final home = homeFolder;
+  return home != null && home.isNotEmpty && folder.startsWith(home) ? '~${folder.substring(home.length)}' : folder;
+}
+
 Future<void> _newWindow(BuildContext context, AppState s) async {
   try {
     await openNewWindow();

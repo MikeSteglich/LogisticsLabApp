@@ -4,3 +4,6 @@ library;
 bool get newWindowSupported => false;
 
 Future<void> openNewWindow() async {}
+
+/// the browser: no home folder
+String? get homeFolder => null;

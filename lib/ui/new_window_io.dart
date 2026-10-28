@@ -16,3 +16,6 @@ Future<void> openNewWindow() async {
     await Process.start(exe, const [], mode: ProcessStartMode.detached, workingDirectory: File(exe).parent.path);
   }
 }
+
+/// the home folder of the user - shortened to ~ in the list of the recent files
+String? get homeFolder => Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];

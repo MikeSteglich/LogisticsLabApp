@@ -647,6 +647,7 @@ class AppState extends ChangeNotifier {
     geometry++;
     fileName = name;
     filePath = path;
+    if (path != null) _addRecent(path);
     dirty = false;
     revision++;
     solutions.clear();
@@ -669,7 +670,26 @@ class AppState extends ChangeNotifier {
   void saved({required String name, String? path}) {
     fileName = name;
     filePath = path ?? filePath;
+    if (path != null) _addRecent(path);
     dirty = false;
+    notifyListeners();
+  }
+
+  /// the files opened or saved last (desktop) - the newest first
+  List<String> get recentFiles => _prefs.getStringList('recentFiles') ?? const [];
+
+  static const maxRecentFiles = 10;
+
+  void _addRecent(String path) =>
+      _prefs.setStringList('recentFiles', [path, ...recentFiles.where((p) => p != path)].take(maxRecentFiles).toList());
+
+  void removeRecent(String path) {
+    _prefs.setStringList('recentFiles', [...recentFiles.where((p) => p != path)]);
+    notifyListeners();
+  }
+
+  void clearRecent() {
+    _prefs.remove('recentFiles');
     notifyListeners();
   }
 

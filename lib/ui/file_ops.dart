@@ -78,6 +78,25 @@ class FileOps {
     }
   }
 
+  /// a file of the list of the recent ones - one that is gone is taken off the list
+  Future<void> openRecent(String path) async {
+    if (!await _discardChanges()) return;
+    final file = XFile(path);
+    final String text;
+    try {
+      text = await file.readAsString();
+    } catch (_) {
+      state.removeRecent(path);
+      await _error(state.strings('ui.recent.missing', {'file': path}));
+      return;
+    }
+    try {
+      state.openScenario(Scenario.parse(text), name: file.name, path: path);
+    } on Exception catch (e) {
+      await _error(state.strings('ui.error.open', {'msg': '$e'}));
+    }
+  }
+
   /// old LogisticsLab file (TPPX, CLPX, ...) - converted by the core into a scenario
   Future<void> importOld() async {
     if (!await _discardChanges()) return;
