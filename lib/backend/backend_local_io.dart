@@ -178,6 +178,11 @@ class LocalBackend implements Backend {
   }
 
   @override
+  Future<Map<String, dynamic>> coveringRadius(Map<String, dynamic> scenario, String problem) async =>
+      await _call('coveringRadius', {'scenario': scenario, 'problem': problem}).timeout(requestTimeout)
+          as Map<String, dynamic>;
+
+  @override
   Future<void> close() async {
     final p = _process;
     if (p == null) return;

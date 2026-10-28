@@ -8,6 +8,8 @@ import '../model/core_texts.dart';
 import '../model/scenario.dart';
 import '../model/solution_analysis.dart';
 import '../modules/modules.dart';
+import '../model/table_io.dart';
+import 'table_dialogs.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -45,7 +47,7 @@ class SolutionTab extends StatelessWidget {
     String money(num v) =>
         valueUnit == null || valueUnit == 'costs' ? '${t.fixed(v, 2)} €' : '${t.number(v)} $valueUnit';
     final objectiveKey = spec.objective?.call(s.problem?.parameters ?? const {});
-    final weighted = isDemandWeighted(spec, s.solutionParameters);
+    final weighted = s.objectiveWeighted;
     final ok = sol.status == 'solution';
     final analysis = s.analysis;
     // the value of the objective function: blue frame and note
@@ -152,7 +154,8 @@ class SolutionTab extends StatelessWidget {
                 runSpacing: 10,
                 children: [
                   for (final col in spec.summary)
-                    if ((col.key == 'objVal' ? res['objVal'] : summary[col.key]) case final num v)
+                    if ((col.key == 'objVal' ? res['objVal'] : summary[col.key]) case final num v
+                        when !_sameAs(v, col.hideIfSameAs, res, summary))
                       card(
                         w,
                         t(weighted && col.weightedLabelKey != null ? col.weightedLabelKey! : col.label),
@@ -278,10 +281,23 @@ class SolutionTab extends StatelessWidget {
               label: Text(t('ui.export.button')),
               onPressed: onExport,
             ),
+            // the tables for Excel without a file
+            OutlinedButton.icon(
+              icon: const Icon(Icons.copy_all_outlined, size: 16),
+              label: Text(t('ui.copy.solution')),
+              onPressed: res == null ? null : () => copyText(context, s, copySolution(s)),
+            ),
           ],
         ),
       ],
     );
+  }
+
+  /// the value is the same as that of the other column - e.g. the plain sum of the distances without weights
+  static bool _sameAs(num v, String? other, Map<String, dynamic> res, Map<String, dynamic> summary) {
+    if (other == null) return false;
+    final o = other == 'objVal' ? res['objVal'] : summary[other];
+    return o is num && (v - o).abs() <= 1e-6 * (o.abs() > 1 ? o.abs() : 1);
   }
 
   /// row of the connections - a tap highlights the connection on the map (orange)
@@ -852,8 +868,10 @@ class _Locations extends StatelessWidget {
     final withFixed = nodes.values.any((n) => n['fixedCost'] != null);
     final assignments = s.connections;
     final withCosts = assignments.any((a) => a['costs'] != null);
+    // multi-source: the share of the demand of the customer
+    final withShares = assignments.any((a) => a['share'] != null);
     // the part of an assignment of the objective: costs (wlp), weighted: demand x distance without a unit
-    final weighted = isDemandWeighted(s.spec!, s.solutionParameters);
+    final weighted = s.objectiveWeighted;
     final isCosts = s.solution!.document['valueUnit'] == 'costs' || s.problem?.type == 'wlp';
     String rating(num v) => weighted ? t.fixed(v, 2) : money(v);
     final assigned = {for (final a in assignments) a['to']};
@@ -915,6 +933,7 @@ class _Locations extends StatelessWidget {
                 t('ui.sol.location'),
                 t('role.customer'),
                 t('ui.sol.amount'),
+                if (withShares) t('ui.sol.share'),
                 // the value of an assignment in the measure of the problem: distance, time or cost rate
                 t(switch (s.solution!.document['valueUnit']) {
                   'costs' => 'result.rate',
@@ -932,6 +951,7 @@ class _Locations extends StatelessWidget {
                     name(a['from']),
                     name(a['to']),
                     t.number(a['flow'] as num? ?? 0),
+                    if (withShares) percent(a['share']),
                     a['value'] is num ? money(a['value'] as num) : '',
                     if (withCosts) a['costs'] is num ? rating(a['costs'] as num) : '',
                   ],

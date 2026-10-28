@@ -124,6 +124,9 @@ abstract class Backend {
   /// [fileName] is the format; returns the scenario and its file name (e.g. drogma.clpx.llab)
   Future<(Map<String, dynamic>, String)> convert(String fileName, String content);
 
+  /// set and maximal covering: the smallest radius that covers every customer - {radius, unit, customer}
+  Future<Map<String, dynamic>> coveringRadius(Map<String, dynamic> scenario, String problem);
+
   Future<void> close();
 }
 

@@ -10,6 +10,8 @@ import 'messages.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
 import 'solution_tab.dart' show PartChooser;
+import '../model/table_io.dart';
+import 'table_dialogs.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -64,7 +66,41 @@ class NodesTab extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        _NodeFilter(state: s),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _NodeFilter(state: s)),
+            const SizedBox(width: 6),
+            // the list as table for Excel and back, the coordinates of the addresses
+            MenuAnchor(
+              builder: (context, m, _) => Tooltip(
+                message: t('ui.table.menu'),
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(40, 40), padding: EdgeInsets.zero),
+                  onPressed: () => m.isOpen ? m.close() : m.open(),
+                  child: const Icon(Icons.table_view_outlined, size: 18),
+                ),
+              ),
+              menuChildren: [
+                MenuItemButton(
+                  leadingIcon: const Icon(Icons.copy_all_outlined, size: 18),
+                  onPressed: nodes.isEmpty ? null : () => copyText(context, s, copyTable(s, TableKind.nodes)),
+                  child: Text(t('ui.copy.nodes')),
+                ),
+                MenuItemButton(
+                  leadingIcon: const Icon(Icons.content_paste, size: 18),
+                  onPressed: () => showPasteDialog(context, s, TableKind.nodes),
+                  child: Text(t('ui.import.nodes')),
+                ),
+                MenuItemButton(
+                  leadingIcon: const Icon(Icons.travel_explore, size: 18),
+                  onPressed: nodes.isEmpty ? null : () => locateAll(context, s),
+                  child: Text('${t('ui.geo.allTitle')} …'),
+                ),
+              ],
+            ),
+          ],
+        ),
         // multi-commodity: the values of one commodity (supply, demand, capacity factor)
         if (s.spec?.usesCommodities == true && s.solutionParts.isNotEmpty) ...[
           const SizedBox(height: 8),
@@ -285,6 +321,8 @@ class _NodeMask extends StatelessWidget {
   final Node node;
   const _NodeMask({super.key, required this.state, required this.node});
 
+  static final _geocode = GlobalKey<_GeocodeButtonState>();
+
   @override
   Widget build(BuildContext context) {
     final s = state;
@@ -340,10 +378,14 @@ class _NodeMask extends StatelessWidget {
                   label: t('ui.node.address'),
                   value: n.address ?? '',
                   onChanged: (v) => s.edit(() => n.address = v),
+                  // a new node not yet set on the map: its coordinates from the address at once
+                  onCommit: (v) {
+                    if (s.placing && v.trim().isNotEmpty) _geocode.currentState?.lookUp(placed: true);
+                  },
                 ),
               ),
               const SizedBox(width: 8),
-              _GeocodeButton(state: s, node: n),
+              _GeocodeButton(key: _geocode, state: s, node: n),
             ],
           ),
           const SizedBox(height: 14),
@@ -522,7 +564,7 @@ class _IdInputState extends State<_IdInput> {
 class _GeocodeButton extends StatefulWidget {
   final AppState state;
   final Node node;
-  const _GeocodeButton({required this.state, required this.node});
+  const _GeocodeButton({super.key, required this.state, required this.node});
 
   @override
   State<_GeocodeButton> createState() => _GeocodeButtonState();
@@ -534,7 +576,8 @@ class _GeocodeButtonState extends State<_GeocodeButton> {
   void _snack(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text), behavior: SnackBarBehavior.floating));
 
-  Future<void> _lookUp() async {
+  /// placed: the node gets its position from the address - no tap into the map any more
+  Future<void> lookUp({bool placed = false}) async {
     final s = widget.state;
     final t = s.strings;
     final n = widget.node;
@@ -561,6 +604,7 @@ class _GeocodeButtonState extends State<_GeocodeButton> {
     final hit = hits.length == 1 ? hits.first : await _choose(address, hits);
     if (hit == null || !mounted) return;
     s.edit(() => n.position = hit.position);
+    if (placed) s.setPlacing(false);
     _snack(t('ui.geo.set', {'place': hit.label}));
   }
 
@@ -606,7 +650,7 @@ class _GeocodeButtonState extends State<_GeocodeButton> {
           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(Icons.travel_explore, size: 16),
       label: Text(widget.state.strings('ui.node.geocode')),
-      onPressed: _busy ? null : _lookUp,
+      onPressed: _busy ? null : lookUp,
     ),
   );
 }

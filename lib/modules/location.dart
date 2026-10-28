@@ -43,13 +43,21 @@ const _matrixMode = FieldSpec(
   labelKey: 'field.matrixModeLocation',
 );
 const _isCapacitated = FieldSpec('isCapacitated', FieldKind.boolean, defaultValue: false);
+// with capacities: every customer from one location, or its demand split among several
+const _isSingleSource = FieldSpec(
+  'isSingleSource',
+  FieldKind.boolean,
+  defaultValue: true,
+  labelKey: 'field.isSingleSourceLocation',
+  visibleIf: _capacitated,
+);
 const _isDemandWeighted = FieldSpec('isDemandWeighted', FieldKind.boolean, defaultValue: false);
 
 final wlpSpec = ModuleSpec(
   type: 'wlp',
   group: ModuleGroup.location,
   roles: [_candidates(withCapacity: true), _customers(withCostFactor: true)],
-  parameters: const [matrixModeField, _isCapacitated, ...solverFields],
+  parameters: const [matrixModeField, _isCapacitated, _isSingleSource, ...solverFields],
   objective: _objVal,
   summary: const [
     ResultColumn('objVal', unit: '€', labelKey: 'result.totalCosts'),
@@ -64,7 +72,7 @@ final pMedianSpec = ModuleSpec(
   type: 'pmedian',
   group: ModuleGroup.location,
   roles: [_candidates(withCapacity: true), _customers(withCostFactor: true)],
-  parameters: const [_p, _matrixMode, _isDemandWeighted, _isCapacitated, ...solverFields],
+  parameters: const [_p, _matrixMode, _isDemandWeighted, _isCapacitated, _isSingleSource, ...solverFields],
   objective: _objVal,
   summary: const [
     ResultColumn(
@@ -82,7 +90,7 @@ final pCentreSpec = ModuleSpec(
   type: 'pcentre',
   group: ModuleGroup.location,
   roles: [_candidates(withCapacity: true), _customers()],
-  parameters: const [_p, _matrixMode, _isDemandWeighted, _isCapacitated, ...solverFields],
+  parameters: const [_p, _matrixMode, _isDemandWeighted, _isCapacitated, _isSingleSource, ...solverFields],
   objective: _objVal,
   summary: const [
     ResultColumn(
@@ -201,7 +209,8 @@ final contPMedianSpec = ModuleSpec(
       labelKey: 'result.sumOfDistances',
       weightedLabelKey: 'result.sumOfDistances.weighted',
     ),
-    ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfAssignments'),
+    // the plain sum of the distances - only if demands or cost factors make the objective another value
+    ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfPlainDistances', hideIfSameAs: 'objVal'),
     ResultColumn('longestAssignment', unit: '€'),
     ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
   ],
@@ -221,7 +230,7 @@ final contPCentreSpec = ModuleSpec(
       weightedLabelKey: 'result.longestDistance.weighted',
     ),
     ResultColumn('longestAssignment', unit: '€'),
-    ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfAssignments'),
+    ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfDistances'),
     ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
   ],
 );

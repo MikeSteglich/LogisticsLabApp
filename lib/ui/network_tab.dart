@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../model/scenario.dart';
 import '../modules/modules.dart';
+import '../model/table_io.dart';
+import 'table_dialogs.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
@@ -176,6 +178,29 @@ class NetworkTab extends StatelessWidget {
                   onPressed: () => _snack(context, t('ui.edge.added', {'n': s.addAllEdges()})),
                 ),
               ),
+            // the edges as table for Excel and back
+            MenuAnchor(
+              builder: (context, m, _) => Tooltip(
+                message: t('ui.table.menu'),
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(minimumSize: const Size(40, 40), padding: EdgeInsets.zero),
+                  onPressed: () => m.isOpen ? m.close() : m.open(),
+                  child: const Icon(Icons.table_view_outlined, size: 18),
+                ),
+              ),
+              menuChildren: [
+                MenuItemButton(
+                  leadingIcon: const Icon(Icons.copy_all_outlined, size: 18),
+                  onPressed: net.edges.isEmpty ? null : () => copyText(context, s, copyTable(s, TableKind.edges)),
+                  child: Text(t('ui.copy.edges')),
+                ),
+                MenuItemButton(
+                  leadingIcon: const Icon(Icons.content_paste, size: 18),
+                  onPressed: () => showPasteDialog(context, s, TableKind.edges),
+                  child: Text(t('ui.import.edges')),
+                ),
+              ],
+            ),
             Tooltip(
               message: t('ui.edge.delete'),
               child: OutlinedButton(

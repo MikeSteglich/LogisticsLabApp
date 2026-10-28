@@ -161,8 +161,8 @@ class AppState extends ChangeNotifier {
           (spec?.network == NetworkUse.required && _inNetwork(n.id)));
 
   /// a value of the solution in its unit - costs with two decimals and €, else with the unit (km, min)
-  String valueText(num v) {
-    final unit = solution?.document['valueUnit'] as String?;
+  String valueText(num v, {String? unit}) {
+    unit ??= solution?.document['valueUnit'] as String?;
     return unit == null || unit == 'costs' ? '${strings.fixed(v, 2)} €' : '${strings.number(v)} $unit';
   }
 
@@ -314,6 +314,72 @@ class AppState extends ChangeNotifier {
     return (totalDemand / n).ceil();
   }
 
+  /// the objective of the solution weighs the distances - with the demands (isDemandWeighted) or the cost factors of
+  /// the customers (p-median, warehouse location)
+  bool get objectiveWeighted {
+    final s = spec;
+    if (s == null) return false;
+    if (isDemandWeighted(s, solutionParameters)) return true;
+    if (!const ['pmedian', 'contpmedian'].contains(s.type)) return false;
+    return scenario.nodes.any((n) => n.active && n.roles.contains('customer') && (n['costFactor'] as num? ?? 1) != 1);
+  }
+
+  /// set and maximal covering: the smallest radius that covers every customer - {radius, unit, customer} of the
+  /// core, in the measure of the problem; null until it is known. It is computed in the background (OSM matrix)
+  /// when the data of the problem change - the radius and the budget themselves do not count
+  Map<String, dynamic>? get coveringRadius {
+    final p = problem;
+    if (p == null || !const ['scp', 'mcp'].contains(p.type)) return null;
+    final key = _radiusKey(p);
+    if (key != _radiusFor) {
+      _radiusFor = key;
+      _radius = null;
+      _radiusTimer?.cancel();
+      _radiusTimer = Timer(const Duration(milliseconds: 600), () => _loadRadius(p.name, key));
+    }
+    return _radius;
+  }
+
+  /// the smallest covering radius rounded up to two decimals - with it every customer is within the radius
+  num? get minRadius {
+    final r = coveringRadius?['radius'];
+    if (r is! num) return null;
+    final v = (r * 100 - 1e-9).ceil() / 100;
+    return v == v.roundToDouble() ? v.round() : v;
+  }
+
+  Map<String, dynamic>? _radius;
+  String? _radiusFor;
+  Timer? _radiusTimer;
+
+  String _radiusKey(Problem p) {
+    final params = {...p.parameters}
+      ..removeWhere((k, _) => const ['radius', 'maxSrcCost', 'useFixedCosts'].contains(k));
+    return jsonEncode([p.name, scenario.json['nodes'], scenario.json['networks'], scenario.json['matrix'], params]);
+  }
+
+  /// the smallest covering radius at once - without waiting for further edits
+  Future<void> loadCoveringRadius() async {
+    final p = problem;
+    if (p == null || !const ['scp', 'mcp'].contains(p.type)) return;
+    _radiusTimer?.cancel();
+    _radiusFor = _radiusKey(p);
+    await _loadRadius(p.name, _radiusFor!);
+  }
+
+  Future<void> _loadRadius(String name, String key) async {
+    try {
+      final b = await _getBackend();
+      final data = jsonDecode(jsonEncode(scenario.json)) as Map<String, dynamic>;
+      final r = await b.coveringRadius(data, name);
+      if (_radiusFor != key) return; // changed meanwhile
+      _radius = r;
+      notifyListeners();
+    } catch (_) {
+      // an older core or the server without it: no suggestion
+    }
+  }
+
   /// continuous location: the locations found - not nodes of the scenario - id (F1, ...) -> position
   Map<String, LatLng> get foundLocations => {
     for (final MapEntry(:key, :value) in ((solution?.results?['nodes'] as Map?) ?? const {}).entries)
@@ -462,6 +528,28 @@ class AppState extends ChangeNotifier {
       if (id == null) continue; // required: checked with the parameters
       final n = scenario.node('$id');
       if (n == null || !n.active) out.add(strings('ui.check.nodeParam', {'field': strings(f.label), 'node': '$id'}));
+    }
+    // coverings: a set covering needs a radius that covers every customer
+    if (p.parameters['radius'] case final num r when p.type == 'scp') {
+      if (minRadius case final min? when r < min) {
+        out.add(
+          strings('ui.check.radius', {
+            'min': valueText(min, unit: coveringRadius!['unit'] as String?),
+            'customer': '${coveringRadius!['customer']}',
+          }),
+        );
+      }
+    }
+    // opening costs in the objective: at least one candidate with opening costs
+    if (const ['scp', 'mcp'].contains(p.type) && (p.parameters['useFixedCosts'] as bool? ?? p.type == 'mcp')) {
+      final role = s.nodeRole(s.roles.first, p.parameters);
+      final candidates = [
+        for (final x in scenario.nodes)
+          if (x.active && x.roles.contains(role)) x,
+      ];
+      if (candidates.isNotEmpty && candidates.every((x) => (x['fixedCost'] as num? ?? 0) == 0)) {
+        out.add(strings('ui.check.openingCosts'));
+      }
     }
     // capacities of the locations: enough for the total demand
     if (s.group == ModuleGroup.location && p.parameters['isCapacitated'] == true) {

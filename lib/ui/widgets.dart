@@ -117,6 +117,7 @@ class TextValueField extends StatefulWidget {
   final bool readOnly;
   final String? error;
   final String? hint;
+  final ValueChanged<String>? onCommit; // the text has been changed and the field left (enter, focus elsewhere)
 
   const TextValueField({
     super.key,
@@ -126,6 +127,7 @@ class TextValueField extends StatefulWidget {
     this.readOnly = false,
     this.error,
     this.hint,
+    this.onCommit,
   });
 
   @override
@@ -134,6 +136,21 @@ class TextValueField extends StatefulWidget {
 
 class _TextValueFieldState extends State<TextValueField> {
   late final _c = TextEditingController(text: widget.value);
+  final _focus = FocusNode();
+  String? _atFocus; // the text when the field got the focus
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (_focus.hasFocus) {
+        _atFocus = _c.text;
+      } else if (_atFocus != null && _atFocus != _c.text) {
+        _atFocus = null;
+        widget.onCommit?.call(_c.text);
+      }
+    });
+  }
 
   @override
   void didUpdateWidget(TextValueField old) {
@@ -144,6 +161,7 @@ class _TextValueFieldState extends State<TextValueField> {
 
   @override
   void dispose() {
+    _focus.dispose();
     _c.dispose();
     super.dispose();
   }
@@ -155,6 +173,7 @@ class _TextValueFieldState extends State<TextValueField> {
       FieldLabel(widget.label),
       TextField(
         controller: _c,
+        focusNode: _focus,
         readOnly: widget.readOnly,
         onChanged: widget.onChanged,
         textInputAction: TextInputAction.next,
@@ -206,6 +225,8 @@ class NumberField extends StatefulWidget {
   final String Function(num?)? format; // other text than a number, e.g. a time of the day
   final num? Function(String)? parse;
   final String? invalid; // message key of a text parse cannot read - default error.number
+  final num? suggestion; // a value a button in the field enters, e.g. the smallest radius of a covering
+  final String? suggestionTooltip;
 
   const NumberField({
     super.key,
@@ -221,6 +242,8 @@ class NumberField extends StatefulWidget {
     this.format,
     this.parse,
     this.invalid,
+    this.suggestion,
+    this.suggestionTooltip,
   });
 
   @override
@@ -296,7 +319,22 @@ class _NumberFieldState extends State<NumberField> {
           FilteringTextInputFormatter.allow(RegExp(widget.parse != null ? r'[0-9:.\s]' : r'[0-9.,\-\s]')),
         ],
         style: const TextStyle(fontFeatures: Ui.tabular),
-        decoration: InputDecoration(errorText: _error, hintText: widget.hint, errorMaxLines: 2),
+        decoration: InputDecoration(
+          errorText: _error,
+          hintText: widget.hint,
+          errorMaxLines: 2,
+          suffixIcon: widget.suggestion == null || widget.suggestion == widget.value
+              ? null
+              : IconButton(
+                  tooltip: widget.suggestionTooltip,
+                  icon: const Icon(Icons.straighten, size: 18),
+                  onPressed: () {
+                    final v = widget.suggestion!;
+                    _c.text = _text(v);
+                    _changed(_c.text);
+                  },
+                ),
+        ),
       ),
     ],
   );
@@ -312,6 +350,8 @@ class SpecField extends StatelessWidget {
   final VoidCallback? onEditRecords; // commodities, modes: opens their list (parameters tab)
   final String? measure; // matrixMode of the problem - unit of the fields with @measure (radius)
   final String? hintText; // text of the empty field instead of the hint of the spec, e.g. a suggested value
+  final num? suggestion; // number fields: a value a button in the field enters
+  final String? suggestionTooltip;
 
   const SpecField({
     super.key,
@@ -323,6 +363,8 @@ class SpecField extends StatelessWidget {
     this.onEditRecords,
     this.measure,
     this.hintText,
+    this.suggestion,
+    this.suggestionTooltip,
   });
 
   /// unit of the field - @time and @distance: the units of the scenario
@@ -547,6 +589,8 @@ class SpecField extends StatelessWidget {
               hintText ??
               (spec.hint != null ? s(spec.hint!) : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
           help: s.has(spec.help) ? s(spec.help) : null,
+          suggestion: suggestion,
+          suggestionTooltip: suggestionTooltip,
           check: (v) => spec.validate(v),
           // whole numbers as int - the core expects e.g. p as an integer, not 5.0
           onChanged: spec.kind == FieldKind.integer

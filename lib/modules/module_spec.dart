@@ -142,7 +142,8 @@ class ResultColumn {
   final String? labelKey; // default result.<key>
   // isDemandWeighted: the label - and the value without a unit (demand x distance)
   final String? weightedLabelKey;
-  const ResultColumn(this.key, {this.unit, this.labelKey, this.weightedLabelKey});
+  final String? hideIfSameAs; // left out if its value is the same as that of this column, e.g. objVal
+  const ResultColumn(this.key, {this.unit, this.labelKey, this.weightedLabelKey, this.hideIfSameAs});
 
   String get label => labelKey ?? 'result.$key';
 }

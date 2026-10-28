@@ -123,5 +123,12 @@ class RemoteBackend implements Backend {
   }
 
   @override
+  Future<Map<String, dynamic>> coveringRadius(Map<String, dynamic> scenario, String problem) async {
+    final (code, body) = await _post('coveringRadius', {'scenario': scenario, 'problem': problem});
+    if (code != 200) throw _error(code, body);
+    return body;
+  }
+
+  @override
   Future<void> close() async => _client.close();
 }

@@ -139,7 +139,7 @@ void main() {
     state.chooseProblem('europa-vertrieb (Set Covering)');
     state.edit(() => state.problem!.parameters['radius'] = 10);
     await tester.runAsync(state.solve);
-    expect(state.message, contains('no candidate within the radius'));
+    expect(state.message, contains('Der Radius ist zu klein'));
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
   });
 
@@ -235,6 +235,140 @@ void main() {
       await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
     },
   );
+
+  testWidgets(
+    'covering: the smallest radius suggested and entered, too small radius and no opening costs refused',
+    skip: _stdio,
+    (tester) async {
+      MapView.showTiles = false;
+      tester.view.physicalSize = const Size(1440, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final state = await _state(tester, 'europa-vertrieb.dlpx.llab');
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      state.chooseProblem('europa-vertrieb (Set Covering)');
+      state.tab = DataTab.parameters;
+      await tester.pumpWidget(LogisticsLabApp(state: state));
+      // computed by the core in the background - here at once
+      expect(state.coveringRadius, isNull);
+      await tester.runAsync(state.loadCoveringRadius);
+      await tester.pump();
+      expect(state.coveringRadius!['customer'], 'D0006');
+      final min = state.minRadius!;
+      expect(min, closeTo(808.36, 0.01));
+      // the button in the field enters it
+      await tester.tap(find.byIcon(Icons.straighten));
+      await tester.pump();
+      expect(state.problem!.parameters['radius'], min);
+      expect(state.nodeProblems, isEmpty);
+      await tester.runAsync(state.solve);
+      expect(state.message, isNull);
+      // smaller: refused before solving, with the customer outside
+      state.edit(() => state.problem!.parameters['radius'] = 800);
+      expect(state.nodeProblems.single, startsWith('Der Radius ist zu klein: mindestens 808,36 km'));
+      // the radius itself does not compute it again
+      expect(state.coveringRadius, isNotNull);
+      // opening costs considered, but none: refused
+      state.edit(() {
+        state.problem!.parameters['radius'] = 1000;
+        state.problem!.parameters['useFixedCosts'] = true;
+        for (final n in state.scenario.nodes) {
+          n['fixedCost'] = null;
+        }
+      });
+      expect(state.nodeProblems.single, startsWith('Die Betriebskosten sollen berücksichtigt werden'));
+      await tester.pump(const Duration(seconds: 1)); // the delay before computing the radius again
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+    },
+  );
+
+  testWidgets(
+    'continuous p-median with cost factors: the objective weighted, the plain sum of the distances apart',
+    skip: _stdio,
+    (tester) async {
+      MapView.showTiles = false;
+      tester.view.physicalSize = const Size(1440, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      SharedPreferences.setMockInitialValues({'language': 'de'});
+      final state = (await tester.runAsync(AppState.create))!;
+      state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
+      state.scenario.matrix['matrixSource'] = 'beeline';
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      state.chooseProblem('Freie Standorte (CLP, p-Median)');
+      state.edit(() {
+        state.problem!.parameters['isDemandWeighted'] = false;
+        // every distance counts twice
+        for (final n in state.scenario.nodes) {
+          if (n.roles.contains('customer')) n['costFactor'] = 2;
+        }
+      });
+      state.tab = DataTab.solution;
+      await tester.pumpWidget(LogisticsLabApp(state: state));
+      await tester.runAsync(state.solve);
+      await tester.pump();
+      expect(state.message, isNull);
+      // cost factors: the objective is weighted, the plain sum another value
+      expect(find.text('Summe der gewichteten Entfernungen'), findsOneWidget);
+      expect(find.text('Summe der Entfernungen (ungewichtet)'), findsOneWidget);
+      // without cost factors both are the same - the plain sum left out
+      state.edit(() {
+        for (final n in state.scenario.nodes) {
+          n['costFactor'] = null;
+        }
+      });
+      await tester.runAsync(state.solve);
+      await tester.pump();
+      expect(find.text('Summe der Entfernungen'), findsOneWidget);
+      expect(find.text('Summe der Entfernungen (ungewichtet)'), findsNothing);
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+    },
+  );
+
+  testWidgets('capacitated p-median: single-source or the demands split among the locations', skip: _stdio, (
+    tester,
+  ) async {
+    MapView.showTiles = false;
+    tester.view.physicalSize = const Size(1440, 1800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = await _state(tester, 'drogma.dlpx.llab');
+    await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+    state.chooseProblem('drogma');
+    // scarce capacities: a bit more than the total demand of the p locations
+    final cap = (state.totalDemand / 4 * 1.02).ceil();
+    state.edit(() {
+      for (final n in state.scenario.nodes) {
+        if (n.roles.contains('candidate')) n['capacity'] = cap;
+      }
+      state.problem!.parameters['isCapacitated'] = true;
+    });
+    state.tab = DataTab.parameters;
+    await tester.pumpWidget(LogisticsLabApp(state: state));
+    await tester.pump();
+    expect(find.text('Jeder Kunde von genau einem Standort'), findsOneWidget);
+    final objVals = <bool, num>{};
+    for (final single in [true, false]) {
+      state.edit(() => state.problem!.parameters['isSingleSource'] = single);
+      state.tab = DataTab.solution;
+      await tester.runAsync(state.solve);
+      await tester.pump();
+      expect(state.message, isNull);
+      objVals[single] = state.solution!.results!['objVal'] as num;
+      final rows = state.connections;
+      final customers = {for (final a in rows) a['to']};
+      // multi-source: some customers from two locations, with their shares - the ratings sum up to the objective
+      expect(rows.length > customers.length, !single);
+      expect(find.text('Anteil'), single ? findsNothing : findsOneWidget);
+      final sum = rows.fold<num>(0, (t, a) => t + (a['costs'] as num));
+      expect(sum, closeTo(objVals[single]!, 1e-3 * objVals[single]!));
+      for (final n in (state.solution!.results!['nodes'] as Map).values) {
+        expect((n as Map)['load'] as num? ?? 0, lessThanOrEqualTo(cap + 1e-3)); // the tolerance of the solver
+      }
+    }
+    expect(objVals[false], lessThan(objVals[true]!));
+    await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+  });
 
   testWidgets('capacities: the smallest capacity per location suggested, too small capacities refused', (tester) async {
     MapView.showTiles = false;

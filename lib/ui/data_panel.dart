@@ -133,8 +133,15 @@ class _ParametersTab extends StatelessWidget {
       scenario: s.scenario,
       measure: values['matrixMode'] as String?,
       // continuous location: the smallest capacity per location as suggestion
+      // coverings: the smallest radius that covers every customer
       hintText: f.key == 'capacities' && s.minCapacity != null
           ? t('hint.minCapacity', {'min': t.number(s.minCapacity!)})
+          : f.key == 'radius' && s.minRadius != null
+          ? t('hint.minRadius', {'min': s.valueText(s.minRadius!, unit: s.coveringRadius!['unit'] as String?)})
+          : null,
+      suggestion: f.key == 'radius' ? s.minRadius : null,
+      suggestionTooltip: f.key == 'radius' && s.minRadius != null
+          ? t('hint.setMinRadius', {'min': s.valueText(s.minRadius!, unit: s.coveringRadius!['unit'] as String?)})
           : null,
       key: ValueKey('$k|${f.key}'),
       spec: f,

@@ -74,12 +74,17 @@ XlsxSheet _overview(AppState s, ModuleSpec spec) {
   if (res != null) {
     final summary = (res['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
     final objectiveKey = spec.objective?.call(params);
-    final weighted = isDemandWeighted(spec, params);
+    final weighted = s.objectiveWeighted;
     sheet.empty();
     sheet.add([t('ui.export.results'), t('ui.export.value'), t('ui.export.unit')], bold: true);
     for (final col in spec.summary) {
       final v = col.key == 'objVal' ? res['objVal'] : summary[col.key];
       if (v is! num) continue;
+      // the same value as another column: left out as in the solution tab
+      if (col.hideIfSameAs case final other?) {
+        final o = other == 'objVal' ? res['objVal'] : summary[other];
+        if (o is num && (v - o).abs() <= 1e-6 * (o.abs() > 1 ? o.abs() : 1)) continue;
+      }
       final isWeighted = weighted && col.weightedLabelKey != null;
       final label = t(isWeighted ? col.weightedLabelKey! : col.label);
       final (value, unit) = isWeighted
@@ -170,7 +175,8 @@ List<XlsxSheet> _locations(AppState s) {
   // the assignments - with their value and their part of the objective
   final assignments = s.connections;
   final withCosts = assignments.any((a) => a['costs'] != null);
-  final weighted = isDemandWeighted(s.spec!, s.solutionParameters);
+  final withShares = assignments.any((a) => a['share'] != null);
+  final weighted = s.objectiveWeighted;
   final isCosts = s.solution!.document['valueUnit'] == 'costs' || s.problem?.type == 'wlp';
   final valueLabel = t(switch (s.solution!.document['valueUnit']) {
     'costs' => 'result.rate',
@@ -182,11 +188,19 @@ List<XlsxSheet> _locations(AppState s) {
     t('ui.sol.location'),
     t('role.customer'),
     t('ui.sol.amount'),
+    if (withShares) _with(t('ui.sol.share'), '%'),
     _with(valueLabel, _valueUnit(s)),
     if (withCosts) weighted ? t('ui.sol.rating') : _with(t(isCosts ? 'ui.sol.costs' : 'ui.sol.rating'), _valueUnit(s)),
   ], bold: true);
   for (final a in assignments) {
-    sheet.add([_name(s, a['from']), _name(s, a['to']), a['flow'] ?? 0, a['value'], if (withCosts) a['costs']]);
+    sheet.add([
+      _name(s, a['from']),
+      _name(s, a['to']),
+      a['flow'] ?? 0,
+      if (withShares) _percent(a['share']),
+      a['value'],
+      if (withCosts) a['costs'],
+    ]);
   }
   return [locations, sheet];
 }
