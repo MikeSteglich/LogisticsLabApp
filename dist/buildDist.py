@@ -245,6 +245,19 @@ def launch_test(t, app, seconds=8):
     raise BuildError(f"die App ist beim Start beendet worden ({code}):\n    " + "\n    ".join(err))
 
 
+LSREGISTER = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+
+
+def forget_build_apps(app, work):
+    """Meldet die Apps des Baus bei macOS ab (Launch Services) - sonst oeffnet ein Doppelklick auf eine .llab-Datei
+    womoeglich eine von ihnen statt der installierten App, die aus build/ ohne Rechenkern."""
+    apps = [app, work / "dmg" / app.name, PROJECT / "build" / "macos" / "Build" / "Products" / "Release" / app.name,
+            PROJECT / "build" / "macos" / "Build" / "Products" / "Debug" / app.name]
+    for a in apps:
+        if a.exists():
+            subprocess.run([LSREGISTER, "-u", str(a)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def app_test(flutter, exe, tdir):
     """Die App (Flutter-Test, ohne Fenster) loest mit dem Rechenkern aus der App - braucht Netz (OSM)."""
     log("Test: App mit dem Rechenkern aus der App (test/screenshot_test.dart)")
@@ -476,6 +489,8 @@ def main():
 
     if not args.no_archive:
         pack(t, app, f"{DIST_NAME}-{version}-{t}", args, work)
+    if t.is_mac:
+        forget_build_apps(app, work)
     size = sum(f.stat().st_size for f in app.rglob("*") if f.is_file()) / 1e6
     log(f"Fertig: {app}  ({size:.0f} MB)")
 
