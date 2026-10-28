@@ -330,7 +330,7 @@ class _NodeMask extends StatelessWidget {
     final n = node;
     final spec = s.spec;
     final params = s.problem?.parameters ?? const <String, dynamic>{};
-    final moduleFields = spec?.nodeFieldsFor(n.roles, params) ?? const [];
+    final moduleFields = spec?.nodeFieldsFor(n.roles, params, values: n.json) ?? const [];
     final idTaken = <String>{
       for (final o in s.scenario.nodes)
         if (!identical(o.json, n.json)) o.id,

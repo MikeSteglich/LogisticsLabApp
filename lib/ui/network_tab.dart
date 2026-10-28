@@ -266,7 +266,8 @@ class _EdgeTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = state;
     final t = s.strings;
-    final fields = s.spec?.edgeFields ?? const <FieldSpec>[];
+    // only the fields the problem uses (fixed costs with useFixedCosts) - as in the masks of the nodes
+    final fields = s.spec?.visibleEdgeFields(s.problem?.parameters ?? const {}) ?? const <FieldSpec>[];
     String name(String id) => s.scenario.node(id)?.name ?? id;
     // no modes at an edge: all modes of the scenario
     String value(Object? v, FieldSpec f) => s.fieldText(v) ?? (f.kind == FieldKind.modes ? t('ui.modes.all') : '');
@@ -415,41 +416,18 @@ class _EdgeMask extends StatelessWidget {
               }),
             ),
           ],
-          if ((s.spec?.edgeFields ?? const <FieldSpec>[]).isNotEmpty) ...[
+          if (s.spec?.visibleEdgeFields(params) case final fields? when fields.isNotEmpty) ...[
             const SizedBox(height: 14),
             FieldGrid(
               children: [
-                for (final f in s.spec!.edgeFields)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SpecField(
-                        scenario: s.scenario,
-                        onEditRecords: () => s.setTab(DataTab.parameters),
-                        spec: f,
-                        value: e[f.key],
-                        strings: t,
-                        onChanged: (v) => s.edit(() => e[f.key] = v),
-                      ),
-                      // the value is kept, but the problem uses it only with its parameter
-                      if (!f.isVisible(params) && f.requires != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                t('ui.edge.unused', {'param': 'field.${f.requires}'}),
-                                style: const TextStyle(fontSize: 12, color: Ui.warning),
-                              ),
-                              TextButton(
-                                onPressed: () => s.edit(() => params[f.requires!] = true),
-                                child: Text(t('ui.edge.enable')),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
+                for (final f in fields)
+                  SpecField(
+                    scenario: s.scenario,
+                    onEditRecords: () => s.setTab(DataTab.parameters),
+                    spec: f,
+                    value: e[f.key],
+                    strings: t,
+                    onChanged: (v) => s.edit(() => e[f.key] = v),
                   ),
               ],
             ),

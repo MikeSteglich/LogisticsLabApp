@@ -26,6 +26,7 @@ void main() {
     final state = (await tester.runAsync(AppState.create))!;
     state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
     state.scenario.matrix['matrixSource'] = 'beeline';
+    state.problem!.parameters['useCapacities'] = true; // the capacity of the edges in their mask
     for (var i = 0; i < 60; i++) {
       state.scenario.addNode(LatLng(52 + i / 100, 13 + i / 100), roles: ['customer']);
     }

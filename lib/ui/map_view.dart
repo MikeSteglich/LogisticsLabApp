@@ -886,7 +886,8 @@ class _MapViewState extends State<MapView> {
     return (
       '${_name(e.from)} ${e.arrowIn(net)} ${_name(e.to)}',
       [
-        for (final f in s.spec?.edgeFields ?? const <FieldSpec>[]) '${t(f.label)} ${value(e[f.key])}',
+        for (final f in s.spec?.visibleEdgeFields(s.problem?.parameters ?? const {}) ?? const <FieldSpec>[])
+          '${t(f.label)} ${value(e[f.key])}',
         if (used.isNotEmpty && used.first['flow'] is num) '${t('result.flow')} ${t.number(used.first['flow'] as num)}',
         if (used.isNotEmpty && used.first['leg'] != null) '${t('ui.sol.leg')} ${used.first['leg']}',
       ].join(' · '),

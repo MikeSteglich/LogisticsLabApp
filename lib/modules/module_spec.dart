@@ -56,6 +56,9 @@ class FieldSpec {
   final String? requires; // boolean parameter that switches the field on, e.g. useCapacities
   final String? nodeRole; // FieldKind.node: only nodes with this role, e.g. delivery (pdp)
   final bool computed; // shown, not entered - computed from other nodes, e.g. the delivered amount (pdp)
+  // a field of every node (ModuleSpec.nodeFields) not for the nodes of these roles (keys of RoleSpec), e.g. the
+  // throughput of a network flow: not for suppliers and customers (their supply and demand limit it)
+  final List<String> notForRoles;
 
   const FieldSpec(
     this.key,
@@ -71,6 +74,7 @@ class FieldSpec {
     this.requires,
     this.nodeRole,
     this.computed = false,
+    this.notForRoles = const [],
   });
 
   String get label => labelKey ?? 'field.$key';
@@ -219,8 +223,13 @@ class ModuleSpec {
   List<String> problemRoles(Map<String, dynamic> parameters) =>
       {for (final r in activeRoles(parameters)) nodeRole(r, parameters)}.toList();
 
-  /// Fields of the node mask for a node with the given roles - each field only once.
-  List<FieldSpec> nodeFieldsFor(Iterable<String> nodeRoles, Map<String, dynamic> parameters) {
+  /// Fields of the node mask for a node with the given roles - each field only once. values: those of the node - a
+  /// field of every node not for its roles is shown if it has a value (old files)
+  List<FieldSpec> nodeFieldsFor(
+    Iterable<String> nodeRoles,
+    Map<String, dynamic> parameters, {
+    Map<String, dynamic>? values,
+  }) {
     final seen = <String>{};
     return [
       for (final r in activeRoles(parameters))
@@ -228,9 +237,22 @@ class ModuleSpec {
           for (final f in r.nodeFields)
             if (f.isVisible(parameters) && seen.add(f.key)) f,
       for (final f in nodeFields)
-        if (f.isVisible(parameters) && seen.add(f.key)) f,
+        if (f.isVisible(parameters) &&
+            (isForRoles(f, nodeRoles, parameters) || values?[f.key] != null) &&
+            seen.add(f.key))
+          f,
     ];
   }
+
+  /// a field of every node for a node with these roles - not for the roles of notForRoles
+  bool isForRoles(FieldSpec f, Iterable<String> nodeRoles, Map<String, dynamic> parameters) =>
+      !activeRoles(parameters).any((r) => f.notForRoles.contains(r.key) && nodeRoles.contains(nodeRole(r, parameters)));
+
+  /// the edge fields the problem uses with its parameters (fixed costs only with useFixedCosts)
+  List<FieldSpec> visibleEdgeFields(Map<String, dynamic> parameters) => [
+    for (final f in edgeFields)
+      if (f.isVisible(parameters)) f,
+  ];
 
   /// Fields of the parameter form - e.g. without minSupply if it does not apply.
   Iterable<FieldSpec> visibleParameters(Map<String, dynamic> values) => parameters.where((f) => f.isVisible(values));

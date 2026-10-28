@@ -71,19 +71,17 @@ List<TableColumn> tableColumns(AppState s, TableKind kind) {
   final spec = s.spec;
   final params = s.problem?.parameters ?? const <String, dynamic>{};
   final seen = <String>{};
-  // also the fields the problem uses only with a parameter (fixed costs) - the values are kept as in the masks
+  // the fields the problem uses - as in the masks (fixed costs only with useFixedCosts)
   bool usable(FieldSpec f) =>
-      !f.computed && f.kind != FieldKind.commodities && f.kind != FieldKind.modes && seen.add(f.key);
+      !f.computed &&
+      f.kind != FieldKind.commodities &&
+      f.kind != FieldKind.modes &&
+      f.isVisible(params) &&
+      seen.add(f.key);
   if (kind == TableKind.edges) {
-    // the edge fields of every problem of the network (e.g. a transportation problem over a min cost flow network)
-    final net = s.problem?.network;
     return [
       ..._edgeBase,
-      for (final f in [
-        ...?spec?.edgeFields,
-        for (final q in s.scenario.problems)
-          if (net != null && q.network == net) ...?modules[q.type]?.edgeFields,
-      ])
+      for (final f in spec?.edgeFields ?? const <FieldSpec>[])
         if (usable(f)) TableColumn(f.key, f.label, f),
     ];
   }
@@ -523,6 +521,15 @@ class TableImport {
           }
         }
         final active = flag('active');
+        // a field of every node not for the roles of this one (throughput of a supplier): left out
+        final spec = s.spec;
+        if (spec != null) {
+          final rowRoles = roles ?? (existing != null ? scenario.node(existing)!.roles : [rowRole(row)]);
+          values.removeWhere((k, _) {
+            final f = fields[k]?.field;
+            return f != null && f.notForRoles.isNotEmpty && !spec.isForRoles(f, rowRoles, s.problem!.parameters);
+          });
+        }
         if (errors.isNotEmpty) {
           result.errors.addAll(errors);
           continue;
@@ -609,6 +616,8 @@ class TableImport {
         }
         final v = _num(text);
         if (v == null) return (null, 'ui.import.noNumber');
+        // the throughput of a node 0 in a list (as in old files): no limit - 0 would close the node
+        if (f.key == 'maxCap' && v == 0) return (null, null);
         if (f.kind == FieldKind.integer && v != v.roundToDouble()) return (null, 'ui.import.noInteger');
         return (f.kind == FieldKind.integer ? v.round() : v, null);
       case FieldKind.boolean:

@@ -158,7 +158,7 @@ void main() {
       state,
       TableKind.nodes,
       'Name\tBreite\tLänge\tAngebot\tNachfrage\tKapazität\n'
-      'Werk Süd\t51,9\t14,3\t500\t\t\n'
+      'Werk Süd\t51,9\t14,3\t500\t0\t450\n'
       'Laden Nord\t53,0\t13,9\t\t40\t\n'
       'Umschlag Mitte\t52,4\t13,6\t0\t0\t300\n',
     );
@@ -170,6 +170,7 @@ void main() {
     expect(node('Laden Nord').roles, ['customer']);
     expect(node('Umschlag Mitte').roles, ['transit']);
     expect(node('Umschlag Mitte')['maxCap'], 300);
+    expect(node('Werk Süd')['maxCap'], isNull); // the throughput only of transshipment nodes
     expect(state.isTransit(node('Umschlag Mitte')), isTrue); // not yet in the network
     // one role for all
     final one = TableImport(state, TableKind.nodes, 'Name\tBreite\tLänge\tAngebot\nWerk West\t52,0\t12,0\t50\n');
@@ -233,10 +234,13 @@ void main() {
   ) async {
     final state = await _state(tester, 'Distribution über die Lager');
     state.chooseProblem(state.scenario.problems.firstWhere((p) => p.type == 'mincostflow').name);
-    state.edit(() => state.problem!.parameters['useFixedCosts'] = false); // fixed costs kept, not used
+    // the fixed costs only if the problem uses them - as in the mask
+    state.edit(() => state.problem!.parameters['useFixedCosts'] = false);
     final edges = state.network!.edges;
     edges[0]['capacity'] = 120;
     edges[0]['fixedCost'] = 35;
+    expect(parseTable(copyTable(state, TableKind.edges)).first, isNot(contains('Fixkosten')));
+    state.edit(() => state.problem!.parameters['useFixedCosts'] = true);
     final rows = parseTable(copyTable(state, TableKind.edges));
     expect(rows.first, containsAll(['Kapazität', 'Fixkosten']));
     expect(rows[1][rows.first.indexOf('Kapazität')], '120');

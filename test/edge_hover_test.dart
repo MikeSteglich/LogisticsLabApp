@@ -26,6 +26,7 @@ void main() {
     final state = (await tester.runAsync(AppState.create))!;
     state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
     state.scenario.matrix['matrixSource'] = 'beeline'; // straight lines
+    state.problem!.parameters['useCapacities'] = true; // the capacity of the edges shown
     state.solutions[state.problemName!] = SolutionState({
       'status': 'solution',
       'results': {

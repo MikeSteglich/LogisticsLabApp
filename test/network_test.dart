@@ -51,20 +51,17 @@ void main() {
     await tester.pump();
     expect(state.network!.edges.length, 4); // nothing new
 
-    // edge mask: capacity is kept, but used only with the parameter - switched on from the hint
+    // edge mask: only the fields the problem uses - capacity and fixed costs with their parameters
     state.selectEdge(0);
     await tester.pump();
+    expect(find.text('Kapazität'), findsNothing);
+    state.edit(() => state.problem!.parameters['useCapacities'] = true);
+    state.edit(() => state.problem!.parameters['useFixedCosts'] = true);
+    await tester.pump();
+    expect(find.text('Kapazität'), findsWidgets);
     state.edit(() => state.edge!['capacity'] = 40);
     state.edit(() => state.edge!['fixedCost'] = 10);
     await tester.pump();
-    expect(find.textContaining('Wird erst genutzt'), findsNWidgets(2));
-    await tester.tap(find.text('Einschalten').first);
-    await tester.pump();
-    expect(state.problem!.parameters['useCapacities'], isTrue);
-    await tester.tap(find.text('Einschalten').first);
-    await tester.pump();
-    expect(state.problem!.parameters['useFixedCosts'], isTrue);
-    expect(find.textContaining('Wird erst genutzt'), findsNothing);
 
     // drawing on the map: start node, end node
     state.selectEdge(3); // W -> C, drawn again

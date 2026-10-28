@@ -29,4 +29,15 @@ void main() {
     expect(state.message, isNull);
     expect(state.lastResult, isNull);
   });
+
+  testWidgets('a network flow: a supplier with the throughput 0 refused before solving', (tester) async {
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    final state = (await tester.runAsync(AppState.create))!;
+    state.openScenario(Scenario.parse(File('assets/examples/brandenburg.llab').readAsStringSync()));
+    state.chooseProblem('Distribution über die Lager');
+    expect(state.nodeProblems, isEmpty);
+    final supplier = state.scenario.nodes.firstWhere((n) => n.roles.contains('supplier'));
+    state.edit(() => supplier['maxCap'] = 0);
+    expect(state.nodeProblems.single, contains('Höchstdurchsatz 0 bei ${supplier.name}'));
+  });
 }

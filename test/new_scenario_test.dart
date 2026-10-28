@@ -29,10 +29,14 @@ void main() {
     await tester.pumpWidget(LogisticsLabApp(state: state));
     await tester.pump();
     expect(find.widgetWithText(FilterChip, 'Umladeknoten'), findsOneWidget);
+    // a supplier: no throughput (its supply limits it) - a transshipment node has it
+    expect(state.scenario.nodes.first.roles, contains('supplier'));
+    expect(find.text('Höchstdurchsatz'), findsNothing);
     await tester.tap(find.widgetWithText(FilterChip, 'Umladeknoten'));
     await tester.pump();
     expect(state.scenario.nodes.first.roles, contains('transit'));
     expect(state.isTransit(state.scenario.nodes.first), isTrue);
+    expect(find.text('Höchstdurchsatz'), findsOneWidget);
 
     // new scenario: no transportation problem of its own
     state.saved(name: 'x.llab'); // no question about changes
@@ -41,5 +45,17 @@ void main() {
     expect(state.scenario.problems, isEmpty);
     expect(state.problem, isNull);
     expect(find.text('Kein Problem'), findsWidgets);
+    // its settings take numbers: the cost rate of a new problem with costs
+    state.newProblem('mincostflow');
+    await tester.pumpAndSettle();
+    final rate = find.descendant(
+      of: find.ancestor(of: find.text('Kosten je km (€)').first, matching: find.byType(Column)).first,
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(rate, '0,2');
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(state.scenario.matrix['costPerKm'], 0.2);
+    state.edit(() => state.scenario.units['distance'] = 'm');
   });
 }

@@ -576,6 +576,14 @@ class AppState extends ChangeNotifier {
       ];
       if (depots.length > 1) out.add(strings('ui.check.oneDepot', {'nodes': depots.join(', ')}));
     }
+    // network flows: a supplier or customer with the throughput 0 can neither send nor receive
+    if (s.nodeFields.any((f) => f.key == 'maxCap')) {
+      final closed = [
+        for (final n in scenario.nodes)
+          if (n.active && n.roles.any(problemRoles.contains) && n['maxCap'] == 0) n,
+      ];
+      if (closed.isNotEmpty) out.add(strings('ui.check.zeroThroughput', {'nodes': names(closed)}));
+    }
     if (s.network == NetworkUse.required && network != null && network!.edges.isEmpty) {
       out.add(strings('ui.check.noEdges'));
     }

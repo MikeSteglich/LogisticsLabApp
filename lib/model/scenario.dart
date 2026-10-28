@@ -108,13 +108,14 @@ class Scenario {
     return Scenario(j);
   }
 
-  factory Scenario.empty() => Scenario({
+  // the maps typed as those of a parsed file - a map of strings would refuse a number (costPerKm)
+  factory Scenario.empty() => Scenario(<String, dynamic>{
     'format': 'logisticsLab',
     'version': 1,
     'id': 'scenario',
     'name': '',
-    'units': {'distance': 'km', 'time': 'min'},
-    'matrix': {'matrixSource': 'osm', 'travelmode': 'car'},
+    'units': <String, dynamic>{'distance': 'km', 'time': 'min'},
+    'matrix': <String, dynamic>{'matrixSource': 'osm', 'travelmode': 'car'},
     'nodes': <dynamic>[],
     'problems': <dynamic>[],
   });

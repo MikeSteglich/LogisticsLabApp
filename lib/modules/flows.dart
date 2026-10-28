@@ -7,7 +7,12 @@ library;
 import 'module_spec.dart';
 
 const _balance = FieldSpec('balance', FieldKind.choice, defaultValue: 'auto', choices: ['auto', 'exact']);
-const _nodeCaps = [FieldSpec('minCap', FieldKind.number, min: 0), FieldSpec('maxCap', FieldKind.unlimited, min: 0)];
+// the throughput of a node - for transshipment nodes: supply and demand limit that of suppliers and customers
+const _notEnds = ['sources', 'destinations'];
+const _nodeCaps = [
+  FieldSpec('minCap', FieldKind.number, min: 0, notForRoles: _notEnds),
+  FieldSpec('maxCap', FieldKind.unlimited, min: 0, notForRoles: _notEnds),
+];
 const _shortage = FieldSpec('shortageCost', FieldKind.number, unit: '€', min: 0);
 const _flowSummary = [
   ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
@@ -136,7 +141,7 @@ final multiStageWlpSpec = ModuleSpec(
     ]),
     RoleSpec('destinations', 'customer', [FieldSpec('demand', FieldKind.number, required: true, min: 0), _shortage]),
   ],
-  nodeFields: const [FieldSpec('minCap', FieldKind.number, min: 0)],
+  nodeFields: const [FieldSpec('minCap', FieldKind.number, min: 0, notForRoles: _notEnds)],
   parameters: [
     matrixModeField,
     const FieldSpec('isSingleSource', FieldKind.boolean, defaultValue: false, labelKey: 'field.isSingleSourceWlp'),
