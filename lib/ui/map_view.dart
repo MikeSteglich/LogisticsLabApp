@@ -558,6 +558,8 @@ class _MapViewState extends State<MapView> {
         );
     // network flows: the flow through a transshipment node and its utilization
     final transit = _showSolution && kind == _Mark.transit && relevant ? _transitUse(n.id) : null;
+    // location problems: a customer served (filled) or not (empty, orange ring) - as the demand met of the others
+    final served = _showSolution && kind == _Mark.sink && relevant ? s.customerServed(n.id) : null;
     final Widget shape = switch (kind) {
       // level from the bottom - full: everything shipped, empty: not used
       _Mark.source when use != null => Container(
@@ -586,6 +588,18 @@ class _MapViewState extends State<MapView> {
             fill: fill,
             ring: use.notFull ? Ui.warning : line,
             ringWidth: use.notFull ? 3 : 2.5,
+          ),
+        ),
+      ),
+      _Mark.sink when served != null => DecoratedBox(
+        decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _halo(19)),
+        child: CustomPaint(
+          size: const Size(19, 19),
+          painter: _PiePainter(
+            share: served ? 1 : 0,
+            fill: fill,
+            ring: served ? line : Ui.warning,
+            ringWidth: served ? 2.5 : 3,
           ),
         ),
       ),
@@ -639,6 +653,15 @@ class _MapViewState extends State<MapView> {
                 TextSpan(
                   text: '\n${_useInfo(use)}',
                   style: const TextStyle(fontSize: 12, color: Ui.textMuted),
+                ),
+              if (served != null)
+                TextSpan(
+                  text:
+                      '\n${served ? s.strings('ui.sol.servedBy', {
+                              'nodes': {for (final a in s.connections)
+                                if (a['to'] == n.id) s.nameOf('${a['from']}')}.join(', '),
+                            }) : s.strings('ui.sol.notServed')}',
+                  style: TextStyle(fontSize: 12, color: served ? Ui.textMuted : Ui.warning),
                 ),
               if (transit != null)
                 TextSpan(

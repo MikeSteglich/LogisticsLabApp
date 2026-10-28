@@ -639,6 +639,12 @@
   "field.nrOfStarts.help": "La méthode démarre autant de fois depuis d’autres points et garde la meilleure solution – plus de départs : meilleure solution, calcul plus long",
   "ui.sol.foundLocation": "Site {n}",
   "ui.sol.adoptLocations": "Reprendre comme candidats",
+  "ui.sol.served": "Livré",
+  "ui.sol.toSuppliers": "Sites ouverts comme fournisseurs",
+  "ui.sol.toSuppliersHint": "Les sites ouverts reçoivent le rôle de fournisseur – sans offre, avec la quantité qui leur est affectée, p. ex. pour un problème de transport ensuite",
+  "ui.sol.toSuppliersDone": "{n} sites sont maintenant fournisseurs",
+  "ui.sol.notServed": "non livré",
+  "ui.sol.servedBy": "livré par {nodes}",
   "hint.minCapacity": "au moins {min}",
   "ui.check.capacityPerLocation": "Capacité par site trop faible : au moins {min} pour la demande totale de {total}",
   "ui.check.capacities": "Les capacités des candidats ({sum}) ne suffisent pas pour la demande totale de {total}"

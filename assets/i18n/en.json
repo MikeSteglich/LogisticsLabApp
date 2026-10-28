@@ -639,6 +639,12 @@
   "field.nrOfStarts.help": "The method starts this often from other points and takes the best solution – more starts: better solution, longer computation",
   "ui.sol.foundLocation": "Location {n}",
   "ui.sol.adoptLocations": "Adopt as candidates",
+  "ui.sol.served": "Served",
+  "ui.sol.toSuppliers": "Open locations as suppliers",
+  "ui.sol.toSuppliersHint": "The open locations get the role supplier – without a supply with the quantity assigned to them, e.g. for a transportation problem afterwards",
+  "ui.sol.toSuppliersDone": "{n} locations are suppliers now",
+  "ui.sol.notServed": "not served",
+  "ui.sol.servedBy": "served by {nodes}",
   "hint.minCapacity": "at least {min}",
   "ui.check.capacityPerLocation": "Capacity per location too small: at least {min} for the total demand of {total}",
   "ui.check.capacities": "The capacities of the candidates ({sum}) are not enough for the total demand of {total}"

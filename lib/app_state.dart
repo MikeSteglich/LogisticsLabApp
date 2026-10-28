@@ -403,6 +403,47 @@ class AppState extends ChangeNotifier {
     }
   });
 
+  /// location problems: a customer served in the solution (assigned to a location) - null without a solution or for
+  /// other nodes and problems
+  bool? customerServed(String id) {
+    final sp = spec;
+    final res = solution?.results;
+    if (sp == null || sp.group != ModuleGroup.location || res == null || res['assignments'] == null) return null;
+    final customers = sp.nodeRole(sp.roles.last, problem?.parameters ?? const {});
+    if (!(scenario.node(id)?.roles.contains(customers) ?? false)) return null;
+    if (!identical(_servedOf, res)) {
+      _servedOf = res;
+      _served = {for (final a in connections) '${a['to']}'};
+    }
+    return _served.contains(id);
+  }
+
+  Object? _servedOf; // the results of _served
+  Set<String> _served = const {};
+
+  /// the open locations of the solution become suppliers (role added) - their supply the quantity assigned to them
+  /// if they have none; the locations found (continuous) new suppliers
+  void openLocationsToSuppliers() => edit(() {
+    final nodes = ((solution?.results?['nodes'] as Map?) ?? const {}).cast<String, dynamic>();
+    final found = foundLocations;
+    for (final MapEntry(:key, :value) in nodes.entries) {
+      final r = (value as Map).cast<String, dynamic>();
+      if ((r['open'] ?? 1) != 1) continue;
+      final load = r['load'] as num?;
+      final Node n;
+      if (found[key] case final p?) {
+        n = scenario.addNode(p, roles: const ['supplier']);
+        n.name = nameOf(key);
+      } else if (scenario.node(key) case final existing?) {
+        n = existing;
+        if (!n.roles.contains('supplier')) n.roles = [...n.roles, 'supplier'];
+      } else {
+        continue;
+      }
+      if (n['supply'] == null && load != null) n['supply'] = load;
+    }
+  });
+
   /// warehouses of the solution (multistagewlp): id -> open
   Map<String, bool> get openNodes => {
     for (final MapEntry(:key, :value) in ((solution?.results?['nodes'] as Map?) ?? const {}).entries)

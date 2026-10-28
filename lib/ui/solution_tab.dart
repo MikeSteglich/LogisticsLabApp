@@ -9,6 +9,7 @@ import '../model/scenario.dart';
 import '../model/solution_analysis.dart';
 import '../modules/modules.dart';
 import '../model/table_io.dart';
+import 'messages.dart';
 import 'table_dialogs.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -876,10 +877,13 @@ class _Locations extends StatelessWidget {
     String rating(num v) => weighted ? t.fixed(v, 2) : money(v);
     final assigned = {for (final a in assignments) a['to']};
     final customers = s.spec!.nodeRole(s.spec!.roles.last, s.problem?.parameters ?? const {});
-    final uncovered = [
+    final unserved = [
       for (final n in s.scenario.nodes)
-        if (n.active && n.roles.contains(customers) && !assigned.contains(n.id)) n.name,
+        if (n.active && n.roles.contains(customers) && !assigned.contains(n.id)) n,
     ];
+    final uncovered = [for (final n in unserved) n.name];
+    // coverings, or customers without a location: whether a customer is served
+    final withServed = const ['scp', 'mcp'].contains(s.problem?.type) || unserved.isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -941,6 +945,7 @@ class _Locations extends StatelessWidget {
                   _ => 'ui.sol.value',
                 }),
                 if (withCosts) t(isCosts && !weighted ? 'ui.sol.costs' : 'ui.sol.rating'),
+                if (withServed) t('ui.sol.served'),
               ]),
               for (final (i, a) in assignments.indexed)
                 SolutionTab._row(
@@ -954,23 +959,55 @@ class _Locations extends StatelessWidget {
                     if (withShares) percent(a['share']),
                     a['value'] is num ? money(a['value'] as num) : '',
                     if (withCosts) a['costs'] is num ? rating(a['costs'] as num) : '',
+                    if (withServed) t('ui.export.yes'),
+                  ],
+                ),
+              // the customers without a location: their demand not served
+              for (final n in unserved)
+                SolutionTab._row(
+                  numericFrom: 2,
+                  selected: n.id == s.selectedNode,
+                  onTap: () => s.selectNode(n.id, keepTab: true),
+                  [
+                    '–',
+                    n.name,
+                    t.number(0),
+                    if (withShares) '',
+                    '',
+                    if (withCosts) '',
+                    if (withServed) t('ui.export.no'),
                   ],
                 ),
             ],
           ),
         ),
-        // continuous location: the locations found as candidates of the scenario
-        if (found.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.add_location_alt_outlined, size: 18),
-              label: Text(t('ui.sol.adoptLocations')),
-              onPressed: s.adoptFoundLocations,
-            ),
-          ),
-        ],
+        // continuous location: the locations found as candidates of the scenario; the open locations as suppliers
+        // (e.g. for a transportation problem afterwards)
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (found.isNotEmpty)
+              OutlinedButton.icon(
+                icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+                label: Text(t('ui.sol.adoptLocations')),
+                onPressed: s.adoptFoundLocations,
+              ),
+            if (ids.any((id) => open(id) == 1))
+              Tooltip(
+                message: t('ui.sol.toSuppliersHint'),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.warehouse_outlined, size: 18),
+                  label: Text(t('ui.sol.toSuppliers')),
+                  onPressed: () {
+                    s.openLocationsToSuppliers();
+                    showNote(context, t('ui.sol.toSuppliersDone', {'n': ids.where((id) => open(id) == 1).length}));
+                  },
+                ),
+              ),
+          ],
+        ),
         // maximal covering: outside the radius of every open location
         if (uncovered.isNotEmpty) ...[
           const SizedBox(height: 12),

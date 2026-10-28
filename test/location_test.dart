@@ -135,11 +135,42 @@ void main() {
     final mcp = state.solution!.results!['summary'] as Map;
     expect(mcp['coverage'], lessThan(1));
     expect(find.textContaining('Nicht abgedeckt:'), findsOneWidget);
+    // whether a customer is served: in the list (a row of its own if not) and on the map
+    state.setTab(DataTab.solution);
+    await tester.pump();
+    final assigned = {for (final a in state.connections) a['to']};
+    final customers = [
+      for (final n in state.scenario.nodes)
+        if (n.active && n.roles.contains('customer')) n,
+    ];
+    final unserved = customers.where((n) => !assigned.contains(n.id)).toList();
+    expect(unserved, isNotEmpty);
+    expect(find.text('Beliefert'), findsOneWidget);
+    expect(find.text('nein'), findsNWidgets(unserved.length));
+    expect(state.customerServed(unserved.first.id), isFalse);
+    expect(state.customerServed(customers.firstWhere((n) => assigned.contains(n.id)).id), isTrue);
+    expect(state.customerServed(state.openNodes.keys.first), isNull); // a candidate
     // a radius no candidate reaches: refused before solving
     state.chooseProblem('europa-vertrieb (Set Covering)');
     state.edit(() => state.problem!.parameters['radius'] = 10);
     await tester.runAsync(state.solve);
     expect(state.message, contains('Der Radius ist zu klein'));
+    state.chooseProblem('europa-vertrieb (Maximal Covering)');
+    state.setTab(DataTab.solution);
+    await tester.pump();
+    // the open locations of the maximal covering become suppliers - with the quantity assigned to them
+    final open = [
+      for (final e in state.openNodes.entries)
+        if (e.value) e.key,
+    ];
+    await tester.tap(find.text('Offene Standorte als Anbieter'));
+    await tester.pump();
+    for (final id in open) {
+      final n = state.scenario.node(id)!;
+      expect(n.roles, containsAll(['candidate', 'supplier']));
+      expect(n['supply'], closeTo((state.solution!.results!['nodes'] as Map)[id]['load'] as num, 1e-6));
+    }
+    await tester.pump(const Duration(seconds: 5)); // the note
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
   });
 

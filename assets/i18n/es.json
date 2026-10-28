@@ -639,6 +639,12 @@
   "field.nrOfStarts.help": "El método arranca tantas veces desde otros puntos y toma la mejor solución – más arranques: mejor solución, cálculo más largo",
   "ui.sol.foundLocation": "Ubicación {n}",
   "ui.sol.adoptLocations": "Adoptar como candidatos",
+  "ui.sol.served": "Abastecido",
+  "ui.sol.toSuppliers": "Ubicaciones abiertas como proveedores",
+  "ui.sol.toSuppliersHint": "Las ubicaciones abiertas reciben el rol de proveedor – sin oferta, con la cantidad asignada, p. ej. para un problema de transporte posterior",
+  "ui.sol.toSuppliersDone": "{n} ubicaciones son ahora proveedores",
+  "ui.sol.notServed": "no abastecido",
+  "ui.sol.servedBy": "abastecido por {nodes}",
   "hint.minCapacity": "al menos {min}",
   "ui.check.capacityPerLocation": "Capacidad por ubicación demasiado pequeña: al menos {min} para la demanda total de {total}",
   "ui.check.capacities": "Las capacidades de los candidatos ({sum}) no alcanzan para la demanda total de {total}"
