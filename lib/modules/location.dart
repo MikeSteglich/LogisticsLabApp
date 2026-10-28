@@ -183,7 +183,8 @@ List<FieldSpec> _continuousParameters({required bool weighted}) => [
     labelKey: 'field.isSingleSourceLocation',
     visibleIf: _capacitated,
   ),
-  const FieldSpec('nrOfStarts', FieldKind.integer, min: 1, hint: 'hint.auto'),
+  // the default of the core: 20 starts
+  const FieldSpec('nrOfStarts', FieldKind.integer, min: 1, hint: 'hint.autoStarts'),
   const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
 ];
 

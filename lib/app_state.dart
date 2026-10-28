@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'backend/backend.dart';
 import 'i18n/strings.dart';
 import 'model/clock.dart';
+import 'model/core_texts.dart';
 import 'model/scenario.dart';
 import 'model/solution_analysis.dart';
 import 'modules/modules.dart';
@@ -1152,7 +1153,9 @@ class AppState extends ChangeNotifier {
         highlightedNode = null;
         if (problemName == name) tab = DataTab.solution;
       }
-      message = answer.status == 'solution' ? null : '${strings('ui.status.${answer.status}')}: ${answer.message}';
+      message = answer.status == 'solution'
+          ? null
+          : '${strings('ui.status.${answer.status}')}: ${coreMessage(strings, answer.message)}';
     } on _Cancelled {
       lastResult = 'cancelled';
     } on BackendException catch (e) {

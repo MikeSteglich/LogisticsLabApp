@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import '../model/core_texts.dart';
 import '../model/scenario.dart';
 import '../model/solution_analysis.dart';
 import '../modules/modules.dart';
@@ -98,7 +99,7 @@ class SolutionTab extends StatelessWidget {
         ],
       ),
     );
-    final warnings = [for (final w in (sol.document['warnings'] as List? ?? const [])) '$w'];
+    final warnings = coreWarnings(t, sol.document);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -120,7 +121,7 @@ class SolutionTab extends StatelessWidget {
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: ok ? Ui.ok : Ui.error),
             ),
             if (sol.document['message'] case final String m when m.isNotEmpty && !ok)
-              Text(m, style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
+              Text(coreMessage(t, m), style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
           ],
         ),
         if (s.solutionIsStale) ...[

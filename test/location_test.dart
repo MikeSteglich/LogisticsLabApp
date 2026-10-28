@@ -200,7 +200,8 @@ void main() {
         for (final (i, n) in state.scenario.nodes.indexed) {
           n['demand'] = [1, 5, 20][i % 3];
         }
-        state.scenario.addProblem('contpmedian', 'Median', {'p': 2});
+        // capacities without isCapacitated: a warning of the core - in the language of the app
+        state.scenario.addProblem('contpmedian', 'Median', {'p': 2, 'capacities': 1000, 'isCapacitated': false});
       });
       await tester.pumpWidget(LogisticsLabApp(state: state));
       for (final (name, label, weightedLabel) in [
@@ -222,6 +223,12 @@ void main() {
           final total = name == 'Median' ? ratings.reduce((a, b) => a + b) : ratings.reduce((a, b) => a > b ? a : b);
           expect(total, closeTo(objVal, 1e-6 * objVal), reason: '$name $weighted');
           expect(find.text('Bewertung'), findsOneWidget);
+          if (name == 'Median') {
+            expect(
+              find.text('Die Kapazitäten werden nicht berücksichtigt, weil „Kapazitäten beachten“ aus ist'),
+              findsOneWidget,
+            );
+          }
         }
         expect(objVals[true], greaterThan(objVals[false]! * 1.5), reason: name);
       }

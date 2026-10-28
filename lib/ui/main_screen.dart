@@ -3,6 +3,7 @@ library;
 
 import 'dart:ui' show AppExitResponse;
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -141,7 +142,6 @@ class _Header extends StatelessWidget {
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
                   const Divider(),
-                  MenuItemButton(onPressed: () => showHelp(context, s), child: Text(t('ui.help.menu'))),
                   MenuItemButton(onPressed: () => showAbout(context, s), child: Text(t('ui.about.menu'))),
                 ],
               ),
@@ -169,11 +169,16 @@ class _Header extends StatelessWidget {
                 ),
               const SizedBox(width: 12),
               _LanguageToggle(state: s),
-              _BackendChip(state: s),
               IconButton(
                 tooltip: t('ui.settings'),
                 icon: const Icon(Icons.settings_outlined, size: 20),
                 onPressed: () => showSettings(context, s),
+              ),
+              // the help - also cmd/ctrl + ? and F1
+              IconButton(
+                tooltip: '${t('ui.help.menu')} (${defaultTargetPlatform == TargetPlatform.macOS ? '⌘?' : 'F1'})',
+                icon: const Icon(Icons.help_outline, size: 20),
+                onPressed: () => showHelp(context, s),
               ),
             ],
           ),
@@ -332,30 +337,6 @@ class _LanguageToggle extends StatelessWidget {
         ),
     ],
   );
-}
-
-class _BackendChip extends StatelessWidget {
-  final AppState state;
-  const _BackendChip({required this.state});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = state.strings;
-    final b = state.backendSettings;
-    final label = b.remote ? '${t('ui.backend.remote')}: ${Uri.tryParse(b.url)?.host ?? b.url}' : t('ui.backend.local');
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: ActionChip(
-        avatar: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: b.remote ? Ui.accent : Ui.ok, borderRadius: BorderRadius.circular(4)),
-        ),
-        label: Text(label),
-        onPressed: () => showSettings(context, state),
-      ),
-    );
-  }
 }
 
 //*************** status bar ************************************

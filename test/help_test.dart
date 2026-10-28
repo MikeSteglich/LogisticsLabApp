@@ -1,4 +1,4 @@
-/// Help: the topics in all languages, the search (umlauts, accents, ranking), the help window from the menu and F1.
+/// Help: the topics in all languages, the search (umlauts, accents, ranking), the help window from its button and F1.
 library;
 
 import 'dart:convert';
@@ -48,7 +48,7 @@ void main() {
     expect(es.search('camino mas corto').first.topic.id, 'shortestpath'); // más
   });
 
-  testWidgets('help window from the menu and with F1, search inside', (tester) async {
+  testWidgets('help window from its button and with F1, search inside', (tester) async {
     MapView.showTiles = false;
     SharedPreferences.setMockInitialValues({'language': 'de'});
     tester.view.physicalSize = const Size(1440, 900);
@@ -59,9 +59,13 @@ void main() {
     await tester.pumpWidget(LogisticsLabApp(state: state));
     await tester.pump();
 
+    // the help button next to the settings - no longer in the menu
     await tester.tap(find.byIcon(Icons.more_horiz));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Hilfe'));
+    expect(find.text('Hilfe'), findsNothing);
+    await tester.tapAt(Offset.zero);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.help_outline));
     await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 100))); // the topics are loaded
     await tester.pumpAndSettle();
     expect(find.text('LogisticsLab Studio – Hilfe'), findsOneWidget);
