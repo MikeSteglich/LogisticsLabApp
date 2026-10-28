@@ -335,7 +335,36 @@ class _ProblemChooser extends StatelessWidget {
               size: 16,
               color: q.name == s.problemName ? Ui.accent : Ui.textSecondary,
             ),
-            trailingIcon: TypeBadge(t('module.${q.type}.short')),
+            // the type, a copy, delete (not the last problem)
+            trailingIcon: Builder(
+              builder: (menu) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TypeBadge(t('module.${q.type}.short')),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: t('ui.problem.duplicate'),
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.copy_outlined, size: 16),
+                    onPressed: () {
+                      MenuController.maybeOf(menu)?.close();
+                      s.duplicateProblem(q.name);
+                    },
+                  ),
+                  IconButton(
+                    tooltip: t('ui.problem.delete'),
+                    visualDensity: VisualDensity.compact,
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    onPressed: s.scenario.problems.length < 2
+                        ? null
+                        : () {
+                            MenuController.maybeOf(menu)?.close();
+                            _delete(context, s, q.name); // the menu is closed: the context of the button
+                          },
+                  ),
+                ],
+              ),
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(minWidth: 220, maxWidth: 320),
               child: Text(q.name, overflow: TextOverflow.ellipsis),
@@ -359,6 +388,23 @@ class _ProblemChooser extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  /// asked first - the solution of the problem goes with it
+  static Future<void> _delete(BuildContext context, AppState s, String name) async {
+    final t = s.strings;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(t('ui.problem.deleteTitle')),
+        content: Text(t('ui.problem.deleteText', {'name': name})),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: Text(t('ui.cancel'))),
+          FilledButton(onPressed: () => Navigator.pop(c, true), child: Text(t('ui.problem.deleteYes'))),
+        ],
+      ),
+    );
+    if (ok == true) s.deleteProblem(name);
   }
 
   static Widget _menuLabel(String text) => Padding(

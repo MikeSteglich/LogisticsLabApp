@@ -251,13 +251,30 @@ class Scenario {
   Problem? problem(String name) => problems.where((p) => p.name == name).firstOrNull;
 
   Problem addProblem(String type, String name, Map<String, dynamic> parameters) {
+    final p = Problem({'name': _freeName(name), 'type': type, 'parameters': parameters});
+    ((json['problems'] ??= <dynamic>[]) as List).add(p.json);
+    return p;
+  }
+
+  /// the name - with a number if a problem has it already
+  String _freeName(String name) {
     final names = {for (final p in problems) p.name};
     var n = name;
     for (var i = 2; names.contains(n); i++) {
       n = '$name $i';
     }
-    final p = Problem({'name': n, 'type': type, 'parameters': parameters});
-    ((json['problems'] ??= <dynamic>[]) as List).add(p.json);
-    return p;
+    return n;
   }
+
+  /// a copy of the problem (its parameters and network) behind it - named name
+  Problem duplicateProblem(String of, String name) {
+    final list = json['problems'] as List;
+    final i = list.indexWhere((p) => (p as Map)['name'] == of);
+    final copy = Problem(jsonDecode(jsonEncode(list[i])) as Map<String, dynamic>)..name = _freeName(name);
+    list.insert(i + 1, copy.json);
+    return copy;
+  }
+
+  /// the problem out of the scenario - the nodes, edges and networks stay
+  void removeProblem(String name) => (json['problems'] as List?)?.removeWhere((p) => (p as Map)['name'] == name);
 }

@@ -1037,6 +1037,27 @@ class AppState extends ChangeNotifier {
     });
   }
 
+  /// a copy of the problem with its parameters - chosen, its parameters shown
+  void duplicateProblem(String name) {
+    edit(() {
+      problemName = scenario.duplicateProblem(name, strings('ui.problem.copyName', {'name': name})).name;
+      tab = DataTab.parameters;
+    });
+    chooseProblem(problemName!);
+  }
+
+  /// the problem out of the file with its solution - not the last one; the chosen one: the next one chosen
+  void deleteProblem(String name) {
+    final names = [for (final p in scenario.problems) p.name];
+    if (names.length < 2 || !names.contains(name)) return;
+    final i = names.indexOf(name);
+    edit(() {
+      scenario.removeProblem(name);
+      solutions.remove(name);
+    });
+    if (problemName == name) chooseProblem(names[i + 1 < names.length ? i + 1 : i - 1]);
+  }
+
   /// [keepTab]: chosen in the solution - the solution stays in view
   /// arrow keys: the previous (-1) or next (+1) entry of the list of the tab - nodes, edges, connections of the
   /// solution; without a selection the first or last one
