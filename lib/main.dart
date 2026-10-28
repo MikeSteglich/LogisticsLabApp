@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'app_log.dart';
 import 'app_state.dart';
 import 'help/help.dart';
 import 'ui/about_dialog.dart';
@@ -52,6 +53,7 @@ const _files = MethodChannel('logisticslab/files');
 /// the first of the files - in this window, after the question about unsaved changes
 Future<void> _openFiles(AppState state, List<String> paths) async {
   final context = _navigator.currentContext;
+  if (paths.isNotEmpty) appLog('open files $paths${context == null ? ': no window' : ''}');
   if (paths.isEmpty || context == null) return;
   await FileOps(context, state).openPath(paths.first);
 }

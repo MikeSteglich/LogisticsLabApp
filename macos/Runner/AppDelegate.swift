@@ -40,8 +40,8 @@ class AppDelegate: FlutterAppDelegate {
     }
   }
 
+  // no super: FlutterAppDelegate does not implement it - the call threw and left the channels without handlers
   override func applicationDidFinishLaunching(_ notification: Notification) {
-    super.applicationDidFinishLaunching(notification)
     // the app is ready for files: those opened at its start
     filesChannel?.setMethodCallHandler { [weak self] call, result in
       guard call.method == "ready", let self = self else {
