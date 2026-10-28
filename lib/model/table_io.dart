@@ -68,16 +68,19 @@ List<TableColumn> tableColumns(AppState s, TableKind kind) {
   final spec = s.spec;
   final params = s.problem?.parameters ?? const <String, dynamic>{};
   final seen = <String>{};
+  // also the fields the problem uses only with a parameter (fixed costs) - the values are kept as in the masks
   bool usable(FieldSpec f) =>
-      !f.computed &&
-      f.kind != FieldKind.commodities &&
-      f.kind != FieldKind.modes &&
-      f.isVisible(params) &&
-      seen.add(f.key);
+      !f.computed && f.kind != FieldKind.commodities && f.kind != FieldKind.modes && seen.add(f.key);
   if (kind == TableKind.edges) {
+    // the edge fields of every problem of the network (e.g. a transportation problem over a min cost flow network)
+    final net = s.problem?.network;
     return [
       ..._edgeBase,
-      for (final f in spec?.edgeFields ?? const <FieldSpec>[])
+      for (final f in [
+        ...?spec?.edgeFields,
+        for (final q in s.scenario.problems)
+          if (net != null && q.network == net) ...?modules[q.type]?.edgeFields,
+      ])
         if (usable(f)) TableColumn(f.key, f.label, f),
     ];
   }
@@ -303,7 +306,22 @@ class TableImport {
     for (final c in columns) {
       if (c.field != null && _otherLabels(c.key).contains(h)) return c.key;
     }
+    // another form of the word: Kapazitäten for Kapazität, capacities for capacity
+    for (final c in columns) {
+      final names = {_header(state.strings(c.label)), normalize(c.key), ...?_aliases[c.key]};
+      if (names.any((n) => _sameWord(h, n))) return c.key;
+    }
     return null;
+  }
+
+  /// two forms of a word - plural and singular: the same beginning, at most three letters more at the end
+  static bool _sameWord(String a, String b) {
+    if (a.length < 5 || b.length < 5) return false;
+    var i = 0;
+    while (i < a.length && i < b.length && a[i] == b[i]) {
+      i++;
+    }
+    return i >= a.length - 3 && i >= b.length - 3;
   }
 
   Set<String> _otherLabels(String key) => {

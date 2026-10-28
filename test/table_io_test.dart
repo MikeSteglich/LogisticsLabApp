@@ -201,6 +201,28 @@ void main() {
     expect(state.network!.edges.length, n + 1);
   });
 
+  testWidgets('edges of a min cost flow: capacity and fixed costs there and back, headers in the plural', (
+    tester,
+  ) async {
+    final state = await _state(tester, 'Distribution über die Lager');
+    state.chooseProblem(state.scenario.problems.firstWhere((p) => p.type == 'mincostflow').name);
+    state.edit(() => state.problem!.parameters['useFixedCosts'] = false); // fixed costs kept, not used
+    final edges = state.network!.edges;
+    edges[0]['capacity'] = 120;
+    edges[0]['fixedCost'] = 35;
+    final rows = parseTable(copyTable(state, TableKind.edges));
+    expect(rows.first, containsAll(['Kapazität', 'Fixkosten']));
+    expect(rows[1][rows.first.indexOf('Kapazität')], '120');
+    expect(rows[1][rows.first.indexOf('Fixkosten')], '35');
+    // updated with Kapazitäten (plural)
+    final from = state.nameOf(edges[0].from), to = state.nameOf(edges[0].to);
+    final paste = TableImport(state, TableKind.edges, 'Von\tNach\tKapazitäten\tFixkosten\n$from\t$to\t150\t40\n');
+    expect(paste.mapping, ['from', 'to', 'capacity', 'fixedCost']);
+    paste.mode = ImportMode.update;
+    await tester.runAsync(paste.apply);
+    expect((edges[0]['capacity'], edges[0]['fixedCost']), (150, 40));
+  });
+
   testWidgets('the solution as table for Excel: its sheets one below the other', skip: _stdio, (tester) async {
     final state = await _state(tester, 'Transport direkt vom Werk');
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
