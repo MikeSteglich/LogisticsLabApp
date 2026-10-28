@@ -42,6 +42,9 @@ abstract final class Ui {
   static const customerDark = Color(0xFF2A7A52);
   static const candidate = Color(0xFF7B5CC4); // warehouses, candidates for locations
   static const candidateDark = Color(0xFF5B3FA0);
+  // transshipment nodes of a network flow: raspberry - apart from the petrol of the edges and the other roles
+  static const transit = Color(0xFFB0256A);
+  static const transitDark = Color(0xFF7A1449);
   static const pickup = Color(0xFFE0A030); // pickup and delivery: where the quantities are picked up
   static const pickupDark = Color(0xFFA06A10);
 
@@ -50,8 +53,7 @@ abstract final class Ui {
     'supplier' || 'depot' => (supplier, supplierDark),
     'customer' || 'delivery' => (customer, customerDark),
     'pickup' => (pickup, pickupDark),
-    // transshipment nodes and the other nodes of a network: the petrol of the network
-    'transit' => (network, networkSelected),
+    'transit' => (transit, transitDark),
     'candidate' => (candidate, candidateDark),
     _ => (textMuted, text),
   };

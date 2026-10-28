@@ -557,7 +557,10 @@ class _MapViewState extends State<MapView> {
               (o.position.longitude - n.position.longitude).abs() < 1e-5,
         );
     // network flows: the flow through a transshipment node and its utilization
-    final transit = _showSolution && kind == _Mark.transit && relevant ? _transitUse(n.id) : null;
+    // a transshipment node of a network flow: a diamond filled up to its utilization - the other nodes of a network
+    // (shortest path, postman) small dots in the petrol of the edges
+    final hub = kind == _Mark.transit && relevant && s.isTransit(n);
+    final transit = _showSolution && hub ? _transitUse(n.id) : null;
     // location problems: a customer served (filled) or not (empty, orange ring) - as the demand met of the others
     final served = _showSolution && kind == _Mark.sink && relevant ? s.customerServed(n.id) : null;
     final Widget shape = switch (kind) {
@@ -603,20 +606,21 @@ class _MapViewState extends State<MapView> {
           ),
         ),
       ),
-      // a transshipment node in the solution: its utilization as a pie (flow / capacity) - orange ring if full;
-      // without a capacity filled if something flows through it
-      _Mark.transit when transit != null => DecoratedBox(
-        decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: _halo(18)),
-        child: CustomPaint(
-          size: const Size(18, 18),
-          painter: _PiePainter(
-            share: transit.utilization ?? (transit.flow > 0 ? 1 : 0),
-            fill: Ui.network,
-            ring: transit.flow <= 0 ? Ui.pale : ((transit.utilization ?? 0) >= 0.999 ? Ui.warning : Ui.networkSelected),
-            ringWidth: 2.5,
-          ),
+      // a transshipment node: filled from the bottom up to its utilization (flow / capacity) - orange outline if
+      // full, pale if nothing flows through it; without a capacity filled if something flows; without solution full
+      _Mark.transit when hub => CustomPaint(
+        size: const Size(26, 26),
+        painter: _DiamondPainter(
+          share: transit == null ? 1 : (transit.utilization?.clamp(0, 1).toDouble() ?? (transit.flow > 0 ? 1 : 0)),
+          fill: fill,
+          line: transit == null
+              ? line
+              : transit.flow <= 0
+              ? Ui.pale
+              : ((transit.utilization ?? 0) >= 0.999 ? Ui.warning : line),
         ),
       ),
+      _Mark.transit when relevant => _markShape(kind, Ui.network, Ui.networkSelected, size: 18),
       _ => _markShape(
         kind,
         fill,
@@ -1025,12 +1029,15 @@ class _MapViewState extends State<MapView> {
           // nodes without a role of the problem in its network: grey dots - transshipment nodes of a flow, the
           // other nodes of the network of a shortest path
           if (s.scenario.nodes.any((n) => s.isRelevant(n) && s.symbolRoles(n).isEmpty))
-            item(
-              _markShape(_Mark.transit, Ui.network, Ui.networkSelected, size: 10),
-              t(
-                const ['shortestpath', 'cpp'].contains(s.spec?.type) ? 'ui.legend.networkNodes' : 'role.transit.plural',
-              ),
-            ),
+            const ['shortestpath', 'cpp'].contains(s.spec?.type)
+                ? item(_markShape(_Mark.transit, Ui.network, Ui.networkSelected, size: 10), t('ui.legend.networkNodes'))
+                : item(
+                    CustomPaint(
+                      size: const Size(12, 12),
+                      painter: _DiamondPainter(share: 1, fill: Ui.transit, line: Ui.transitDark),
+                    ),
+                    t('role.transit.plural'),
+                  ),
           // continuous location: the locations found
           if (_showSolution && s.foundLocations.isNotEmpty)
             item(_markShape(_Mark.location, Ui.candidate, Ui.candidateDark, size: 10), t('ui.sol.locations')),
@@ -1353,6 +1360,53 @@ class _PiePainter extends CustomPainter {
   @override
   bool shouldRepaint(_PiePainter old) =>
       old.share != share || old.fill != fill || old.ring != ring || old.ringWidth != ringWidth;
+}
+
+/// a transshipment node: a diamond on white, filled from the bottom up to share, with its outline
+class _DiamondPainter extends CustomPainter {
+  final double share;
+  final Color fill;
+  final Color line;
+  _DiamondPainter({required this.share, required this.fill, required this.line});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final stroke = w / 9;
+    final d = Path()
+      ..moveTo(w / 2, stroke / 2)
+      ..lineTo(w - stroke / 2, h / 2)
+      ..lineTo(w / 2, h - stroke / 2)
+      ..lineTo(stroke / 2, h / 2)
+      ..close();
+    // white halo around it - visible on the map and the edges
+    canvas.drawPath(
+      d,
+      Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke + 3
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawPath(d, Paint()..color = Ui.surface);
+    if (share > 0) {
+      canvas.save();
+      canvas.clipPath(d);
+      canvas.drawRect(Rect.fromLTRB(0, h * (1 - share), w, h), Paint()..color = fill);
+      canvas.restore();
+    }
+    canvas.drawPath(
+      d,
+      Paint()
+        ..color = line
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_DiamondPainter old) => old.share != share || old.fill != fill || old.line != line;
 }
 
 /// kinds of the symbols of the nodes - the same in every problem and in the legend

@@ -51,6 +51,24 @@
 				</array>
 			</dict>
 		</dict>
+		<!-- solutions (.llsol): a known type - else the save panel adds the extension to a name that has it -->
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>de.th-wildau.logisticslab.llsol</string>
+			<key>UTTypeDescription</key>
+			<string>LogisticsLab-Lösung</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>llsol</string>
+				</array>
+			</dict>
+		</dict>
 	</array>
 	<key>UTImportedTypeDeclarations</key>
 	<array>

@@ -236,6 +236,17 @@ class AppState extends ChangeNotifier {
     return [part('flows', scenario.commodities), part('modes', scenario.modes)].where((p) => p.isNotEmpty).join(' · ');
   }
 
+  /// the cost rates of a connection per commodity or mode (multicommodity, multimodal), e.g. "Produkt 1 0,20 · Produkt 2 0,25"
+  String rates(Map<String, dynamic> connection) {
+    final values = (connection['rates'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final records = [...scenario.commodities, ...scenario.modes];
+    return [
+      for (final MapEntry(:key, :value) in values.entries)
+        '${Scenario.recordName(records.firstWhere((r) => r['id'] == key, orElse: () => {'id': key}))} '
+            '${strings.fixed(value as num, 2)}',
+    ].join(' · ');
+  }
+
   /// the data of a node in the problem: the visible fields of its roles with a value, e.g. demand, service time and
   /// time window of a customer
   List<(FieldSpec, String)> nodeData(Node n) {

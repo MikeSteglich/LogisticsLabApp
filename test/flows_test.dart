@@ -12,6 +12,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
+import 'package:logisticslab_app/model/table_io.dart';
+import 'package:logisticslab_app/model/table_text.dart';
 import 'package:logisticslab_app/backend/backend.dart';
 import 'package:logisticslab_app/model/scenario.dart';
 
@@ -62,10 +64,16 @@ void main() {
     // multi-commodity: split per commodity
     await solve('Zwei Güter');
     expect(state.split(state.connections.first), allOf(contains('Lebensmittel'), contains('Pakete')));
+    // the cost rates per commodity and the costs of the edges - together the variable costs
+    final first = state.connections.first;
+    expect(state.rates(first), allOf(contains('Lebensmittel'), contains('Pakete')));
+    final varCosts = state.solution!.results!['objVal'] as num; // only variable costs - rounded to cents
+    expect(state.connections.fold<num>(0, (a, c) => a + (c['costs'] as num)), closeTo(varCosts, 0.05));
     // one commodity: its quantities, its share of the capacity, the demand of it
     state.setSolutionPart('parcels');
     final parcels = state.connections.firstWhere((c) => c['from'] == 'W' && c['to'] == 'D1');
     expect(parcels['flows'], isNull);
+    expect(parcels['rate'], (first['rates'] as Map)['parcels']); // the rate of the commodity
     expect(parcels['utilization'], closeTo((parcels['flow'] as num) * 0.5 / (parcels['capacity'] as num), 1e-9));
     final berlin = state.analysis!.use('B')!;
     expect(berlin.target, (state.scenario.node('B')!['demands'] as Map)['parcels']);
@@ -75,6 +83,14 @@ void main() {
     await solve('Lkw oder Bahn');
     final wd1 = state.connections.firstWhere((c) => c['from'] == 'W' && c['to'] == 'D1');
     expect(state.split(wd1), contains('Bahn'));
+    expect(state.rates(wd1), contains('Bahn'));
+    expect(wd1['costs'], isA<num>());
+    // copied for Excel: a column per mode - its quantity and its rate
+    final table = parseTable(copySolution(state));
+    final head = table.firstWhere((r) => r.contains('Bahn'));
+    expect(head, containsAll(['Bahn', 'Menge', 'Bahn: Kostensatz (€)']));
+    final row = table[table.indexOf(head) + 1];
+    expect(row[head.indexOf('Bahn')], isNotEmpty);
     state.setSolutionPart('train');
     expect(state.connections.map((c) => '${c['from']}-${c['to']}'), ['W-D1']);
     state.setSolutionPart(null);

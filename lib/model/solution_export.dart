@@ -13,6 +13,7 @@ import 'dart:typed_data';
 import '../app_state.dart';
 import '../modules/modules.dart';
 import 'core_texts.dart';
+import 'scenario.dart';
 import 'solution_analysis.dart';
 import 'xlsx.dart';
 
@@ -349,17 +350,27 @@ List<XlsxSheet> _flows(AppState s) {
   final t = s.strings;
   // all connections - also if the solution tab shows one commodity or mode
   final connections = SolutionAnalysis.connectionsOf(s.solution!.results, null);
-  final withRates = connections.any((a) => a['rate'] != null);
-  final withSplit = connections.any((a) => a['flows'] != null || a['modes'] != null);
+  final withRates = connections.any((a) => a['rate'] != null || a['rates'] != null);
+  // several commodities or modes: a column per commodity or mode - its quantity and its cost rate
+  final splitKey = connections.any((a) => a['flows'] != null) ? 'flows' : 'modes';
+  final records = splitKey == 'flows' ? s.scenario.commodities : s.scenario.modes;
+  final parts = [
+    for (final r in records)
+      if (connections.any((a) => (a[splitKey] as Map?)?.containsKey(r['id']) ?? false)) r,
+  ];
   final withUtilization = connections.any((a) => a['utilization'] != null);
   final (rateLabel, costLabel) = s.rateLabels;
   final sheet = XlsxSheet(t('ui.export.connections'));
   sheet.add([
     t('ui.sol.from'),
     t('ui.sol.to'),
-    if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
+    for (final r in parts) Scenario.recordName(r),
     t('result.flow'),
-    if (withRates) ...[_with(rateLabel, '€'), _with(costLabel, '€')],
+    if (withRates) ...[
+      if (parts.isEmpty) _with(rateLabel, '€'),
+      for (final r in parts) _with('${Scenario.recordName(r)}: $rateLabel', '€'),
+      _with(costLabel, '€'),
+    ],
     if (withUtilization) _with(t('ui.sol.utilization'), '%'),
   ], bold: true);
   for (final a in connections) {
@@ -367,9 +378,13 @@ List<XlsxSheet> _flows(AppState s) {
     sheet.add([
       _name(s, a['from']),
       _name(s, a['to']),
-      if (withSplit) s.split(a),
+      for (final r in parts) (a[splitKey] as Map?)?[r['id']] as num?,
       flow,
-      if (withRates) ...[a['rate'], a['rate'] is num ? flow * (a['rate'] as num) : null],
+      if (withRates) ...[
+        if (parts.isEmpty) a['rate'],
+        for (final r in parts) (a['rates'] as Map?)?[r['id']] as num?,
+        a['costs'] ?? (a['rate'] is num ? flow * (a['rate'] as num) : null),
+      ],
       if (withUtilization) _percent(a['utilization']),
     ]);
   }

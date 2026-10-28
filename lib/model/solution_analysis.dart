@@ -240,6 +240,8 @@ class SolutionAnalysis {
               if (key != 'flows' && key != 'modes') key: value, // the results stay unchanged
             'flow': f,
             'utilization': (a['utilizations'] as Map?)?[part],
+            // its cost rate and costs (multicommodity, multimodal)
+            if ((a['rates'] as Map?)?[part] case final num r) ...{'rate': r, 'costs': f * r},
           },
     ];
   }

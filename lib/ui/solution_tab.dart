@@ -36,7 +36,8 @@ class SolutionTab extends StatelessWidget {
     final summary = (res?['summary'] as Map?)?.cast<String, dynamic>() ?? const {};
     final assignments = s.connections;
     // cost rates: tpp, min cost flow, multi-stage WLP - split per commodity or mode: multicommodity, multimodal
-    final withRates = assignments.any((a) => a['rate'] != null);
+    // several commodities or modes: a rate per commodity or mode
+    final withRates = assignments.any((a) => a['rate'] != null || a['rates'] != null);
     final withSplit = assignments.any((a) => a['flows'] != null || a['modes'] != null);
     final withUtilization = assignments.any((a) => a['utilization'] != null);
     final parts = s.solutionParts;
@@ -233,8 +234,12 @@ class SolutionTab extends StatelessWidget {
                         if (withSplit) s.split(a),
                         t.number(a['flow'] as num),
                         if (withRates) ...[
-                          a['rate'] == null ? '' : t.fixed(a['rate'] as num, 2),
-                          a['rate'] == null ? '' : t.fixed((a['flow'] as num) * (a['rate'] as num), 2),
+                          a['rate'] is num ? t.fixed(a['rate'] as num, 2) : s.rates(a),
+                          a['costs'] is num
+                              ? t.fixed(a['costs'] as num, 2)
+                              : a['rate'] is num
+                              ? t.fixed((a['flow'] as num) * (a['rate'] as num), 2)
+                              : '',
                         ],
                         if (withUtilization) percent(a['utilization']),
                       ],

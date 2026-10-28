@@ -17,12 +17,21 @@ import '../model/scenario.dart';
 import '../model/solution_export.dart';
 import 'messages.dart';
 
-const _llab = XTypeGroup(label: 'LogisticsLab', extensions: ['llab']);
+// macOS: the types of the app (Info.plist) - the save panel knows the extension and does not add it again
+const _llab = XTypeGroup(
+  label: 'LogisticsLab',
+  extensions: ['llab'],
+  uniformTypeIdentifiers: ['de.th-wildau.logisticslab.llab'],
+);
 const _old = XTypeGroup(
   label: 'LogisticsLab (alt)',
   extensions: [...AppState.oldFormats, 'TPPX', 'TSPX', 'CLPX', 'DLPX', 'NWFX', 'VRPX'],
 );
-const _llsol = XTypeGroup(label: 'LogisticsLab-Lösung', extensions: ['llsol']);
+const _llsol = XTypeGroup(
+  label: 'LogisticsLab-Lösung',
+  extensions: ['llsol'],
+  uniformTypeIdentifiers: ['de.th-wildau.logisticslab.llsol'],
+);
 const _xlsx = XTypeGroup(label: 'Excel', extensions: ['xlsx']);
 const _xlsxMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
