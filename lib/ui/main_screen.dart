@@ -154,7 +154,7 @@ class _Header extends StatelessWidget {
                       menuChildren: [
                         for (final path in s.recentFiles)
                           MenuItemButton(
-                            onPressed: () => files.openRecent(path),
+                            onPressed: () => files.openPath(path),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,

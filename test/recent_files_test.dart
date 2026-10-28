@@ -1,5 +1,5 @@
 /// Recent files: opened and saved files on the list (newest first, each once, at most ten), opened from the menu, a
-/// file that is gone taken off the list.
+/// file that is gone taken off the list - and a file passed at the start (opened in the Explorer or Finder).
 library;
 
 import 'dart:io';
@@ -76,5 +76,25 @@ void main() {
     expect(find.textContaining('Die Datei gibt es nicht mehr'), findsOneWidget);
     expect(state.recentFiles, [file.path]);
     expect(state.fileName, 'brandenburg-kopie.llab');
+  });
+
+  testWidgets('a file passed at the start: opened once the window is shown', (tester) async {
+    MapView.showTiles = false;
+    final dir = Directory.systemTemp.createTempSync('start');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = File('${dir.path}/doppelklick.llab')
+      ..writeAsStringSync(File('assets/examples/brandenburg.llab').readAsStringSync());
+    SharedPreferences.setMockInitialValues({'language': 'de'});
+    tester.view.physicalSize = const Size(1440, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final state = (await tester.runAsync(AppState.create))!;
+    await tester.pumpWidget(LogisticsLabApp(state: state, files: [file.path]));
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 20)));
+      await tester.pump();
+    }
+    expect(state.fileName, 'doppelklick.llab');
+    expect(state.recentFiles, [file.path]);
   });
 }

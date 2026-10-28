@@ -19,8 +19,39 @@ class AppDelegate: FlutterAppDelegate {
     return FlutterMethodChannel(name: "logisticslab/menu", binaryMessenger: controller.engine.binaryMessenger)
   }
 
+  /// files opened in the Finder (double click, dragged onto the icon) - kept until the app asks for them
+  private var pendingFiles: [String] = []
+  private var filesReady = false
+
+  private var filesChannel: FlutterMethodChannel? {
+    guard let controller = mainFlutterWindow?.contentViewController as? FlutterViewController else { return nil }
+    return FlutterMethodChannel(name: "logisticslab/files", binaryMessenger: controller.engine.binaryMessenger)
+  }
+
+  /// a file of the app opened in the Finder - before the start of the app it waits for it (lib/main.dart)
+  override func application(_ application: NSApplication, open urls: [URL]) {
+    super.application(application, open: urls)
+    let paths = urls.filter { $0.isFileURL }.map { $0.path }
+    if paths.isEmpty { return }
+    if filesReady {
+      filesChannel?.invokeMethod("open", arguments: paths)
+    } else {
+      pendingFiles += paths
+    }
+  }
+
   override func applicationDidFinishLaunching(_ notification: Notification) {
     super.applicationDidFinishLaunching(notification)
+    // the app is ready for files: those opened at its start
+    filesChannel?.setMethodCallHandler { [weak self] call, result in
+      guard call.method == "ready", let self = self else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      self.filesReady = true
+      result(self.pendingFiles)
+      self.pendingFiles = []
+    }
     // the search field of the help menu finds the help topics of the app
     NSApp.registerUserInterfaceItemSearchHandler(self)
     menuChannel?.setMethodCallHandler { [weak self] call, result in

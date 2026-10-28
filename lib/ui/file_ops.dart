@@ -78,10 +78,12 @@ class FileOps {
     }
   }
 
-  /// a file of the list of the recent ones - one that is gone is taken off the list
-  Future<void> openRecent(String path) async {
+  /// a file by its path - of the list of the recent ones or opened in the Finder or Explorer (an old file imported);
+  /// one that is gone is taken off the list
+  Future<void> openPath(String path) async {
     if (!await _discardChanges()) return;
     final file = XFile(path);
+    if (AppState.isOldFile(path)) return _import(file);
     final String text;
     try {
       text = await file.readAsString();

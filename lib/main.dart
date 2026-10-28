@@ -9,15 +9,25 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'app_state.dart';
 import 'help/help.dart';
 import 'ui/about_dialog.dart';
+import 'ui/file_ops.dart';
 import 'ui/help_dialog.dart';
 import 'ui/main_screen.dart';
 import 'ui/theme.dart';
 
-Future<void> main() async {
+/// args: the file to open - Windows and Linux pass it when it is opened in the Explorer or the file manager
+Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
   final state = await AppState.create();
-  runApp(LogisticsLabApp(state: state));
+  runApp(
+    LogisticsLabApp(
+      state: state,
+      files: [
+        for (final a in args)
+          if (!a.startsWith('-')) a,
+      ],
+    ),
+  );
 }
 
 /// menu of macOS (macos/Runner/AppDelegate.swift): "About LogisticsLab Studio" shows the about dialog of the app
@@ -34,6 +44,17 @@ void _setWindowTitle(String title) {
 }
 
 final _navigator = GlobalKey<NavigatorState>();
+
+/// files opened in the Finder on macOS (macos/Runner/AppDelegate.swift): those of the start once the app is shown
+/// (ready), later ones at once (open)
+const _files = MethodChannel('logisticslab/files');
+
+/// the first of the files - in this window, after the question about unsaved changes
+Future<void> _openFiles(AppState state, List<String> paths) async {
+  final context = _navigator.currentContext;
+  if (paths.isEmpty || context == null) return;
+  await FileOps(context, state).openPath(paths.first);
+}
 
 /// the help topics of the language for the search of the help menu of macOS (macos/Runner/AppDelegate.swift)
 String? _helpLanguage;
@@ -61,7 +82,17 @@ String windowTitle(AppState s) => '${s.fileName ?? s.strings('ui.untitled')}${s.
 
 class LogisticsLabApp extends StatelessWidget {
   final AppState state;
-  LogisticsLabApp({super.key, required this.state}) {
+  LogisticsLabApp({super.key, required this.state, List<String> files = const []}) {
+    if (!kIsWeb) {
+      _files.setMethodCallHandler((call) async {
+        if (call.method == 'open') await _openFiles(state, [...(call.arguments as List).cast<String>()]);
+      });
+      // once the window is shown: the files of the start
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final pending = await _files.invokeListMethod<String>('ready').catchError((_) => null) ?? const <String>[];
+        await _openFiles(state, [...files, ...pending]);
+      });
+    }
     _menu.setMethodCallHandler((call) async {
       final context = _navigator.currentContext;
       if (context == null) return;
