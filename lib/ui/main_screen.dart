@@ -78,7 +78,11 @@ class MainScreen extends StatelessWidget {
                             onChangeEnd: (v) => state.setSplitRatio(v, save: true),
                             onReset: () => state.setSplitRatio(AppState.defaultSplitRatio, save: true),
                             first: MapView(state: state),
-                            second: DataPanel(state: state, onSaveSolution: files.saveSolution),
+                            second: DataPanel(
+                              state: state,
+                              onSaveSolution: files.saveSolution,
+                              onExportSolution: files.exportSolution,
+                            ),
                           );
                         },
                       ),
@@ -141,6 +145,10 @@ class _Header extends StatelessWidget {
                   MenuItemButton(onPressed: () => files.save(saveAs: true), child: Text(t('ui.saveAs'))),
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
+                  MenuItemButton(
+                    onPressed: s.solution?.results == null ? null : files.exportSolution,
+                    child: Text(t('ui.export.menu')),
+                  ),
                   const Divider(),
                   MenuItemButton(onPressed: () => showAbout(context, s), child: Text(t('ui.about.menu'))),
                 ],

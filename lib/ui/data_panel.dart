@@ -14,7 +14,8 @@ import 'widgets.dart';
 class DataPanel extends StatelessWidget {
   final AppState state;
   final VoidCallback onSaveSolution;
-  const DataPanel({super.key, required this.state, required this.onSaveSolution});
+  final VoidCallback onExportSolution;
+  const DataPanel({super.key, required this.state, required this.onSaveSolution, required this.onExportSolution});
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +35,7 @@ class DataPanel extends StatelessWidget {
         DataTab.nodes => NodesTab(state: s),
         DataTab.network => NetworkTab(state: s),
         DataTab.parameters => _ParametersTab(state: s),
-        DataTab.solution => SolutionTab(state: s, onSave: onSaveSolution),
+        DataTab.solution => SolutionTab(state: s, onSave: onSaveSolution, onExport: onExportSolution),
       };
     }
     return ColoredBox(

@@ -14,6 +14,7 @@ import '../app_log.dart';
 import '../app_state.dart';
 import '../backend/backend.dart';
 import '../model/scenario.dart';
+import '../model/solution_export.dart';
 import '../modules/modules.dart';
 import 'messages.dart';
 
@@ -23,6 +24,8 @@ const _old = XTypeGroup(
   extensions: [...AppState.oldFormats, 'TPPX', 'TSPX', 'CLPX', 'DLPX', 'NWFX', 'VRPX'],
 );
 const _llsol = XTypeGroup(label: 'LogisticsLab-Lösung', extensions: ['llsol']);
+const _xlsx = XTypeGroup(label: 'Excel', extensions: ['xlsx']);
+const _xlsxMime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 class FileOps {
   final BuildContext context;
@@ -163,23 +166,35 @@ class FileOps {
     if (path != null) _snack(state.strings('ui.saved', {'file': path.split(RegExp(r'[/\\]')).last}));
   }
 
+  /// the solution as Excel file - the tables of the solution tab (model/solution_export.dart)
+  Future<void> exportSolution() async {
+    if (state.solution == null) return;
+    final base = (state.fileName ?? state.scenario.id).replaceAll(RegExp(r'\.llab$'), '');
+    final problem = (state.problemName ?? '').replaceAll(RegExp(r'[\\/:*?"<>|]'), '-').trim();
+    final name = problem.isEmpty ? '$base.xlsx' : '$base - $problem.xlsx';
+    final path = await _writeBytes(solutionXlsx(state), name, _xlsx, null, _xlsxMime);
+    if (path != null) _snack(state.strings('ui.saved', {'file': path.split(RegExp(r'[/\\]')).last}));
+  }
+
   /// the path with the extension exactly once - the save panel of macOS sometimes adds it to a name with another dot
   /// (drogma.dlpx.llab -> drogma.dlpx.llab.llab)
   static String withExtension(String path, String extension) =>
       '${path.replaceFirst(RegExp('(\\.${RegExp.escape(extension)})+\$', caseSensitive: false), '')}.$extension';
 
   /// writes the text - path null: asks for the file (desktop) or downloads it (browser); returns the path or name
-  Future<String?> _write(String text, String name, XTypeGroup type, String? path) async {
-    final data = Uint8List.fromList(utf8.encode(text));
+  Future<String?> _write(String text, String name, XTypeGroup type, String? path) =>
+      _writeBytes(Uint8List.fromList(utf8.encode(text)), name, type, path, 'application/json');
+
+  Future<String?> _writeBytes(Uint8List data, String name, XTypeGroup type, String? path, String mime) async {
     try {
       if (kIsWeb) {
-        await XFile.fromData(data, name: name, mimeType: 'application/json').saveTo(name);
+        await XFile.fromData(data, name: name, mimeType: mime).saveTo(name);
         return name;
       }
       path ??= (await getSaveLocation(suggestedName: name, acceptedTypeGroups: [type]))?.path;
       if (path == null) return null;
       path = withExtension(path, type.extensions!.first);
-      await XFile.fromData(data, name: name, mimeType: 'application/json').saveTo(path);
+      await XFile.fromData(data, name: name, mimeType: mime).saveTo(path);
       return path;
     } catch (e) {
       await _error('$e');

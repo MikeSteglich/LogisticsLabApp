@@ -14,7 +14,8 @@ import 'widgets.dart';
 class SolutionTab extends StatelessWidget {
   final AppState state;
   final VoidCallback onSave;
-  const SolutionTab({super.key, required this.state, required this.onSave});
+  final VoidCallback onExport; // the solution as Excel file
+  const SolutionTab({super.key, required this.state, required this.onSave, required this.onExport});
 
   @override
   Widget build(BuildContext context) {
@@ -271,6 +272,11 @@ class SolutionTab extends StatelessWidget {
               icon: const Icon(Icons.save_alt, size: 16),
               label: Text(t('ui.sol.save')),
               onPressed: onSave,
+            ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.table_view_outlined, size: 16),
+              label: Text(t('ui.export.button')),
+              onPressed: onExport,
             ),
           ],
         ),
