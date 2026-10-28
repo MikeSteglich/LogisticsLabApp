@@ -143,6 +143,12 @@ class AppState extends ChangeNotifier {
   Node? get node => selectedNode == null ? null : scenario.node(selectedNode!);
   SolutionState? get solution => problemName == null ? null : solutions[problemName];
 
+  /// the parameters the solution has been solved with - the current ones if the document has none
+  Map<String, dynamic> get solutionParameters =>
+      ((solution?.document['problem'] as Map?)?['parameters'] as Map?)?.cast<String, dynamic>() ??
+      problem?.parameters ??
+      const {};
+
   /// roles of the nodes used by the problem - all roles without a problem (type)
   List<String> get problemRoles => spec?.problemRoles(problem?.parameters ?? const {}) ?? nodeRoles;
 

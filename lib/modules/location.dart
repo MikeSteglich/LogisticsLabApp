@@ -67,7 +67,12 @@ final pMedianSpec = ModuleSpec(
   parameters: const [_p, _matrixMode, _isDemandWeighted, _isCapacitated, ...solverFields],
   objective: _objVal,
   summary: const [
-    ResultColumn('objVal', unit: '€', labelKey: 'result.sumOfAssignments'),
+    ResultColumn(
+      'objVal',
+      unit: '€',
+      labelKey: 'result.sumOfAssignments',
+      weightedLabelKey: 'result.sumOfAssignments.weighted',
+    ),
     ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
     ResultColumn('longestAssignment', unit: '€'),
   ],
@@ -80,7 +85,12 @@ final pCentreSpec = ModuleSpec(
   parameters: const [_p, _matrixMode, _isDemandWeighted, _isCapacitated, ...solverFields],
   objective: _objVal,
   summary: const [
-    ResultColumn('objVal', unit: '€', labelKey: 'result.longestAssignment'),
+    ResultColumn(
+      'objVal',
+      unit: '€',
+      labelKey: 'result.longestAssignment',
+      weightedLabelKey: 'result.longestAssignment.weighted',
+    ),
     ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
   ],
 );
@@ -152,9 +162,10 @@ final mcpSpec = ModuleSpec(
 //
 // p locations anywhere on the map (great-circle distances) - their places are a result, not nodes.
 
-List<FieldSpec> _continuousParameters() => [
+/// weighted: by default the p-median, not the p-centre (as the core)
+List<FieldSpec> _continuousParameters({required bool weighted}) => [
   _p,
-  const FieldSpec('isDemandWeighted', FieldKind.boolean, defaultValue: true),
+  FieldSpec('isDemandWeighted', FieldKind.boolean, defaultValue: weighted),
   _isCapacitated,
   // one capacity for all locations
   FieldSpec(
@@ -180,10 +191,15 @@ final contPMedianSpec = ModuleSpec(
   type: 'contpmedian',
   group: ModuleGroup.location,
   roles: [_customers(withCostFactor: true)],
-  parameters: _continuousParameters(),
+  parameters: _continuousParameters(weighted: true),
   objective: _objVal,
   summary: const [
-    ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
+    ResultColumn(
+      'objVal',
+      unit: '€',
+      labelKey: 'result.sumOfDistances',
+      weightedLabelKey: 'result.sumOfDistances.weighted',
+    ),
     ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfAssignments'),
     ResultColumn('longestAssignment', unit: '€'),
     ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),
@@ -194,10 +210,15 @@ final contPCentreSpec = ModuleSpec(
   type: 'contpcentre',
   group: ModuleGroup.location,
   roles: [_customers()],
-  parameters: _continuousParameters(),
+  parameters: _continuousParameters(weighted: false),
   objective: _objVal,
   summary: const [
-    ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
+    ResultColumn(
+      'objVal',
+      unit: '€',
+      labelKey: 'result.longestDistance',
+      weightedLabelKey: 'result.longestDistance.weighted',
+    ),
     ResultColumn('longestAssignment', unit: '€'),
     ResultColumn('totalDistance', unit: '€', labelKey: 'result.sumOfAssignments'),
     ResultColumn('nrOfOpen', labelKey: 'result.nrOfLocations'),

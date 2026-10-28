@@ -43,6 +43,7 @@ class SolutionTab extends StatelessWidget {
     String money(num v) =>
         valueUnit == null || valueUnit == 'costs' ? '${t.fixed(v, 2)} €' : '${t.number(v)} $valueUnit';
     final objectiveKey = spec.objective?.call(s.problem?.parameters ?? const {});
+    final weighted = isDemandWeighted(spec, s.solutionParameters);
     final ok = sol.status == 'solution';
     final analysis = s.analysis;
     // the value of the objective function: blue frame and note
@@ -152,8 +153,11 @@ class SolutionTab extends StatelessWidget {
                     if ((col.key == 'objVal' ? res['objVal'] : summary[col.key]) case final num v)
                       card(
                         w,
-                        t(col.label),
-                        col.unit == '€'
+                        t(weighted && col.weightedLabelKey != null ? col.weightedLabelKey! : col.label),
+                        // weighted: demand x distance - no unit
+                        weighted && col.weightedLabelKey != null
+                            ? t.fixed(v, 2)
+                            : col.unit == '€'
                             ? money(v)
                             : col.unit == '@time'
                             ? s.clock.duration(v)
@@ -841,6 +845,10 @@ class _Locations extends StatelessWidget {
     final withFixed = nodes.values.any((n) => n['fixedCost'] != null);
     final assignments = s.connections;
     final withCosts = assignments.any((a) => a['costs'] != null);
+    // the part of an assignment of the objective: costs (wlp), weighted: demand x distance without a unit
+    final weighted = isDemandWeighted(s.spec!, s.solutionParameters);
+    final isCosts = s.solution!.document['valueUnit'] == 'costs' || s.problem?.type == 'wlp';
+    String rating(num v) => weighted ? t.fixed(v, 2) : money(v);
     final assigned = {for (final a in assignments) a['to']};
     final customers = s.spec!.nodeRole(s.spec!.roles.last, s.problem?.parameters ?? const {});
     final uncovered = [
@@ -906,7 +914,7 @@ class _Locations extends StatelessWidget {
                   final u when u == s.scenario.units['time'] => 'ui.sol.travelTime',
                   _ => 'ui.sol.value',
                 }),
-                if (withCosts) t('ui.sol.costs'),
+                if (withCosts) t(isCosts && !weighted ? 'ui.sol.costs' : 'ui.sol.rating'),
               ]),
               for (final (i, a) in assignments.indexed)
                 SolutionTab._row(
@@ -918,7 +926,7 @@ class _Locations extends StatelessWidget {
                     name(a['to']),
                     t.number(a['flow'] as num? ?? 0),
                     a['value'] is num ? money(a['value'] as num) : '',
-                    if (withCosts) a['costs'] is num ? money(a['costs'] as num) : '',
+                    if (withCosts) a['costs'] is num ? rating(a['costs'] as num) : '',
                   ],
                 ),
             ],

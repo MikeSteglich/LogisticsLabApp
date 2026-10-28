@@ -185,6 +185,50 @@ void main() {
     await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
   });
 
+  testWidgets(
+    'weighted with the demands: another objective, its label and the rating of every assignment',
+    skip: _stdio,
+    (tester) async {
+      MapView.showTiles = false;
+      tester.view.physicalSize = const Size(1440, 1800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final state = await _state(tester, 'lds-sued.clpx.llab');
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+      // different demands - with demands 1 the weighting does not matter
+      state.edit(() {
+        for (final (i, n) in state.scenario.nodes.indexed) {
+          n['demand'] = [1, 5, 20][i % 3];
+        }
+        state.scenario.addProblem('contpmedian', 'Median', {'p': 2});
+      });
+      await tester.pumpWidget(LogisticsLabApp(state: state));
+      for (final (name, label, weightedLabel) in [
+        ('lds-sued', 'Längste Entfernung', 'Größte gewichtete Entfernung'),
+        ('Median', 'Summe der Entfernungen', 'Summe der gewichteten Entfernungen'),
+      ]) {
+        final objVals = <bool, num>{};
+        for (final weighted in [false, true]) {
+          state.chooseProblem(name);
+          state.edit(() => state.problem!.parameters['isDemandWeighted'] = weighted);
+          await tester.runAsync(state.solve);
+          await tester.pump();
+          expect(state.message, isNull, reason: name);
+          final objVal = state.solution!.results!['objVal'] as num;
+          objVals[weighted] = objVal;
+          expect(find.text(weighted ? weightedLabel : label), findsOneWidget, reason: '$name $weighted');
+          // the ratings of the assignments: their sum or their maximum is the objective value
+          final ratings = [for (final a in state.connections) a['costs'] as num];
+          final total = name == 'Median' ? ratings.reduce((a, b) => a + b) : ratings.reduce((a, b) => a > b ? a : b);
+          expect(total, closeTo(objVal, 1e-6 * objVal), reason: '$name $weighted');
+          expect(find.text('Bewertung'), findsOneWidget);
+        }
+        expect(objVals[true], greaterThan(objVals[false]! * 1.5), reason: name);
+      }
+      await tester.runAsync(() => state.setBackendSettings(defaultBackendSettings()));
+    },
+  );
+
   testWidgets('capacities: the smallest capacity per location suggested, too small capacities refused', (tester) async {
     MapView.showTiles = false;
     tester.view.physicalSize = const Size(1440, 1800);

@@ -140,10 +140,18 @@ class ResultColumn {
   final String key; // key in results.summary - objVal: the objective value of the results
   final String? unit;
   final String? labelKey; // default result.<key>
-  const ResultColumn(this.key, {this.unit, this.labelKey});
+  // isDemandWeighted: the label - and the value without a unit (demand x distance)
+  final String? weightedLabelKey;
+  const ResultColumn(this.key, {this.unit, this.labelKey, this.weightedLabelKey});
 
   String get label => labelKey ?? 'result.$key';
 }
+
+/// the distances multiplied by the demands (isDemandWeighted) - its default if not set
+bool isDemandWeighted(ModuleSpec spec, Map<String, dynamic> p) =>
+    (p['isDemandWeighted'] as bool?) ??
+    (spec.parameters.where((f) => f.key == 'isDemandWeighted').firstOrNull?.defaultValue as bool?) ??
+    false;
 
 class ModuleSpec {
   final String type; // problem type of the llab file
