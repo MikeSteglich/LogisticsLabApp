@@ -111,6 +111,8 @@ class _Note extends StatelessWidget {
 const _matrixFields = [
   // road network from OSM: always by car (travelmode car of a new scenario) - other modes are of no use here
   FieldSpec('matrixSource', FieldKind.choice, choices: ['osm', 'beeline'], defaultValue: 'osm', required: true),
+  // beeline: the great-circle distance times this factor - empty: 1 (the distance as the crow flies)
+  FieldSpec('detourFactor', FieldKind.number, min: 0.01, hint: 'hint.detourFactor'),
   FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
   FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
 ];
@@ -220,7 +222,12 @@ class _ParametersTab extends StatelessWidget {
         const SizedBox(height: 20),
         Text(t('ui.par.matrix'), style: Ui.title),
         const SizedBox(height: Ui.gap),
-        FieldGrid(children: [for (final f in _matrixFields) field(f, s.scenario.matrix)]),
+        FieldGrid(
+          children: [
+            for (final f in _matrixFields)
+              if (f.key != 'detourFactor' || !s.scenario.usesRoads) field(f, s.scenario.matrix),
+          ],
+        ),
       ],
     );
   }

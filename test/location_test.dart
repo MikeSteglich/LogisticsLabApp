@@ -128,8 +128,17 @@ void main() {
     state.setTab(DataTab.nodes);
     await tester.pump();
     expect(find.text('Betriebskosten'), findsWidgets);
-    // maximal covering with a budget: not every customer
+    // the detour factor of the beeline: longer distances - the circle that much smaller (the customers within it
+    // are covered)
     state.chooseProblem('europa-vertrieb (Maximal Covering)');
+    state.edit(() => state.scenario.matrix['detourFactor'] = 1.3);
+    await tester.pump();
+    final radius = state.problem!.parameters['radius'] as num;
+    expect(
+      tester.widget<CircleLayer>(find.byType(CircleLayer)).circles.first.radius,
+      closeTo(radius * 1000 / 1.3, 1e-6),
+    );
+    // maximal covering with a budget: not every customer
     await tester.runAsync(state.solve);
     await tester.pump();
     final mcp = state.solution!.results!['summary'] as Map;
@@ -160,6 +169,7 @@ void main() {
     // a radius no candidate reaches: refused before solving
     state.chooseProblem('europa-vertrieb (Set Covering)');
     state.edit(() => state.problem!.parameters['radius'] = 10);
+    await tester.runAsync(state.loadCoveringRadius); // again after the detour factor - in the app after a moment
     await tester.runAsync(state.solve);
     expect(state.message, contains('Der Radius ist zu klein'));
     state.chooseProblem('europa-vertrieb (Maximal Covering)');
@@ -303,7 +313,7 @@ void main() {
       await tester.pump();
       expect(state.coveringRadius!['customer'], 'D0006');
       final min = state.minRadius!;
-      expect(min, closeTo(808.36, 0.01));
+      expect(min, closeTo(621.81, 0.01)); // as the crow flies (detour factor 1)
       // the button in the field enters it
       await tester.tap(find.byIcon(Icons.straighten));
       await tester.pump();
@@ -312,8 +322,8 @@ void main() {
       await tester.runAsync(state.solve);
       expect(state.message, isNull);
       // smaller: refused before solving, with the customer outside
-      state.edit(() => state.problem!.parameters['radius'] = 800);
-      expect(state.nodeProblems.single, startsWith('Der Radius ist zu klein: mindestens 808,36 km'));
+      state.edit(() => state.problem!.parameters['radius'] = 600);
+      expect(state.nodeProblems.single, startsWith('Der Radius ist zu klein: mindestens 621,81 km'));
       // the radius itself does not compute it again
       expect(state.coveringRadius, isNotNull);
       // opening costs considered, but none: refused

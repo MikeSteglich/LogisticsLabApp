@@ -383,7 +383,10 @@ class _MapViewState extends State<MapView> {
     if (spec == null || !const ['scp', 'mcp'].contains(spec.type)) return const [];
     final radius = p['radius'];
     if (radius is! num || radius <= 0 || (p['matrixMode'] ?? 'distances') != 'distances') return const [];
-    final meters = radius * (s.scenario.units['distance'] == 'm' ? 1 : 1000);
+    // beeline: the distance is the great-circle distance times the detour factor - the circle that radius / factor
+    // shows exactly the customers within the radius; on the roads it is only a guide (the legend says so)
+    final detour = s.scenario.usesRoads ? 1.0 : ((s.scenario.matrix['detourFactor'] as num?)?.toDouble() ?? 1.0);
+    final meters = radius * (s.scenario.units['distance'] == 'm' ? 1 : 1000) / detour;
     final open = _showSolution ? s.openNodes : const <String, bool>{};
     final candidates = spec.nodeRole(spec.roles.first, p);
     return [
@@ -1069,6 +1072,19 @@ class _MapViewState extends State<MapView> {
             CustomPaint(size: const Size(18, 9), painter: _EdgeIcon(s.scenario.usesRoads)),
             t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'),
           ),
+          // coverings on the roads: the circle as the crow flies only a guide
+          if (_showCover && s.scenario.usesRoads && _coverCircles().isNotEmpty)
+            item(
+              Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Ui.candidate.withValues(alpha: 0.7), width: 1.5),
+                ),
+              ),
+              t('ui.legend.coverRoads'),
+            ),
           if (s.scenario.usesRoads && s.routesLoading > 0)
             item(
               const SizedBox(width: 9, height: 9, child: CircularProgressIndicator(strokeWidth: 1.5)),
