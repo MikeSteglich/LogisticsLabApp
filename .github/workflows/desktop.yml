@@ -143,6 +143,15 @@ jobs:
           key: nuitka-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: nuitka-${{ runner.os }}-${{ runner.arch }}-
 
+      # macOS: HiGHS built from its sources by Cmpl2/dist/buildDist.py (universal, macOS 14) - once, then from the
+      # cache; the same for both macOS jobs, a new build when the build script changes (e.g. another version)
+      - name: macOS - HiGHS cache
+        if: runner.os == 'macOS'
+        uses: actions/cache@v4
+        with:
+          path: Cmpl2/dist/cache/highs-*-macos*-universal
+          key: highs-macOS-${{ hashFiles('Cmpl2/dist/buildDist.py') }}
+
       # the certificate in a temporary keychain (the default keychain of this run), the API key of App Store Connect
       # for notarytool as the profile loglab-notary - removed at the end
       - name: macOS - certificate and notarization
