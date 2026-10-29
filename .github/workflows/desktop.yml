@@ -1,5 +1,5 @@
-# Desktop builds of LogisticsLab Studio for Windows, Linux and macOS - each on its own system, because Flutter,
-# Nuitka and CMPL build native code (dist/buildDist.py, dist/README.md).
+# Desktop builds of LogisticsLab Studio for Windows, Linux and macOS (Apple silicon and Intel) - each on its own
+# system, because Flutter, Nuitka and CMPL build native code (dist/buildDist.py, dist/README.md).
 #
 #   started by hand (Actions -> Desktop builds -> Run workflow) or by a tag v*; a tag also makes a release
 #   with the archives
@@ -35,6 +35,10 @@ jobs:
             extra: ''
           - name: macOS
             os: macos-14
+            extra: --dmg
+          # Intel Macs (x86_64): the core built natively on an Intel runner - the app itself is universal anyway
+          - name: macOS-Intel
+            os: macos-15-intel
             extra: --dmg
     defaults:
       run:
@@ -95,13 +99,14 @@ jobs:
           install: mingw-w64-ucrt-x86_64-gcc make
           path-type: inherit
 
-      # the C files Nuitka has compiled - a new build compiles only what has changed; saved also after a failure
+      # the C files Nuitka has compiled - a new build compiles only what has changed; saved also after a failure; one
+      # cache per system and architecture (the two macOS jobs)
       - name: Nuitka cache - restore
         uses: actions/cache/restore@v4
         with:
           path: ${{ runner.temp }}/nuitka-cache
-          key: nuitka-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: nuitka-${{ runner.os }}-
+          key: nuitka-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: nuitka-${{ runner.os }}-${{ runner.arch }}-
 
       # the certificate in a temporary keychain (the default keychain of this run), the API key of App Store Connect
       # for notarytool as the profile loglab-notary - removed at the end
@@ -172,7 +177,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ runner.temp }}/nuitka-cache
-          key: nuitka-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: nuitka-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: macOS - remove the keychain
         if: always() && runner.os == 'macOS' && env.HAS_SIGNING == 'true'
