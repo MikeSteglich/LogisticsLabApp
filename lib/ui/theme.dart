@@ -81,7 +81,12 @@ ThemeData buildTheme() {
     borderRadius: BorderRadius.circular(Ui.radius),
     borderSide: const BorderSide(color: Ui.inputBorder),
   );
-  final textTheme = Typography.blackMountainView.apply(bodyColor: Ui.text, displayColor: Ui.text);
+  final base = Typography.blackMountainView.apply(bodyColor: Ui.text, displayColor: Ui.text);
+  // the text in text fields (bodyLarge) and dropdowns (titleMedium): 14 instead of 16 - compact fields
+  final textTheme = base.copyWith(
+    bodyLarge: base.bodyLarge?.copyWith(fontSize: 14),
+    titleMedium: base.titleMedium?.copyWith(fontSize: 14),
+  );
   return ThemeData(
     colorScheme: scheme,
     scaffoldBackgroundColor: Ui.background,
@@ -93,7 +98,8 @@ ThemeData buildTheme() {
       isDense: true,
       filled: true,
       fillColor: Ui.surface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      // compact: some 6 px lower than with 12 - text fields and dropdowns alike
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       border: outline,
       enabledBorder: outline,
       focusedBorder: outline.copyWith(borderSide: const BorderSide(color: Ui.accent, width: 1.5)),

@@ -74,12 +74,7 @@ class SolutionTab extends StatelessWidget {
                 Tooltip(
                   message: label,
                   waitDuration: const Duration(milliseconds: 400),
-                  child: Text(
-                    label,
-                    style: Ui.small.copyWith(fontSize: 11.5),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(label, style: Ui.small, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
                 const SizedBox(height: 1),
                 FittedBox(
@@ -88,7 +83,7 @@ class SolutionTab extends StatelessWidget {
                   child: Text(
                     value,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                       fontFeatures: Ui.tabular,
                       color: warn ? Ui.warning : Ui.text,
