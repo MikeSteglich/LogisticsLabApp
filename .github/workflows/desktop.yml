@@ -27,19 +27,24 @@ jobs:
       fail-fast: false     # one system failing does not stop the others
       matrix:
         include:
+          # file: the one archive of the system - uploaded as it is (no zip around it) and attached to a release
           - name: Windows
             os: windows-latest
             extra: ''
+            file: '*.zip'
           - name: Linux
             os: ubuntu-22.04
             extra: ''
+            file: '*.tar.gz'
           - name: macOS
             os: macos-14
             extra: --dmg
+            file: '*.dmg'
           # Intel Macs (x86_64): the core built natively on an Intel runner - the app itself is universal anyway
           - name: macOS-Intel
             os: macos-15-intel
             extra: --dmg
+            file: '*.dmg'
     defaults:
       run:
         shell: bash
@@ -183,15 +188,17 @@ jobs:
         if: always() && runner.os == 'macOS' && env.HAS_SIGNING == 'true'
         run: security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
 
-      - name: Archives
-        uses: actions/upload-artifact@v4
+      # the archive itself as the artifact of the run (archive: false - else GitHub zips it once more); its name is
+      # that of the file
+      - name: Archive
+        uses: actions/upload-artifact@v7
         with:
-          name: LogisticsLabStudio-${{ matrix.name }}
-          path: LogisticsLabApp/dist/out/*
+          path: LogisticsLabApp/dist/out/${{ matrix.file }}
+          archive: false
           if-no-files-found: error
 
       - name: Release of the tag
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: LogisticsLabApp/dist/out/*
+          files: LogisticsLabApp/dist/out/${{ matrix.file }}
