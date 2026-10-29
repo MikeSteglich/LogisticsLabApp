@@ -33,6 +33,7 @@ import stat
 import subprocess
 import sys
 import tarfile
+import time
 from pathlib import Path
 
 DISTDIR = Path(__file__).resolve().parent
@@ -352,7 +353,20 @@ def make_dmg(app, dmg, identity, work):
     (src / "Applications").symlink_to("/Applications")
     if dmg.exists():
         dmg.unlink()
-    run(["hdiutil", "create", "-volname", APP_NAME, "-srcfolder", src, "-ov", "-format", "ULMO", dmg], capture=True)
+    # hdiutil fails now and then with "Resource busy" (GitHub runners: Spotlight or XProtect holds the files for a
+    # moment) - tried again after a pause
+    cmd = ["hdiutil", "create", "-volname", APP_NAME, "-srcfolder", src, "-ov", "-format", "ULMO", dmg]
+    for attempt in range(1, 6):
+        try:
+            run(cmd, capture=True)
+            break
+        except BuildError:
+            if attempt == 5:
+                raise
+            print(f"    hdiutil: Versuch {attempt} fehlgeschlagen - neuer Versuch in {attempt * 10} s", flush=True)
+            time.sleep(attempt * 10)
+            if dmg.exists():
+                dmg.unlink()
     if identity and identity != "-":
         codesign_file(["--force", "--timestamp", "--sign", identity], dmg)
     shutil.rmtree(src)
