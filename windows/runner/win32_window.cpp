@@ -150,6 +150,17 @@ bool Win32Window::Create(const std::wstring& title,
 }
 
 bool Win32Window::Show() {
+  // a small screen (a laptop): maximized - the work area in logical pixels up to 1600 x 1000
+  MONITORINFO info{sizeof(MONITORINFO)};
+  HMONITOR monitor = MonitorFromWindow(window_handle_, MONITOR_DEFAULTTONEAREST);
+  if (GetMonitorInfo(monitor, &info)) {
+    double scale = FlutterDesktopGetDpiForMonitor(monitor) / 96.0;
+    double width = (info.rcWork.right - info.rcWork.left) / scale;
+    double height = (info.rcWork.bottom - info.rcWork.top) / scale;
+    if (width <= 1600 || height <= 1000) {
+      return ShowWindow(window_handle_, SW_SHOWMAXIMIZED);
+    }
+  }
   return ShowWindow(window_handle_, SW_SHOWNORMAL);
 }
 

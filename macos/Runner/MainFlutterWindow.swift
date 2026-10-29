@@ -6,12 +6,17 @@ class MainFlutterWindow: NSWindow, NSWindowDelegate {
     let flutterViewController = FlutterViewController()
     self.contentViewController = flutterViewController
 
-    // large enough for map and data area side by side (from 900 points width), at most the visible screen
+    // large enough for map and data area side by side (from 900 points width); a small screen (a laptop): all of it
+    // without the menu bar and the Dock - no full screen mode
     let visible = (self.screen ?? NSScreen.main)?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1440, height: 900)
-    let size = NSSize(width: min(1440, visible.width), height: min(900, visible.height))
-    self.setFrame(
-      NSRect(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2, width: size.width, height: size.height),
-      display: true)
+    if visible.width <= 1600 || visible.height <= 1000 {
+      self.setFrame(visible, display: true)
+    } else {
+      let size = NSSize(width: 1440, height: 900)
+      self.setFrame(
+        NSRect(x: visible.midX - size.width / 2, y: visible.midY - size.height / 2, width: size.width, height: size.height),
+        display: true)
+    }
     self.minSize = NSSize(width: 640, height: 480)
     // one window - no tab bar of macOS (and no menu items for it)
     NSWindow.allowsAutomaticWindowTabbing = false

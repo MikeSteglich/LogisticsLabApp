@@ -61,7 +61,7 @@ class SolutionTab extends StatelessWidget {
         children: [
           Container(
             width: w,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
             decoration: BoxDecoration(
               color: objective ? Ui.accentLight : Ui.surface,
               border: Border.all(color: objective ? Ui.accent : Ui.border, width: objective ? 2 : 1),
@@ -70,15 +70,25 @@ class SolutionTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: Ui.small, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
+                // one line - all cards of a row the same height; a long label in full on hover
+                Tooltip(
+                  message: label,
+                  waitDuration: const Duration(milliseconds: 400),
+                  child: Text(
+                    label,
+                    style: Ui.small.copyWith(fontSize: 11.5),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(height: 1),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   alignment: Alignment.centerLeft,
                   child: Text(
                     value,
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       fontFeatures: Ui.tabular,
                       color: warn ? Ui.warning : Ui.text,
@@ -149,10 +159,11 @@ class SolutionTab extends StatelessWidget {
           const SizedBox(height: 16),
           LayoutBuilder(
             builder: (context, c) {
-              final cols = c.maxWidth < 420 ? 2 : 3;
-              final w = (c.maxWidth - 10 * (cols - 1)) / cols;
+              // as many cards in a row as fit with at least 125 px each - 2 to 5
+              final cols = (c.maxWidth / 132).floor().clamp(2, 5);
+              final w = (c.maxWidth - 8 * (cols - 1)) / cols;
               return Wrap(
-                spacing: 10,
+                spacing: 8,
                 runSpacing: 10,
                 children: [
                   for (final col in spec.summary)

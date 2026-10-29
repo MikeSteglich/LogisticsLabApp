@@ -53,6 +53,15 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 1440, 900);  // map and data area side by side
+  // a small screen (a laptop): maximized - the work area up to 1600 x 1000
+  GdkDisplay* display = gdk_display_get_default();
+  GdkMonitor* monitor = display != nullptr ? gdk_display_get_primary_monitor(display) : nullptr;
+  if (monitor == nullptr && display != nullptr) monitor = gdk_display_get_monitor(display, 0);
+  if (monitor != nullptr) {
+    GdkRectangle work;
+    gdk_monitor_get_workarea(monitor, &work);
+    if (work.width <= 1600 || work.height <= 1000) gtk_window_maximize(window);
+  }
 
   // window icon: the logo (tool/make_icons_test.dart) in the assets of the bundle
   g_autofree gchar* exe = g_file_read_link("/proc/self/exe", nullptr);
