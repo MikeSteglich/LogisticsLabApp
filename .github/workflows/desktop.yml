@@ -12,7 +12,26 @@
 name: Desktop builds
 
 on:
+  # by hand: the systems to build chosen - each job costs Actions minutes (macOS ten times as many as Linux)
   workflow_dispatch:
+    inputs:
+      windows:
+        description: Windows
+        type: boolean
+        default: true
+      linux:
+        description: Linux
+        type: boolean
+        default: true
+      macos:
+        description: macOS (Apple silicon)
+        type: boolean
+        default: true
+      macos_intel:
+        description: macOS (Intel)
+        type: boolean
+        default: true
+  # a tag: all systems and a release
   push:
     tags: ['v*']
 
@@ -20,31 +39,42 @@ permissions:
   contents: write          # the release of a tag
 
 jobs:
+  # the systems of this run: those chosen by hand, all for a tag
+  systems:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.choose.outputs.matrix }}
+    steps:
+      - id: choose
+        env:
+          ALL: ${{ github.event_name != 'workflow_dispatch' }}
+          WINDOWS: ${{ inputs.windows }}
+          LINUX: ${{ inputs.linux }}
+          MACOS: ${{ inputs.macos }}
+          MACOS_INTEL: ${{ inputs.macos_intel }}
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          on = lambda k: os.environ['ALL'] == 'true' or os.environ[k] == 'true'
+          systems = [
+              ('WINDOWS', {'name': 'Windows', 'os': 'windows-latest', 'extra': '', 'file': '*.zip'}),
+              ('LINUX', {'name': 'Linux', 'os': 'ubuntu-22.04', 'extra': '', 'file': '*.tar.gz'}),
+              ('MACOS', {'name': 'macOS', 'os': 'macos-14', 'extra': '--dmg', 'file': '*.dmg'}),
+              # Intel Macs (x86_64): the core built natively on an Intel runner - the app itself is universal anyway
+              ('MACOS_INTEL', {'name': 'macOS-Intel', 'os': 'macos-15-intel', 'extra': '--dmg', 'file': '*.dmg'}),
+          ]
+          # file: the one archive of the system - uploaded as it is (no zip around it) and attached to a release
+          print('matrix=' + json.dumps({'include': [s for k, s in systems if on(k)]}))
+          PY
+
   build:
     name: ${{ matrix.name }}
+    needs: systems
+    if: ${{ fromJSON(needs.systems.outputs.matrix).include[0] != null }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false     # one system failing does not stop the others
-      matrix:
-        include:
-          # file: the one archive of the system - uploaded as it is (no zip around it) and attached to a release
-          - name: Windows
-            os: windows-latest
-            extra: ''
-            file: '*.zip'
-          - name: Linux
-            os: ubuntu-22.04
-            extra: ''
-            file: '*.tar.gz'
-          - name: macOS
-            os: macos-14
-            extra: --dmg
-            file: '*.dmg'
-          # Intel Macs (x86_64): the core built natively on an Intel runner - the app itself is universal anyway
-          - name: macOS-Intel
-            os: macos-15-intel
-            extra: --dmg
-            file: '*.dmg'
+      matrix: ${{ fromJSON(needs.systems.outputs.matrix) }}
     defaults:
       run:
         shell: bash
