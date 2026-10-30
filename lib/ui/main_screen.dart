@@ -26,6 +26,14 @@ import 'widgets.dart';
 Future<void> solve(BuildContext context, AppState s) async {
   await s.solve();
   if (!context.mounted) return;
+  // a server with API keys: asked for the key, solved again with it
+  if (s.lastResult == 'apiKey') {
+    final key = await _askApiKey(context, s);
+    if (key == null || !context.mounted) return;
+    await s.setBackendSettings(s.backendSettings.copyWith(apiKey: key));
+    if (context.mounted) return solve(context, s);
+    return;
+  }
   if (s.lastResult == 'cancelled') {
     showNote(context, s.strings('ui.solve.cancelled'));
   } else if (s.message != null) {
@@ -229,6 +237,66 @@ class _Header extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// the API key of the server - null: cancelled
+Future<String?> _askApiKey(BuildContext context, AppState s) async {
+  final key = await showDialog<String>(
+    context: context,
+    builder: (c) => _ApiKeyDialog(state: s),
+  );
+  return key == null || key.isEmpty ? null : key;
+}
+
+/// the field of the key in a widget of its own - it lives until the dialog is gone
+class _ApiKeyDialog extends StatefulWidget {
+  final AppState state;
+  const _ApiKeyDialog({required this.state});
+
+  @override
+  State<_ApiKeyDialog> createState() => _ApiKeyDialogState();
+}
+
+class _ApiKeyDialogState extends State<_ApiKeyDialog> {
+  late final _field = TextEditingController(text: widget.state.backendSettings.apiKey);
+
+  @override
+  void dispose() {
+    _field.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.state;
+    final t = s.strings;
+    return AlertDialog(
+      title: Text(t('ui.apiKey.title')),
+      content: SizedBox(
+        width: 420,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(t(s.backendSettings.apiKey.isEmpty ? 'ui.apiKey.needed' : 'ui.apiKey.invalid')),
+            const SizedBox(height: 4),
+            Text(s.message ?? '', style: Ui.small),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _field,
+              autofocus: true,
+              decoration: InputDecoration(labelText: t('ui.backend.apiKey')),
+              onSubmitted: (v) => Navigator.pop(context, v.trim()),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(t('ui.cancel'))),
+        FilledButton(onPressed: () => Navigator.pop(context, _field.text.trim()), child: Text(t('ui.apiKey.use'))),
+      ],
     );
   }
 }

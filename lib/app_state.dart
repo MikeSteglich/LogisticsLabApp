@@ -1395,6 +1395,10 @@ class AppState extends ChangeNotifier {
     } on BackendException catch (e) {
       if (cancelled.isCompleted) {
         lastResult = 'cancelled'; // the solver has been stopped by the cancel
+      } else if (e.httpStatus == 401 && _backendSettings.remote) {
+        // the server wants an API key (missing, wrong or expired) - the app asks for it (main_screen.dart)
+        lastResult = 'apiKey';
+        message = '${strings('ui.apiKey.refused')}: $e';
       } else {
         lastResult = 'error'; // refused by the core, e.g. a node without a way in the network
         message = e.outdated ? strings('ui.error.outdated') : '${strings('ui.status.error')}: $e';
