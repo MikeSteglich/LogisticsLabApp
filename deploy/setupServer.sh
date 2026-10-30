@@ -88,8 +88,23 @@ fi
 # fails (Flutter: "Cannot change ownership to uid ...")
 export TAR_OPTIONS=--no-same-owner
 
-# the token for git and pip of this run only (also git inside pip) - nothing is written to a file
+# git never asks for a user and a password - a refused token is an error
+export GIT_TERMINAL_PROMPT=0
+
+# the token for git and pip of this run only (also git inside pip) - nothing is written to a file; checked first:
+# it must read the private repositories
 if [ -n "${GITHUB_TOKEN:-}" ]; then
+  command -v curl >/dev/null || { apt-get update -q && apt-get install -y -q curl ca-certificates; }
+  for r in pyLogisticsLab pyCmpl LogisticsLabApp; do
+    code=$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $GITHUB_TOKEN" \
+           "https://api.github.com/repos/MikeSteglich/$r" || true)
+    case "$code" in
+      200) ;;
+      401) fail "GITHUB_TOKEN ungueltig oder widerrufen (GitHub: 401)" ;;
+      404) fail "GITHUB_TOKEN hat keinen Zugriff auf MikeSteglich/$r (Contents: Read-only noetig)" ;;
+      *)   fail "GitHub nicht erreichbar oder Fehler $code beim Pruefen von $r" ;;
+    esac
+  done
   export GIT_CONFIG_COUNT=1
   export GIT_CONFIG_KEY_0="url.https://x-access-token:${GITHUB_TOKEN}@github.com/.insteadOf"
   export GIT_CONFIG_VALUE_0="https://github.com/"
