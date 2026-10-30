@@ -176,7 +176,20 @@ if [ "$OPEN" = 1 ] || [ ${#INTERNAL_NETS[@]} -gt 0 ]; then
     printf '%s\n' "$key" > "$KEYFILE"
   fi
 fi
-chown "root:$USER_NAME" "$CONF"/*; chmod 640 "$CONF"/*; [ ! -f "$KEYFILE" ] || chmod 600 "$KEYFILE"
+# a first key for the administrator - the server does not start without a key file; shown at the end
+ADMINKEY="$CONF/admin.key"
+if [ ! -s "$CONF/apiKeys.yml" ] || [ ! -s "$ADMINKEY" ]; then
+  if ! grep -qE '^- *name: *admin$|^ *name: *admin$' "$CONF/apiKeys.yml" 2>/dev/null; then
+    log "erster API-Key (admin)"
+    out=$(cd "$SRC/pyLogisticsLab/logisticsLabServer" && LOGLAB_CONF_DIR="$CONF" \
+          "$BASE/venv/bin/python" manageKeys.py add admin)
+    key=$(printf '%s\n' "$out" | tail -n 1 | tr -d '[:space:]')
+    [ -n "$key" ] || fail "kein API-Key erzeugt: $out"
+    printf '%s\n' "$key" > "$ADMINKEY"
+  fi
+fi
+chown "root:$USER_NAME" "$CONF"/*; chmod 640 "$CONF"/*
+for f in "$KEYFILE" "$ADMINKEY"; do [ ! -f "$f" ] || chmod 600 "$f"; done
 
 # who needs a key: nginx sends the key of the user (header X-API-Key) - for the internal networks (and this
 # machine) that of the web app; written with every run, only readable by root (the key)
@@ -322,4 +335,8 @@ for i in 1 2 3 4 5 6 7 8 9 10; do
 done
 
 scheme=http; [ "$TLS" = 0 ] || scheme=https
+if [ -s "$ADMINKEY" ]; then
+  log "API-Key admin (auch in $ADMINKEY, nur fuer root lesbar)"
+  echo "    $(cat "$ADMINKEY")"
+fi
 log "Fertig: $scheme://${DOMAIN:-$(hostname -I | awk '{print $1}')}"

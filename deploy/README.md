@@ -41,7 +41,7 @@ Das Skript
 3. klont oder aktualisiert LogisticsLabApp, pyLogisticsLab und Cmpl2,
 4. baut den CMPL-Kern mit HiGHS (`/opt/logisticslab/cmpl`),
 5. richtet die Python-Umgebung mit pyCmpl und pyLogisticsLab samt Server ein (`/opt/logisticslab/venv`),
-6. legt die Konfiguration in `/etc/logisticsLab` an, mit `--internal-net` oder `--open` auch einen API-Key für die Web-App,
+6. legt die Konfiguration in `/etc/logisticsLab` an, einen ersten API-Key `admin` (am Ende angezeigt, auch in `/etc/logisticsLab/admin.key`) und mit `--internal-net` oder `--open` einen für die Web-App,
 7. baut die Web-App (installiert dafür bei Bedarf Flutter nach `/opt/flutter`) und kopiert sie nach `/var/www/logisticslab`,
 8. richtet den systemd-Dienst `logisticslab` und die nginx-Seite ein, holt das Zertifikat,
 9. prüft am Ende eine Anfrage über nginx: ohne Key 401 (der Server verlangt einen), mit `--internal-net`/`--open` 200.
