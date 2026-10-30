@@ -84,6 +84,10 @@ if [ -z "$MAX_PROBLEMS" ]; then
   MAX_PROBLEMS=$(( $(nproc) - 1 )); [ "$MAX_PROBLEMS" -ge 2 ] || MAX_PROBLEMS=2
 fi
 
+# tar as root takes the owners of the archive - in a container (e.g. unprivileged LXC) they do not exist and tar
+# fails (Flutter: "Cannot change ownership to uid ...")
+export TAR_OPTIONS=--no-same-owner
+
 # the token for git and pip of this run only (also git inside pip) - nothing is written to a file
 if [ -n "${GITHUB_TOKEN:-}" ]; then
   export GIT_CONFIG_COUNT=1
