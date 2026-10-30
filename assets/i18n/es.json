@@ -659,5 +659,7 @@
   "ui.sol.servedBy": "abastecido por {nodes}",
   "hint.minCapacity": "al menos {min}",
   "ui.check.capacityPerLocation": "Capacidad por ubicación demasiado pequeña: al menos {min} para la demanda total de {total}",
-  "ui.check.capacities": "Las capacidades de los candidatos ({sum}) no alcanzan para la demanda total de {total}"
+  "ui.check.capacities": "Las capacidades de los candidatos ({sum}) no alcanzan para la demanda total de {total}",
+  "ui.legal.imprint": "Aviso legal",
+  "ui.legal.privacy": "Privacidad"
 }

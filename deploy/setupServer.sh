@@ -225,7 +225,8 @@ if [ -z "$WEB" ]; then
   flutter config --no-analytics >/dev/null
   flutter precache --web
   log "Web-App bauen"
-  (cd "$SRC/LogisticsLabApp" && flutter pub get && flutter build web --release)
+  # --no-web-resources-cdn: CanvasKit from this server, not from www.gstatic.com (privacy)
+  (cd "$SRC/LogisticsLabApp" && flutter pub get && flutter build web --release --no-web-resources-cdn)
   WEB="$SRC/LogisticsLabApp/build/web"
 fi
 rsync -a --delete "$WEB/" "$WWW/"
@@ -298,6 +299,8 @@ server {
     # the web app: a new version at once (index.html, service worker), the rest cached by the browser
     location = /index.html            { add_header Cache-Control "no-cache"; }
     location = /flutter_service_worker.js { add_header Cache-Control "no-cache"; }
+    # fonts for characters missing in Roboto (web/flutter_bootstrap.js) - none here: 404, not the app
+    location /fonts/fallback/ { return 404; }
     location / {
         try_files \$uri \$uri/ /index.html;
     }

@@ -1,6 +1,7 @@
 /// Flat, plain look of the design canvas - colours and sizes in one place.
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 abstract final class Ui {
@@ -81,13 +82,19 @@ ThemeData buildTheme() {
     borderRadius: BorderRadius.circular(Ui.radius),
     borderSide: const BorderSide(color: Ui.inputBorder),
   );
-  final base = Typography.blackMountainView.apply(bodyColor: Ui.text, displayColor: Ui.text);
+  // the browser: the Roboto of the app (pubspec.yaml) - the desktop keeps the font of its system
+  final base = Typography.blackMountainView.apply(
+    bodyColor: Ui.text,
+    displayColor: Ui.text,
+    fontFamily: kIsWeb ? 'RobotoWeb' : null,
+  );
   // the text in text fields (bodyLarge) and dropdowns (titleMedium): 14 instead of 16 - compact fields
   final textTheme = base.copyWith(
     bodyLarge: base.bodyLarge?.copyWith(fontSize: 14),
     titleMedium: base.titleMedium?.copyWith(fontSize: 14),
   );
   return ThemeData(
+    fontFamily: kIsWeb ? 'RobotoWeb' : null,
     colorScheme: scheme,
     scaffoldBackgroundColor: Ui.background,
     visualDensity: VisualDensity.standard,

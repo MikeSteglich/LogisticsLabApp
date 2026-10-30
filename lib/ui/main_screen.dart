@@ -14,6 +14,7 @@ import 'data_panel.dart';
 import 'file_ops.dart';
 import 'about_dialog.dart';
 import 'help_dialog.dart';
+import 'legal_links.dart';
 import 'logo.dart';
 import 'map_view.dart';
 import 'messages.dart';
@@ -550,38 +551,66 @@ class _StatusBar extends StatelessWidget {
         color: Ui.surface,
         border: Border(top: BorderSide(color: Ui.border)),
       ),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 18,
-        runSpacing: 4,
+      child: Row(
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (items.isEmpty)
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(color: dot, borderRadius: BorderRadius.circular(4)),
-                )
-              else
-                ...items,
-              const SizedBox(width: 6),
-              Text(text, style: Ui.small),
-            ],
-          ),
-          if (objVal is num && !s.solving) Text('${t('ui.sol.objVal')} ${t.fixed(objVal, 2)}', style: Ui.small),
-          if (s.message != null)
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child: SelectableText(s.message!, maxLines: 2, style: const TextStyle(fontSize: 12, color: Ui.error)),
+          Expanded(
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 18,
+              runSpacing: 4,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (items.isEmpty)
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(color: dot, borderRadius: BorderRadius.circular(4)),
+                      )
+                    else
+                      ...items,
+                    const SizedBox(width: 6),
+                    Text(text, style: Ui.small),
+                  ],
+                ),
+                if (objVal is num && !s.solving) Text('${t('ui.sol.objVal')} ${t.fixed(objVal, 2)}', style: Ui.small),
+                if (s.message != null)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 640),
+                    child: SelectableText(
+                      s.message!,
+                      maxLines: 2,
+                      style: const TextStyle(fontSize: 12, color: Ui.error),
+                    ),
+                  ),
+                Text(t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'), style: Ui.small),
+                Text(t('ui.nodes.count', {'n': s.scenario.nodes.length}), style: Ui.small),
+              ],
             ),
-          Text(t(s.scenario.usesRoads ? 'ui.edges.osm' : 'ui.edges.beeline'), style: Ui.small),
-          Text(t('ui.nodes.count', {'n': s.scenario.nodes.length}), style: Ui.small),
+          ),
+          // the browser app: the pages of the operator (web/impressum.html, web/datenschutz.html)
+          if (kIsWeb) ...[
+            _legalLink(t('ui.legal.imprint'), _legalPage('impressum', t.language)),
+            const Text(' · ', style: Ui.small),
+            _legalLink(t('ui.legal.privacy'), _legalPage('datenschutz', t.language)),
+          ],
         ],
       ),
     );
   }
+
+  /// the page in the language of the app - German the original, the others machine translations of it
+  static String _legalPage(String kind, String language) =>
+      language == 'de' || !const ['en', 'es', 'fr'].contains(language) ? '$kind.html' : '${kind}_$language.html';
+
+  static Widget _legalLink(String text, String page) => InkWell(
+    onTap: () => openLegalPage(page),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+      child: Text(text, style: Ui.small.copyWith(color: Ui.accent)),
+    ),
+  );
 }
 
 /// asks before the app is closed with unsaved changes - Cmd+Q, the menu and the close button of the window

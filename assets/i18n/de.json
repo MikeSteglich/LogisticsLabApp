@@ -659,5 +659,7 @@
   "ui.sol.servedBy": "beliefert von {nodes}",
   "hint.minCapacity": "mindestens {min}",
   "ui.check.capacityPerLocation": "Kapazität je Standort zu klein: für den Gesamtbedarf von {total} mindestens {min}",
-  "ui.check.capacities": "Die Kapazitäten der Kandidaten ({sum}) reichen nicht für den Gesamtbedarf von {total}"
+  "ui.check.capacities": "Die Kapazitäten der Kandidaten ({sum}) reichen nicht für den Gesamtbedarf von {total}",
+  "ui.legal.imprint": "Impressum",
+  "ui.legal.privacy": "Datenschutz"
 }

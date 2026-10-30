@@ -13,7 +13,7 @@ Browser --https--> nginx --+-- /      Web-App (statische Dateien aus flutter bui
 - VM mit Root-Zugang, DNS-Name, der auf die VM zeigt, Ports 80 und 443 offen. Größe: siehe unten.
 - Ausgehender Zugriff auf GitHub, PyPI, die OSM-Server aus `confs/logisticsLab.yml` und Let's Encrypt.
 - Ein GitHub-Token mit Lesezugriff auf `pyLogisticsLab`, `pyCmpl` und `LogisticsLabApp` (privat). Es wird nur während der Einrichtung für git und pip verwendet und nicht gespeichert.
-- Die Web-App baut das Skript selbst: Es installiert Flutter (Version wie bei GitHub) nach `/opt/flutter`, falls es fehlt oder eine andere Version hat. Wer sie lieber auf dem eigenen Rechner baut: `flutter build web --release` in LogisticsLabApp, `build/web` auf den Server kopieren und mit `--web` übergeben.
+- Die Web-App baut das Skript selbst: Es installiert Flutter (Version wie bei GitHub) nach `/opt/flutter`, falls es fehlt oder eine andere Version hat. Wer sie lieber auf dem eigenen Rechner baut: `flutter build web --release --no-web-resources-cdn` in LogisticsLabApp (ohne `--no-web-resources-cdn` lädt der Browser Teile der App von Google), `build/web` auf den Server kopieren und mit `--web` übergeben.
 
 ## Einrichten
 
