@@ -66,7 +66,7 @@ python3 dist/buildDist.py --sign "Developer ID Application: ..." --notarize <key
 - Windows: Der CMPL-Kern wird mit MSYS2/MinGW-w64 (UCRT64) gebaut, die App mit Visual Studio. Die Werkzeuge von MSYS2 stehen nur für diesen Schritt und ganz hinten im `PATH`.
 - Linux: GTK-3-Entwicklungspakete, `clang`, `cmake`, `ninja`.
 - Die fertige App wird auf den Rechnern nicht gestartet (`--no-launch-test`, kein Bildschirm). Der Test des Rechenkerns in der App läuft.
-- macOS: zwei Jobs, `macOS` auf `macos-14` (Apple Silicon, `macos-arm64`) und `macOS-Intel` auf `macos-15-intel` (Intel, `macos-x86_64`). Die App selbst ist in beiden universell, der Rechenkern (Nuitka, CMPL) wird für die jeweilige Architektur gebaut. Der Nuitka-Cache ist je Architektur getrennt.
+- macOS: zwei Jobs, `macOS` auf `macos-15` (Apple Silicon, `macos-arm64`) und `macOS-Intel` auf `macos-15-intel` (Intel, `macos-x86_64`). Die App selbst ist in beiden universell, der Rechenkern (Nuitka, CMPL) wird für die jeweilige Architektur gebaut. Der Nuitka-Cache ist je Architektur getrennt.
 - macOS: ohne weitere Secrets ad hoc signiert, mit `.dmg`. Mit diesen Secrets wird mit der Developer ID signiert und das `.dmg` notarisiert (Ticket angeheftet):
   - `MACOS_CERTIFICATE`: Zertifikat „Developer ID Application“ mit privatem Schlüssel als `.p12`, base64 (`base64 -i zert.p12 | pbcopy`)
   - `MACOS_CERTIFICATE_PASSWORD`: Passwort des `.p12`
