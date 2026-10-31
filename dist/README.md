@@ -62,8 +62,7 @@ python3 dist/buildDist.py --sign "Developer ID Application: ..." --notarize <key
 
 `.github/workflows/desktop.yml` baut die App auf GitHub-Rechnern für Windows, Linux und macOS, jeweils auf dem eigenen System. Gestartet wird der Workflow von Hand (*Actions → Desktop builds → Run workflow*, dort die Systeme auswählen – macOS-Minuten zählen bei privaten Repos zehnfach) oder durch einen Tag `v*` (alle Systeme). Danach liegt je System genau ein Archiv als Artefakt am Lauf, ohne zusätzliches Zip von GitHub (`archive: false`): Windows `.zip`, Linux `.tar.gz`, macOS `.dmg`. Bei einem Tag entsteht zusätzlich ein Release mit diesen Dateien.
 
-- Ausgecheckt werden die drei Repositories nebeneinander, wie `buildDist.py` sie erwartet: `LogisticsLabApp`, `pyLogisticsLab` (privat) und `Cmpl2` (öffentlich).
-- pyLogisticsLab und pyCmpl sind privat. Der Workflow braucht deshalb das Secret `LOGLAB_REPOS_TOKEN`: einen *fine-grained personal access token* mit Lesezugriff (*Contents: Read-only*) auf pyLogisticsLab und pyCmpl. Er wird unter *Settings → Secrets and variables → Actions* des Repositorys LogisticsLabApp eingetragen.
+- Ausgecheckt werden die drei Repositories nebeneinander, wie `buildDist.py` sie erwartet: `LogisticsLabApp`, `pyLogisticsLab` und `Cmpl2`.
 - Windows: Der CMPL-Kern wird mit MSYS2/MinGW-w64 (UCRT64) gebaut, die App mit Visual Studio. Die Werkzeuge von MSYS2 stehen nur für diesen Schritt und ganz hinten im `PATH`.
 - Linux: GTK-3-Entwicklungspakete, `clang`, `cmake`, `ninja`.
 - Die fertige App wird auf den Rechnern nicht gestartet (`--no-launch-test`, kein Bildschirm). Der Test des Rechenkerns in der App läuft.

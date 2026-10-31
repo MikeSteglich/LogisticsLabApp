@@ -145,7 +145,7 @@ rm -rf "$BASE/cmpl"; mv "$BASE/cmpl.new" "$BASE/cmpl"
 log "Python-Umgebung $BASE/venv"
 [ -x "$BASE/venv/bin/python" ] || python3 -m venv "$BASE/venv"
 "$BASE/venv/bin/pip" install -q --upgrade pip
-# pyCmpl from its private repository (requirements.txt), pyLogisticsLab with the server
+# pyCmpl from its repository (requirements.txt), pyLogisticsLab with the server
 "$BASE/venv/bin/pip" install -q "$(grep -E '^pyCmpl' "$SRC/pyLogisticsLab/requirements.txt")"
 "$BASE/venv/bin/pip" install -q -e "$SRC/pyLogisticsLab[server]"
 chown -R "root:$USER_NAME" "$BASE"; chmod -R g+rX,o-rwx "$BASE"

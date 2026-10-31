@@ -5,9 +5,7 @@
 #   with the archives
 #
 # The three repositories lie side by side as dist/buildDist.py expects them:
-#   LogisticsLabApp/  pyLogisticsLab/ (private)  Cmpl2/ (public)
-# pyLogisticsLab and pyCmpl (installed by pip from GitHub) are private - the secret LOGLAB_REPOS_TOKEN is a
-# fine-grained personal access token with read access ("Contents: Read-only") to these repositories.
+#   LogisticsLabApp/  pyLogisticsLab/  Cmpl2/ - all public, as pyCmpl (installed by pip from GitHub)
 
 name: Desktop builds
 
@@ -93,17 +91,12 @@ jobs:
         with:
           repository: MikeSteglich/pyLogisticsLab
           path: pyLogisticsLab
-          token: ${{ secrets.LOGLAB_REPOS_TOKEN }}
 
       - name: Check out Cmpl2
         uses: actions/checkout@v4
         with:
           repository: MikeSteglich/Cmpl2
           path: Cmpl2
-
-      # pip installs pyCmpl from its private repository (pyLogisticsLab/requirements.txt)
-      - name: Access to the private repositories for git and pip
-        run: git config --global url."https://x-access-token:${{ secrets.LOGLAB_REPOS_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - name: Python (base of the Nuitka build environment)
         uses: actions/setup-python@v5
