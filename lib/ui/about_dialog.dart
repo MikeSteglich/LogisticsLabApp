@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
+import 'links.dart';
 import 'logo.dart';
 import 'theme.dart';
 
@@ -82,7 +83,30 @@ Future<void> showAbout(BuildContext context, AppState state) {
                 'Flutter, BSD-3-Clause · flutter_map (Fleaflet), BSD-3-Clause · pyLogisticsLab',
               ),
               // the source code of the free software (AGPL) - also for the users of the web app
-              credit(t('ui.about.source'), 'github.com/MikeSteglich/LogisticsLabApp · pyLogisticsLab'),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 150,
+                      child: Text(t('ui.about.source'), style: const TextStyle(fontSize: 13, color: Ui.textSecondary)),
+                    ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          for (final r in sourceRepositories)
+                            InkWell(
+                              onTap: () => openLink('https://$r'),
+                              child: Text(r, style: const TextStyle(fontSize: 13, color: Ui.accent)),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 14),
               Text(t('ui.about.thanksTitle').toUpperCase(), style: Ui.sectionLabel),
               const SizedBox(height: 8),

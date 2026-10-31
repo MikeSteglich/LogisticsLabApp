@@ -11,6 +11,7 @@ import 'package:logisticslab_app/app_state.dart';
 import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
 import 'package:logisticslab_app/ui/about_dialog.dart';
+import 'package:logisticslab_app/ui/links.dart';
 import 'package:logisticslab_app/ui/map_view.dart';
 
 void main() {
@@ -58,7 +59,9 @@ void main() {
     expect(find.textContaining('Photon (komoot)'), findsOneWidget);
     expect(find.textContaining('Katrin Kampe'), findsOneWidget);
     expect(find.textContaining('AGPL-3.0-or-later'), findsOneWidget);
-    expect(find.textContaining('github.com/MikeSteglich/LogisticsLabApp'), findsOneWidget);
+    for (final r in sourceRepositories) {
+      expect(find.text(r), findsOneWidget);
+    }
     expect(find.textContaining('LogisticsLab 5'), findsOneWidget);
     // authors and licences
     expect(find.text('Mike Steglich'), findsOneWidget);

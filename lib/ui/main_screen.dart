@@ -14,7 +14,7 @@ import 'data_panel.dart';
 import 'file_ops.dart';
 import 'about_dialog.dart';
 import 'help_dialog.dart';
-import 'legal_links.dart';
+import 'links.dart';
 import 'logo.dart';
 import 'map_view.dart';
 import 'messages.dart';
@@ -594,6 +594,8 @@ class _StatusBar extends StatelessWidget {
             _legalLink(t('ui.legal.imprint'), _legalPage('impressum', t.language)),
             const Text(' · ', style: Ui.small),
             _legalLink(t('ui.legal.privacy'), _legalPage('datenschutz', t.language)),
+            const Text(' · ', style: Ui.small),
+            _legalLink(t('ui.about.source'), 'https://${sourceRepositories.first}'),
           ],
         ],
       ),
@@ -605,7 +607,7 @@ class _StatusBar extends StatelessWidget {
       language == 'de' || !const ['en', 'es', 'fr'].contains(language) ? '$kind.html' : '${kind}_$language.html';
 
   static Widget _legalLink(String text, String page) => InkWell(
-    onTap: () => openLegalPage(page),
+    onTap: () => openLink(page),
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
       child: Text(text, style: Ui.small.copyWith(color: Ui.accent)),
