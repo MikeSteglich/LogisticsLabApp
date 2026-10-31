@@ -15,7 +15,15 @@ bool _fixed(Map<String, dynamic> p, {required bool byDefault}) => (p['useFixedCo
 
 /// candidates: their opening costs and (capacitated) their capacity
 RoleSpec _candidates({FieldCondition? withFixedCosts, bool withCapacity = false}) => RoleSpec('sources', 'candidate', [
-  FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, labelKey: 'field.openingCost', visibleIf: withFixedCosts),
+  FieldSpec(
+    'fixedCost',
+    FieldKind.number,
+    unit: '€',
+    min: 0,
+    labelKey: 'field.openingCost',
+    visibleIf: withFixedCosts,
+    emptyValue: 0,
+  ),
   if (withCapacity)
     const FieldSpec(
       'capacity',
@@ -40,6 +48,7 @@ const _matrixMode = FieldSpec(
   'matrixMode',
   FieldKind.choice,
   choices: ['distances', 'times', 'costs'],
+  defaultValue: 'distances',
   labelKey: 'field.matrixModeLocation',
 );
 const _isCapacitated = FieldSpec('isCapacitated', FieldKind.boolean, defaultValue: false);
@@ -193,7 +202,7 @@ List<FieldSpec> _continuousParameters({required bool weighted}) => [
   ),
   // the default of the core: 20 starts
   const FieldSpec('nrOfStarts', FieldKind.integer, min: 1, hint: 'hint.autoStarts'),
-  const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
+  const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 300),
 ];
 
 final contPMedianSpec = ModuleSpec(

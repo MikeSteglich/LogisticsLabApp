@@ -48,6 +48,7 @@ class FieldSpec {
   final String? labelKey; // default field.<key>
   final String? unit;
   final String? hint; // key of the text in an empty field, e.g. hint.auto
+  final num? emptyValue; // the value the core takes for an empty field - shown there (grey), not stored
   final Object? defaultValue;
   final List<String> choices; // values of FieldKind.choice - labels choice.<key>.<value>
   final bool required;
@@ -66,6 +67,7 @@ class FieldSpec {
     this.labelKey,
     this.unit,
     this.hint,
+    this.emptyValue,
     this.defaultValue,
     this.choices = const [],
     this.required = false,
@@ -294,9 +296,14 @@ const objSenseField = FieldSpec(
 
 const matrixModeField = FieldSpec('matrixMode', FieldKind.choice, choices: ['distances', 'times', 'costs']);
 
+// the defaults of the core (logisticsLabCore/items.py): SolverOptions - FlowOptions
 const solverFields = [
-  FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
-  FieldSpec('mipGap', FieldKind.number, min: 0),
+  FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 300),
+  FieldSpec('mipGap', FieldKind.number, min: 0, emptyValue: 0.001),
+];
+const flowSolverFields = [
+  FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 60),
+  FieldSpec('mipGap', FieldKind.number, min: 0, emptyValue: 0.001),
 ];
 
 bool isOn(Map<String, dynamic> p, String key) => p[key] == true;

@@ -587,7 +587,11 @@ class SpecField extends StatelessWidget {
           decimals: spec.kind == FieldKind.integer ? 0 : 6,
           hint:
               hintText ??
-              (spec.hint != null ? s(spec.hint!) : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
+              (spec.hint != null
+                  ? s(spec.hint!)
+                  : spec.emptyValue != null
+                  ? s.number(spec.emptyValue!, decimals: 6, grouping: false)
+                  : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
           help: s.has(spec.help) ? s(spec.help) : null,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,

@@ -57,6 +57,8 @@ void main() {
     expect(find.textContaining('openrouteservice'), findsOneWidget);
     expect(find.textContaining('Photon (komoot)'), findsOneWidget);
     expect(find.textContaining('Katrin Kampe'), findsOneWidget);
+    expect(find.textContaining('AGPL-3.0-or-later'), findsOneWidget);
+    expect(find.textContaining('github.com/MikeSteglich/LogisticsLabApp'), findsOneWidget);
     expect(find.textContaining('LogisticsLab 5'), findsOneWidget);
     // authors and licences
     expect(find.text('Mike Steglich'), findsOneWidget);

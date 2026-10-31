@@ -10,7 +10,7 @@ import 'theme.dart';
 /// name and version of the app - the version is the same as in pubspec.yaml (test/about_test.dart checks it).
 /// The successor of LogisticsLab 5 starts at 1.0.0 - the name tells them apart.
 const appName = 'LogisticsLab Studio';
-const appVersion = '1.0.0';
+const appVersion = '1.0.1';
 
 Future<void> showAbout(BuildContext context, AppState state) {
   final t = state.strings;
@@ -81,6 +81,8 @@ Future<void> showAbout(BuildContext context, AppState state) {
                 t('ui.about.software'),
                 'Flutter, BSD-3-Clause · flutter_map (Fleaflet), BSD-3-Clause · pyLogisticsLab',
               ),
+              // the source code of the free software (AGPL) - also for the users of the web app
+              credit(t('ui.about.source'), 'github.com/MikeSteglich/LogisticsLabApp · pyLogisticsLab'),
               const SizedBox(height: 14),
               Text(t('ui.about.thanksTitle').toUpperCase(), style: Ui.sectionLabel),
               const SizedBox(height: 8),
@@ -89,7 +91,7 @@ Future<void> showAbout(BuildContext context, AppState state) {
               Text(t('ui.about.successor'), style: Ui.small),
               const SizedBox(height: 6),
               const Text(
-                '© 2026 Mike Steglich, Technische Hochschule Wildau · LGPL-3.0',
+                '© 2026 Mike Steglich, Technische Hochschule Wildau · AGPL-3.0-or-later',
                 style: TextStyle(fontSize: 12, color: Ui.textSecondary),
               ),
             ],

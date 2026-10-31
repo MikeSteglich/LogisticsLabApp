@@ -8,7 +8,7 @@
 #
 # Usage (as root, again for an update - existing configuration and keys are kept):
 #
-#   sudo GITHUB_TOKEN=... ./setupServer.sh --domain logisticslab.example.org --email admin@example.org
+#   sudo ./setupServer.sh --domain logisticslab.example.org --email admin@example.org
 #
 #   --domain NAME      the name of the server (DNS) - also for the certificate; without it: only http, reached by
 #                      the IP address (a name without an own domain: e.g. 194-95-44-20.nip.io)
@@ -17,7 +17,7 @@
 #                      without it the web app is built here, Flutter installed to /opt/flutter if necessary
 #   --flutter-version V  the Flutter of this build (default as in .github/workflows/desktop.yml)
 #   --src DIR          the repositories side by side: LogisticsLabApp, pyLogisticsLab, Cmpl2
-#                      (default /opt/logisticslab/src - cloned or updated with GITHUB_TOKEN)
+#                      (default /opt/logisticslab/src - cloned or updated)
 #   --max-problems N   solver processes at the same time (default: number of CPUs - 1, at least 2)
 #   --no-tls           no certificate (e.g. behind another proxy, or for a test in the local network)
 #   --internal-net CIDR  a network whose users need no API key (e.g. 194.95.44.0/22 or the VPN) - several times
@@ -27,8 +27,8 @@
 # nginx passes it on. For --internal-net and --open nginx adds the key of the web app itself - it never reaches
 # the browser.
 #
-# GITHUB_TOKEN: a token with read access to the private repositories pyLogisticsLab, pyCmpl and LogisticsLabApp -
-# only used for git and pip during the setup, it is not stored.
+# GITHUB_TOKEN (optional, only while repositories are private): a token with read access to pyLogisticsLab, pyCmpl
+# and LogisticsLabApp - only used for git and pip during the setup, it is not stored.
 #
 # Afterwards:
 #   systemctl status logisticslab           journalctl -u logisticslab -f
@@ -131,8 +131,8 @@ for r in "${REPOS[@]}"; do
   if [ -d "$SRC/$r/.git" ]; then
     git -C "$SRC/$r" pull --ff-only
   else
-    [ -n "${GITHUB_TOKEN:-}" ] || [ "$r" = Cmpl2 ] || fail "$SRC/$r fehlt - GITHUB_TOKEN setzen oder --src angeben"
-    git clone "https://github.com/MikeSteglich/$r.git" "$SRC/$r"
+    git clone "https://github.com/MikeSteglich/$r.git" "$SRC/$r" ||
+      fail "$r nicht geladen - bei privaten Repositories GITHUB_TOKEN setzen oder --src angeben"
   fi
 done
 

@@ -16,7 +16,7 @@ import 'model/scenario.dart';
 import 'model/solution_analysis.dart';
 import 'modules/modules.dart';
 
-enum DataTab { nodes, network, parameters, solution }
+enum DataTab { parameters, nodes, network, solution }
 
 /// Solution document (llsol) of a problem and the revision of the data it was computed with.
 class SolutionState {
@@ -134,7 +134,7 @@ class AppState extends ChangeNotifier {
 
   String? problemName;
   String? selectedNode;
-  DataTab tab = DataTab.nodes;
+  DataTab tab = DataTab.parameters;
   bool placing = false; // next tap into the map sets the position of the selected node
   bool addingNodes = false; // every tap into the map adds a node - until it is switched off
   final solutions = <String, SolutionState>{};
@@ -742,7 +742,7 @@ class AppState extends ChangeNotifier {
     selectedFlow = null;
     selectedRoute = null;
     highlightedNode = null;
-    tab = DataTab.nodes;
+    tab = DataTab.parameters;
     placing = false;
     message = null;
     _checkFailed = false;

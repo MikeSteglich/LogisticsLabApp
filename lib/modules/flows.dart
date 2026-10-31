@@ -10,10 +10,10 @@ const _balance = FieldSpec('balance', FieldKind.choice, defaultValue: 'auto', ch
 // the throughput of a node - for transshipment nodes: supply and demand limit that of suppliers and customers
 const _notEnds = ['sources', 'destinations'];
 const _nodeCaps = [
-  FieldSpec('minCap', FieldKind.number, min: 0, notForRoles: _notEnds),
+  FieldSpec('minCap', FieldKind.number, min: 0, notForRoles: _notEnds, emptyValue: 0),
   FieldSpec('maxCap', FieldKind.unlimited, min: 0, notForRoles: _notEnds),
 ];
-const _shortage = FieldSpec('shortageCost', FieldKind.number, unit: '€', min: 0);
+const _shortage = FieldSpec('shortageCost', FieldKind.number, unit: '€', min: 0, emptyValue: 0);
 const _flowSummary = [
   ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
   ResultColumn('totalVarCosts', unit: '€'),
@@ -38,12 +38,12 @@ final minCostFlowSpec = ModuleSpec(
     matrixModeField,
     const FieldSpec('useFixedCosts', FieldKind.boolean, defaultValue: false),
     _balance,
-    ...solverFields,
+    ...flowSolverFields,
   ],
   edgeFields: const [
     FieldSpec('capacity', FieldKind.unlimited, min: 0),
-    FieldSpec('minFlow', FieldKind.number, min: 0),
-    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, requires: 'useFixedCosts'),
+    FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
+    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, requires: 'useFixedCosts', emptyValue: 0),
   ],
   summary: _flowSummary,
   objective: _objVal,
@@ -76,11 +76,11 @@ final maxFlowSpec = ModuleSpec(
     const FieldSpec('endpoints', FieldKind.choice, defaultValue: 'nodes', choices: ['nodes', 'roles']),
     FieldSpec('source', FieldKind.node, required: true, visibleIf: (p) => !_fromRoles(p)),
     FieldSpec('sink', FieldKind.node, required: true, visibleIf: (p) => !_fromRoles(p)),
-    const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
+    const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 60),
   ],
   edgeFields: const [
     FieldSpec('capacity', FieldKind.unlimited, min: 0),
-    FieldSpec('minFlow', FieldKind.number, min: 0),
+    FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
   ],
   summary: const [ResultColumn('objVal', labelKey: 'result.maxFlow')],
   objective: _objVal,
@@ -99,12 +99,12 @@ final multiCommoditySpec = ModuleSpec(
   parameters: const [
     FieldSpec('isInteger', FieldKind.boolean, defaultValue: false),
     _balance,
-    FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
-    FieldSpec('mipGap', FieldKind.number, min: 0),
+    FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 60),
+    FieldSpec('mipGap', FieldKind.number, min: 0, emptyValue: 0.001),
   ],
   edgeFields: const [
     FieldSpec('capacity', FieldKind.unlimited, min: 0),
-    FieldSpec('minFlow', FieldKind.number, min: 0),
+    FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
   ],
   summary: const [
     ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
@@ -123,7 +123,7 @@ final multimodalSpec = ModuleSpec(
     RoleSpec('destinations', 'customer', [FieldSpec('demand', FieldKind.number, required: true, min: 0), _shortage]),
   ],
   nodeFields: _nodeCaps,
-  parameters: [_balance, ...solverFields],
+  parameters: [_balance, ...flowSolverFields],
   edgeFields: const [FieldSpec('modes', FieldKind.modes)],
   summary: _flowSummary,
   objective: _objVal,
@@ -136,7 +136,7 @@ final multiStageWlpSpec = ModuleSpec(
   roles: const [
     RoleSpec('sources', 'supplier', [FieldSpec('supply', FieldKind.number, required: true, min: 0)]),
     RoleSpec('warehouses', 'candidate', [
-      FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, labelKey: 'field.openingCost'),
+      FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, labelKey: 'field.openingCost', emptyValue: 0),
       FieldSpec('capacity', FieldKind.unlimited, min: 0),
     ]),
     RoleSpec('destinations', 'customer', [FieldSpec('demand', FieldKind.number, required: true, min: 0), _shortage]),
@@ -146,12 +146,12 @@ final multiStageWlpSpec = ModuleSpec(
     matrixModeField,
     const FieldSpec('isSingleSource', FieldKind.boolean, defaultValue: false, labelKey: 'field.isSingleSourceWlp'),
     _balance,
-    ...solverFields,
+    ...flowSolverFields,
   ],
   edgeFields: const [
     FieldSpec('capacity', FieldKind.unlimited, min: 0),
-    FieldSpec('minFlow', FieldKind.number, min: 0),
-    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0),
+    FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
+    FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, emptyValue: 0),
   ],
   summary: const [
     ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),

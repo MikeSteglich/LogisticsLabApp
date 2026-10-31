@@ -22,9 +22,10 @@ class DataPanel extends StatelessWidget {
     final s = state;
     final t = s.strings;
     final tabs = {
+      // the order of the work: the problem, its data, the solution
+      DataTab.parameters: t('ui.tab.parameters'),
       DataTab.nodes: t('ui.tab.nodes'),
       DataTab.network: t('ui.tab.network'),
-      DataTab.parameters: t('ui.tab.parameters'),
       DataTab.solution: t('ui.tab.solution'),
     };
     final Widget body;
@@ -113,8 +114,8 @@ const _matrixFields = [
   FieldSpec('matrixSource', FieldKind.choice, choices: ['osm', 'beeline'], defaultValue: 'osm', required: true),
   // beeline: the great-circle distance times this factor - empty: 1 (the distance as the crow flies)
   FieldSpec('detourFactor', FieldKind.number, min: 0.01, hint: 'hint.detourFactor'),
-  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
-  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
+  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0, emptyValue: 0),
+  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0, emptyValue: 0),
 ];
 
 class _ParametersTab extends StatelessWidget {
@@ -261,16 +262,17 @@ const _vehicleFields = [
 ];
 const _commodityFields = [
   FieldSpec('name', FieldKind.text),
-  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
-  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
+  // empty: the rates of the matrix
+  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0, hint: 'hint.likeMatrix'),
+  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0, hint: 'hint.likeMatrix'),
   FieldSpec('capacityFactor', FieldKind.number, min: 0, defaultValue: 1.0),
 ];
 const _modeFields = [
   FieldSpec('name', FieldKind.text),
-  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0),
-  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0),
-  FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0),
-  FieldSpec('minFlow', FieldKind.number, min: 0),
+  FieldSpec('costPerKm', FieldKind.number, unit: '€', min: 0, hint: 'hint.likeMatrix'),
+  FieldSpec('costPerHour', FieldKind.number, unit: '€', min: 0, hint: 'hint.likeMatrix'),
+  FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, emptyValue: 0),
+  FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
   FieldSpec('capacity', FieldKind.unlimited, min: 0),
 ];
 

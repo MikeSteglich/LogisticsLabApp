@@ -78,7 +78,7 @@ final pdpSpec = ModuleSpec(
     RoleSpec('sources', 'pickup', [
       const FieldSpec('amount', FieldKind.number, required: true, min: 0),
       const FieldSpec('deliveryTo', FieldKind.node, required: true, nodeRole: 'delivery'),
-      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
+      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0, emptyValue: 0),
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
     ], main: 'amount'),
     RoleSpec('destinations', 'delivery', [
@@ -86,8 +86,15 @@ final pdpSpec = ModuleSpec(
       const FieldSpec('delivered', FieldKind.number, computed: true),
       // service: a stop time per visit and a time per unit delivered - several quantities at one stop share the
       // stop time
-      const FieldSpec('serviceTime', FieldKind.number, labelKey: 'field.stopTime', unit: '@time', min: 0),
-      const FieldSpec('serviceTimePerUnit', FieldKind.number, unit: '@time', min: 0),
+      const FieldSpec(
+        'serviceTime',
+        FieldKind.number,
+        labelKey: 'field.stopTime',
+        unit: '@time',
+        min: 0,
+        emptyValue: 0,
+      ),
+      const FieldSpec('serviceTimePerUnit', FieldKind.number, unit: '@time', min: 0, emptyValue: 0),
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
     ], main: 'delivered'),
   ],
@@ -95,8 +102,8 @@ final pdpSpec = ModuleSpec(
   parameters: [
     for (final f in vrpSpec.parameters) ...[
       if (f.key == 'maxSolvingTime') ...const [
-        FieldSpec('maxRideTime', FieldKind.number, unit: '@time', min: 0),
-        FieldSpec('maxDetour', FieldKind.number, min: 1),
+        FieldSpec('maxRideTime', FieldKind.number, unit: '@time', min: 0, hint: 'hint.noLimit'),
+        FieldSpec('maxDetour', FieldKind.number, min: 1, hint: 'hint.noLimit'),
       ],
       f,
     ],
@@ -122,7 +129,7 @@ final vrpSpec = ModuleSpec(
     ], main: 'timeWindow'),
     RoleSpec('destinations', 'customer', [
       const FieldSpec('demand', FieldKind.number, required: true, min: 0),
-      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0),
+      const FieldSpec('serviceTime', FieldKind.number, unit: '@time', min: 0, emptyValue: 0),
       FieldSpec('timeWindow', FieldKind.timeWindow, unit: '@time', visibleIf: (p) => isOn(p, 'useTimeWindows')),
     ]),
   ],
@@ -130,9 +137,9 @@ final vrpSpec = ModuleSpec(
     FieldSpec('useTimeWindows', FieldKind.boolean, defaultValue: false),
     // every tour starts at the start of the depot (waiting at the customers) - otherwise as late as needed
     FieldSpec('fixedStart', FieldKind.boolean, defaultValue: false),
-    FieldSpec('maxTime', FieldKind.number, unit: '@time', min: 0),
-    FieldSpec('maxDist', FieldKind.number, unit: '@distance', min: 0),
-    FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1),
+    FieldSpec('maxTime', FieldKind.number, unit: '@time', min: 0, hint: 'hint.noLimit'),
+    FieldSpec('maxDist', FieldKind.number, unit: '@distance', min: 0, hint: 'hint.noLimit'),
+    FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 10),
   ],
   // total distance in the distance unit of the scenario
   objective: (_) => 'totalDistance',
