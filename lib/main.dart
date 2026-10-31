@@ -19,6 +19,7 @@ import 'ui/theme.dart';
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting();
+  if (kIsWeb) await _loadDefaultFont();
   final state = await AppState.create();
   runApp(
     LogisticsLabApp(
@@ -29,6 +30,17 @@ Future<void> main(List<String> args) async {
       ],
     ),
   );
+}
+
+/// the browser: Roboto of the app also as the default font of the engine - text without a family (tooltips, outside
+/// of the Material of the app) asks for it; the engine would load it from the server, where it is not, and Safari
+/// shows nothing (no fallback of the system as in Chrome)
+Future<void> _loadDefaultFont() async {
+  final fonts = FontLoader('Roboto');
+  for (final f in ['Regular', 'Medium', 'Bold']) {
+    fonts.addFont(rootBundle.load('assets/fonts/Roboto-$f.ttf'));
+  }
+  await fonts.load();
 }
 
 /// menu of macOS (macos/Runner/AppDelegate.swift): "About LogisticsLab Studio" shows the about dialog of the app
