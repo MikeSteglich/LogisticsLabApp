@@ -75,6 +75,21 @@ def run(cmd, cwd=None, env=None, capture=False, input=None):
     return res.stdout if capture else None
 
 
+def run_retry(cmd, again=None):
+    """run fuer Schritte mit kurzen Aussetzern (Netz, belegte Dateien): bis zu fuenf Versuche mit wachsender Pause -
+    again: vor jedem neuen Versuch."""
+    for attempt in range(1, 6):
+        try:
+            return run(cmd, capture=True)
+        except BuildError:
+            if attempt == 5:
+                raise
+            print(f"    Versuch {attempt} fehlgeschlagen - neuer Versuch in {attempt * 10} s", flush=True)
+            time.sleep(attempt * 10)
+            if again:
+                again()
+
+
 class Target:
     """Betriebssystem und Architektur, fuer die gebaut wird (= das eigene)."""
 
@@ -338,8 +353,9 @@ def notarize(path, profile):
 
 def staple(path):
     """Heftet das Ticket an (.app, .dmg) - Gatekeeper braucht dann kein Netz."""
-    run(["xcrun", "stapler", "staple", path], capture=True)
-    run(["xcrun", "stapler", "validate", path], capture=True)
+    # beide fragen bei Apple nach - das Netz reisst auf den Runnern gelegentlich ab
+    run_retry(["xcrun", "stapler", "staple", path])
+    run_retry(["xcrun", "stapler", "validate", path])
     print(f"    Ticket angeheftet: {path.name}")
 
 
@@ -355,18 +371,8 @@ def make_dmg(app, dmg, identity, work):
         dmg.unlink()
     # hdiutil fails now and then with "Resource busy" (GitHub runners: Spotlight or XProtect holds the files for a
     # moment) - tried again after a pause
-    cmd = ["hdiutil", "create", "-volname", APP_NAME, "-srcfolder", src, "-ov", "-format", "ULMO", dmg]
-    for attempt in range(1, 6):
-        try:
-            run(cmd, capture=True)
-            break
-        except BuildError:
-            if attempt == 5:
-                raise
-            print(f"    hdiutil: Versuch {attempt} fehlgeschlagen - neuer Versuch in {attempt * 10} s", flush=True)
-            time.sleep(attempt * 10)
-            if dmg.exists():
-                dmg.unlink()
+    run_retry(["hdiutil", "create", "-volname", APP_NAME, "-srcfolder", src, "-ov", "-format", "ULMO", dmg],
+              again=lambda: dmg.unlink(missing_ok=True))
     if identity and identity != "-":
         codesign_file(["--force", "--timestamp", "--sign", identity], dmg)
     shutil.rmtree(src)
