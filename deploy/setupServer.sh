@@ -226,7 +226,8 @@ if [ -z "$WEB" ]; then
   flutter precache --web
   log "Web-App bauen"
   # --no-web-resources-cdn: CanvasKit from this server, not from www.gstatic.com (privacy)
-  (cd "$SRC/LogisticsLabApp" && flutter pub get && flutter build web --release --no-web-resources-cdn)
+  # flutter clean: the list of the web plugins of an earlier build is not renewed for a new plugin (no links)
+  (cd "$SRC/LogisticsLabApp" && flutter clean && flutter pub get && flutter build web --release --no-web-resources-cdn)
   WEB="$SRC/LogisticsLabApp/build/web"
 fi
 rsync -a --delete "$WEB/" "$WWW/"

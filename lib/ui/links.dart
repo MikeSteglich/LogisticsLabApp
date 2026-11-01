@@ -1,7 +1,8 @@
 /// Links in the browser (a new tab) - a page next to the web app (relative) or an address on the internet.
 library;
 
-import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/material.dart';
+import 'package:url_launcher/link.dart';
 
 /// the source code of the free software (AGPL)
 const sourceRepositories = [
@@ -11,4 +12,20 @@ const sourceRepositories = [
   'github.com/MikeSteglich/Cmpl2',
 ];
 
-Future<void> openLink(String url) => launchUrl(Uri.base.resolve(url), webOnlyWindowName: '_blank');
+/// a text as a link - in the browser a real link of the page: window.open after a tap is blocked as a popup
+class TextLink extends StatelessWidget {
+  final String text;
+  final String url;
+  final TextStyle? style;
+  const TextLink(this.text, this.url, {super.key, this.style});
+
+  @override
+  Widget build(BuildContext context) => Link(
+    uri: Uri.base.resolve(url),
+    target: LinkTarget.blank,
+    builder: (context, follow) => InkWell(
+      onTap: follow,
+      child: Text(text, style: style),
+    ),
+  );
+}

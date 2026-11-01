@@ -606,12 +606,9 @@ class _StatusBar extends StatelessWidget {
   static String _legalPage(String kind, String language) =>
       language == 'de' || !const ['en', 'es', 'fr'].contains(language) ? '$kind.html' : '${kind}_$language.html';
 
-  static Widget _legalLink(String text, String page) => InkWell(
-    onTap: () => openLink(page),
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-      child: Text(text, style: Ui.small.copyWith(color: Ui.accent)),
-    ),
+  static Widget _legalLink(String text, String page) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
+    child: TextLink(text, page, style: Ui.small.copyWith(color: Ui.accent)),
   );
 }
 

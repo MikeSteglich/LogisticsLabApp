@@ -97,10 +97,7 @@ Future<void> showAbout(BuildContext context, AppState state) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           for (final r in sourceRepositories)
-                            InkWell(
-                              onTap: () => openLink('https://$r'),
-                              child: Text(r, style: const TextStyle(fontSize: 13, color: Ui.accent)),
-                            ),
+                            TextLink(r, 'https://$r', style: const TextStyle(fontSize: 13, color: Ui.accent)),
                         ],
                       ),
                     ),
