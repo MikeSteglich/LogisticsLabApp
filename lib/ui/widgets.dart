@@ -467,7 +467,8 @@ class SpecField extends StatelessWidget {
           ],
         );
       case FieldKind.commodities:
-        // a number per commodity of the scenario - empty: 0 (supplies, demands) or 1 (capacity factors)
+        // a number per commodity of the scenario - empty (shown grey): 0 (supplies, demands) or the capacity factor of
+        // the commodity (capacity factors of a node)
         final values = (value as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
         final commodities = scenario?.commodities ?? const <Map<String, dynamic>>[];
         return Column(
@@ -486,6 +487,11 @@ class SpecField extends StatelessWidget {
                       key: ValueKey('${spec.key}|${c['id']}'),
                       label: Scenario.recordName(c),
                       value: values[c['id']] as num?,
+                      hint: s.number(
+                        spec.key == 'capacityFactors' ? (c['capacityFactor'] as num? ?? 1) : 0,
+                        decimals: 6,
+                        grouping: false,
+                      ),
                       strings: s,
                       check: (v) => v != null && v < 0 ? Message('error.min', {'label': spec.label, 'min': 0}) : null,
                       onChanged: (v) {

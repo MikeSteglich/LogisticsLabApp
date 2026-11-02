@@ -95,7 +95,11 @@ final multiCommoditySpec = ModuleSpec(
     RoleSpec('sources', 'supplier', [FieldSpec('supplies', FieldKind.commodities, required: true)]),
     RoleSpec('destinations', 'customer', [FieldSpec('demands', FieldKind.commodities, required: true), _shortage]),
   ],
-  nodeFields: const [..._nodeCaps, FieldSpec('capacityFactors', FieldKind.commodities)],
+  // the factors of the throughput: only where a throughput is - empty: those of the commodities
+  nodeFields: const [
+    ..._nodeCaps,
+    FieldSpec('capacityFactors', FieldKind.commodities, notForRoles: _notEnds),
+  ],
   parameters: const [
     FieldSpec('isInteger', FieldKind.boolean, defaultValue: false),
     _balance,
