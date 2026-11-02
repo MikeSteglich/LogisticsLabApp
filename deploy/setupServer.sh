@@ -297,9 +297,12 @@ server {
         proxy_read_timeout 180s;    # matrix and routing requests run synchronously
     }
 
-    # the web app: a new version at once (index.html, service worker), the rest cached by the browser
-    location = /index.html            { add_header Cache-Control "no-cache"; }
-    location = /flutter_service_worker.js { add_header Cache-Control "no-cache"; }
+    # the web app: a new version at once - the browser asks every time (ETag, 304 if unchanged); the files of the
+    # app keep their names from version to version (main.dart.js, flutter_bootstrap.js, ...)
+    location ~* \.(html|js|json|wasm|css)$ {
+        add_header Cache-Control "no-cache";
+        try_files \$uri =404;
+    }
     # fonts for characters missing in Roboto (web/flutter_bootstrap.js) - none here: 404, not the app
     location /fonts/fallback/ { return 404; }
     location / {
