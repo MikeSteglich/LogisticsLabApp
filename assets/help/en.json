@@ -45,7 +45,7 @@
   "id": "tsp",
   "title": "Round trip and passage (TSP)",
   "keywords": "tsp round trip passage tour start end open end open start shortest paths auxiliary nodes",
-  "body": "The shortest tour through all active nodes. The kind of tour can be a round trip (back to the start), a passage (from the start to the end), an open end, an open start or completely open.\n\nWithout a network the distances of the matrix apply. With a network the tour follows the shortest paths in the network – auxiliary nodes such as junctions and directed edges block or allow ways. If there is no possible tour, the app names the section without a way."
+  "body": "The shortest tour through all active nodes. The kind of tour can be a round trip (back to the start), a passage (from the start to the end), an open end, an open start or completely open.\n\nWithout a network the distances of the matrix apply. With a network the tour follows the shortest paths in the network – auxiliary nodes such as junctions and directed edges block or allow ways. Under “Connections in the network” you can choose “Only direct edges” instead: the tour then reaches every node exactly once directly over an edge – a node with only one edge makes a round trip impossible, the app says so before solving. If there is no possible tour, the app names the section without a way."
  },
  {
   "id": "shortestpath",

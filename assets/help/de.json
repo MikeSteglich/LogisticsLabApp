@@ -45,7 +45,7 @@
   "id": "tsp",
   "title": "Rundreise und Durchfahrt (TSP)",
   "keywords": "tsp rundreise durchfahrt tour start ziel offen offenes ende offener anfang kürzeste wege hilfsknoten",
-  "body": "Die kürzeste Tour durch alle aktiven Knoten. Als Art der Tour gibt es Rundreise (zurück zum Start), Durchfahrt (vom Start zum Ziel), offenes Ende, offenen Anfang und komplett offen.\n\nOhne Netz gelten die Entfernungen der Matrix. Mit Netz fährt die Tour über die kürzesten Wege im Netz – Hilfsknoten wie Kreuzungen und gerichtete Kanten sperren oder erlauben Wege. Gibt es keine mögliche Tour, nennt die App den Abschnitt ohne Weg."
+  "body": "Die kürzeste Tour durch alle aktiven Knoten. Als Art der Tour gibt es Rundreise (zurück zum Start), Durchfahrt (vom Start zum Ziel), offenes Ende, offenen Anfang und komplett offen.\n\nOhne Netz gelten die Entfernungen der Matrix. Mit Netz fährt die Tour über die kürzesten Wege im Netz – Hilfsknoten wie Kreuzungen und gerichtete Kanten sperren oder erlauben Wege. Unter „Verbindungen im Netz“ lässt sich stattdessen „Nur direkte Kanten“ wählen: Dann fährt die Tour jeden Knoten genau einmal direkt über eine Kante an – ein Knoten mit nur einer Kante macht eine Rundreise unmöglich, die App sagt das vor dem Rechnen. Gibt es keine mögliche Tour, nennt die App den Abschnitt ohne Weg."
  },
  {
   "id": "shortestpath",

@@ -177,6 +177,8 @@ class ModuleSpec {
   final bool allNodes; // the problem uses all active nodes, e.g. the tsp
   final bool edgeDirections; // each edge directed or not (tsp, cpp) - else the direction of the network
   final bool usesVehicles; // the scenario needs vehicles (vrp)
+  // fields of the problem itself (not of its parameters) shown with a network, e.g. networkMode of a tsp
+  final List<FieldSpec> networkFields;
 
   /// key of the summary value the objective function uses - depends on the parameters (e.g. objSense)
   final String? Function(Map<String, dynamic> parameters)? objective;
@@ -198,6 +200,7 @@ class ModuleSpec {
     this.allNodes = false,
     this.edgeDirections = false,
     this.usesVehicles = false,
+    this.networkFields = const [],
     this.objective,
   });
 

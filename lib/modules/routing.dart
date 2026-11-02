@@ -10,6 +10,15 @@ bool _withStart(Map<String, dynamic> p) => !const ['openStart', 'free'].contains
 /// the end is given: passage or open start
 bool _withEnd(Map<String, dynamic> p) => const ['path', 'openStart'].contains(p['tourType']);
 
+/// how a tour uses the network: the shortest ways through it (nodes passed more than once) or only its edges, every
+/// node once - as in the core: empty is shortestPaths
+const networkModeField = FieldSpec(
+  'networkMode',
+  FieldKind.choice,
+  defaultValue: 'shortestPaths',
+  choices: ['shortestPaths', 'edges'],
+);
+
 final tspSpec = ModuleSpec(
   type: 'tsp',
   group: ModuleGroup.routing,
@@ -17,6 +26,7 @@ final tspSpec = ModuleSpec(
   allNodes: true,
   edgeDirections: true,
   network: NetworkUse.optional,
+  networkFields: const [networkModeField],
   parameters: [
     const FieldSpec(
       'tourType',

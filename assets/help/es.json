@@ -45,7 +45,7 @@
   "id": "tsp",
   "title": "Ruta circular y de paso (TSP)",
   "keywords": "tsp ruta circular paso recorrido inicio destino final abierto inicio abierto caminos más cortos nodos auxiliares",
-  "body": "El recorrido más corto por todos los nodos activos. El tipo de ruta puede ser circular (de vuelta al inicio), de paso (del inicio al destino), con final abierto, con inicio abierto o totalmente abierto.\n\nSin red se usan las distancias de la matriz. Con red, la ruta sigue los caminos más cortos de la red: los nodos auxiliares, como cruces, y las aristas dirigidas bloquean o permiten caminos. Si no hay ninguna ruta posible, la aplicación indica el tramo sin camino."
+  "body": "El recorrido más corto por todos los nodos activos. El tipo de ruta puede ser circular (de vuelta al inicio), de paso (del inicio al destino), con final abierto, con inicio abierto o totalmente abierto.\n\nSin red se usan las distancias de la matriz. Con red, la ruta sigue los caminos más cortos de la red: los nodos auxiliares, como cruces, y las aristas dirigidas bloquean o permiten caminos. En «Conexiones en la red» se puede elegir en su lugar «Solo aristas directas»: la ruta llega entonces a cada nodo exactamente una vez directamente por una arista – un nodo con una sola arista hace imposible una ruta circular, la app lo indica antes de calcular. Si no hay ninguna ruta posible, la aplicación indica el tramo sin camino."
  },
  {
   "id": "shortestpath",

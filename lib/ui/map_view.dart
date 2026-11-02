@@ -294,14 +294,15 @@ class _MapViewState extends State<MapView> {
                     strokeJoin: StrokeJoin.round,
                   )
                 : Polyline(
-                    // solid - dashes of overlapping edges merge into solid lines; beside a solution thinner and
-                    // lighter: the used edges (blue) are on top
+                    // solid - dashes of overlapping edges merge into solid lines; beside a solution thin, pale and
+                    // dashed: the unused edges stand back, the used edges (blue) are on top
                     hitValue: i,
                     points: s.edgePoints(a.position, b.position),
-                    color: withSolution ? Ui.network.withValues(alpha: 0.7) : Ui.network,
-                    strokeWidth: withSolution ? 2.5 : 3,
+                    color: withSolution ? Ui.network.withValues(alpha: 0.45) : Ui.network,
+                    strokeWidth: withSolution ? 2 : 3,
+                    pattern: withSolution ? StrokePattern.dashed(segments: const [6, 5]) : const StrokePattern.solid(),
                     borderColor: Colors.white,
-                    borderStrokeWidth: 1,
+                    borderStrokeWidth: withSolution ? 0 : 1,
                     strokeCap: StrokeCap.round,
                     strokeJoin: StrokeJoin.round,
                   ),

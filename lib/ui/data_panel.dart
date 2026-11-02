@@ -177,6 +177,9 @@ class _ParametersTab extends StatelessWidget {
               },
             ),
             ..._pairedNodes([for (final f in spec.visibleParameters(values)) f], (f) => field(f, values)),
+            // fields of the problem itself with a network, e.g. how a tour uses it
+            if (p.network != null)
+              for (final f in spec.networkFields) field(f, p.json),
           ],
         ),
         if (errors.isNotEmpty) ...[

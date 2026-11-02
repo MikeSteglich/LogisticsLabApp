@@ -599,6 +599,31 @@ class AppState extends ChangeNotifier {
       out.add(strings('ui.check.noEdges'));
     }
     if (s.allNodes && scenario.nodes.where((n) => n.active).length < 2) out.add(strings('ui.check.twoNodes'));
+    // a tour only over the edges visits every node once - it cannot leave a node with one neighbour on the way it
+    // came (round trip: every node, passage: not start and end; with an open start or end any node can be one)
+    final tourType = p.parameters['tourType'] ?? 'round';
+    if (s.networkFields.contains(networkModeField) &&
+        network != null &&
+        p.json['networkMode'] == 'edges' &&
+        (tourType == 'round' || tourType == 'path')) {
+      final active = [
+        for (final n in scenario.nodes)
+          if (n.active) n,
+      ];
+      final ids = {for (final n in active) n.id};
+      final neighbours = <String, Set<String>>{};
+      for (final e in network!.edges) {
+        if (e.from == e.to || !ids.contains(e.from) || !ids.contains(e.to)) continue;
+        neighbours.putIfAbsent(e.from, () => {}).add(e.to);
+        neighbours.putIfAbsent(e.to, () => {}).add(e.from);
+      }
+      final ends = tourType == 'path' ? {p.parameters['startNode'], p.parameters['endNode']} : const <Object?>{};
+      final leaves = [
+        for (final n in active)
+          if (!ends.contains(n.id) && (neighbours[n.id]?.length ?? 0) < 2) n,
+      ];
+      if (active.length > 2 && leaves.isNotEmpty) out.add(strings('ui.check.oneNeighbour', {'nodes': names(leaves)}));
+    }
     final matrix = scenario.matrix;
     if (p.parameters['matrixMode'] == 'costs' && matrix['costPerKm'] == null && matrix['costPerHour'] == null) {
       out.add(strings('ui.check.costRates'));

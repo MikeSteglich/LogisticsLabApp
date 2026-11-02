@@ -45,7 +45,7 @@
   "id": "tsp",
   "title": "Tournée et traversée (TSP)",
   "keywords": "tsp tournée traversée parcours départ arrivée fin ouverte départ ouvert plus courts chemins nœuds auxiliaires",
-  "body": "La tournée la plus courte par tous les nœuds actifs. Le type de tournée peut être une tournée (retour au départ), une traversée (du départ à l’arrivée), une fin ouverte, un départ ouvert ou entièrement ouvert.\n\nSans réseau, ce sont les distances de la matrice qui s’appliquent. Avec un réseau, la tournée suit les plus courts chemins du réseau : les nœuds auxiliaires comme les carrefours et les arcs orientés bloquent ou autorisent des chemins. S’il n’existe aucune tournée possible, l’application indique le tronçon sans chemin."
+  "body": "La tournée la plus courte par tous les nœuds actifs. Le type de tournée peut être une tournée (retour au départ), une traversée (du départ à l’arrivée), une fin ouverte, un départ ouvert ou entièrement ouvert.\n\nSans réseau, ce sont les distances de la matrice qui s’appliquent. Avec un réseau, la tournée suit les plus courts chemins du réseau : les nœuds auxiliaires comme les carrefours et les arcs orientés bloquent ou autorisent des chemins. Sous « Liaisons dans le réseau », on peut choisir à la place « Arcs directs seulement » : la tournée atteint alors chaque nœud exactement une fois directement par un arc – un nœud avec un seul arc rend une tournée circulaire impossible, l’application le signale avant le calcul. S’il n’existe aucune tournée possible, l’application indique le tronçon sans chemin."
  },
  {
   "id": "shortestpath",
