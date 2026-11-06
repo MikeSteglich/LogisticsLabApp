@@ -11,7 +11,7 @@ import 'theme.dart';
 /// name and version of the app - the version is the same as in pubspec.yaml (test/about_test.dart checks it).
 /// The successor of LogisticsLab 5 starts at 1.0.0 - the name tells them apart.
 const appName = 'LogisticsLab Studio';
-const appVersion = '1.0.3';
+const appVersion = '1.0.4';
 
 Future<void> showAbout(BuildContext context, AppState state) {
   final t = state.strings;

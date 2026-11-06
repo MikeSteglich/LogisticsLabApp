@@ -24,6 +24,12 @@
   "body": "Network flows, the shortest path and the Chinese postman need a network, for the transportation problem and the TSP it is optional. In the **Network** tab you choose the network of the problem or create a new one.\n\n- **Draw edge:** click the start node and then the end node on the map.\n- **Create all connections:** for transportation problems from the suppliers (via the transshipment nodes) to the customers, for the TSP, the shortest path and the Chinese postman all nodes with each other.\n- **Direction:** in transportation problems the edges lead from the suppliers to the customers, edges drawn the wrong way round are turned. For the TSP, the shortest path and the Chinese postman each edge is directed or undirected.\n- Values of the edges such as capacity or fixed costs are in the form. Some only take effect once the matching parameter is switched on."
  },
  {
+  "id": "variants",
+  "title": "Data variants",
+  "keywords": "data variant variant base quantities capacity costs peak season comparison multi-commodity",
+  "body": "Besides the base values a file can contain data variants: other quantities, capacities and costs at the nodes and edges, e.g. a peak season or the capacities of a multi-commodity problem. Name, position and roles of the nodes and the edges themselves are the same in all variants.\n\n- In the parameters tab each problem chooses its data variant. Several problems can use the same one.\n- “New data variant …” takes the values of the chosen variant – afterwards only what differs is changed.\n- The node and edge masks show the values of the variant of the chosen problem. Differing values are marked blue, the arrow beside them resets them to the base.\n- If a variant is deleted, its problems use the base again."
+ },
+ {
   "id": "tpp",
   "title": "Transportation problem (TPP)",
   "keywords": "transportation problem tpp objective costs contribution quantity bottleneck ranges capacity fixed costs single source block cost rate",

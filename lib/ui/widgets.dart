@@ -98,7 +98,8 @@ class SplitView extends StatelessWidget {
 class FieldLabel extends StatelessWidget {
   final String text;
   final String? help; // shown as tooltip of an info symbol beside the label
-  const FieldLabel(this.text, {super.key, this.help});
+  final ValueReset? reset; // a value of the data variant: marked, with a button back to the base
+  const FieldLabel(this.text, {super.key, this.help, this.reset});
 
   @override
   Widget build(BuildContext context) {
@@ -106,23 +107,44 @@ class FieldLabel extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Ui.textMuted),
+        style: reset == null
+            ? const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Ui.textMuted)
+            : const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Ui.accentDark),
       ),
     );
-    if (help == null) return label;
+    if (help == null && reset == null) return label;
     return Row(
       children: [
         Flexible(child: label),
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 4),
-          child: Tooltip(
-            message: help!,
-            child: const Icon(Icons.info_outline, size: 14, color: Ui.textSecondary),
+        if (help != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 4),
+            child: Tooltip(
+              message: help!,
+              child: const Icon(Icons.info_outline, size: 14, color: Ui.textSecondary),
+            ),
           ),
-        ),
+        if (reset case final r?)
+          Padding(
+            padding: const EdgeInsets.only(left: 4, bottom: 4),
+            child: Tooltip(
+              message: r.tooltip,
+              child: InkWell(
+                onTap: r.onReset,
+                child: const Icon(Icons.undo, size: 14, color: Ui.accentDark),
+              ),
+            ),
+          ),
       ],
     );
   }
+}
+
+/// a value that differs from the base in the data variant - the tooltip and the reset to the base value
+class ValueReset {
+  final String tooltip;
+  final VoidCallback onReset;
+  const ValueReset(this.tooltip, this.onReset);
 }
 
 /// Text field that keeps its own controller - the value is taken on every change (onChanged).
@@ -237,6 +259,7 @@ class NumberField extends StatefulWidget {
   final String? hint;
   final String? unit;
   final String? help; // shown as tooltip of an info symbol beside the label
+  final ValueReset? reset; // a value of the data variant
   final Message? Function(num?)? check;
   final String Function(num?)? format; // other text than a number, e.g. a time of the day
   final num? Function(String)? parse;
@@ -254,6 +277,7 @@ class NumberField extends StatefulWidget {
     this.hint,
     this.unit,
     this.help,
+    this.reset,
     this.check,
     this.format,
     this.parse,
@@ -309,7 +333,11 @@ class _NumberFieldState extends State<NumberField> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      FieldLabel(widget.unit == null ? widget.label : '${widget.label} (${widget.unit})', help: widget.help),
+      FieldLabel(
+        widget.unit == null ? widget.label : '${widget.label} (${widget.unit})',
+        help: widget.help,
+        reset: widget.reset,
+      ),
       TextField(
         controller: _c,
         onChanged: _changed,
@@ -358,6 +386,7 @@ class SpecField extends StatelessWidget {
   final String? suggestionTooltip;
   // the problem type - a help text of the field for it or its group before the general one (field.<key>.help.<type>)
   final ModuleSpec? module;
+  final ValueReset? reset; // the value differs from the base in the data variant
 
   const SpecField({
     super.key,
@@ -372,6 +401,7 @@ class SpecField extends StatelessWidget {
     this.suggestion,
     this.suggestionTooltip,
     this.module,
+    this.reset,
   });
 
   /// the help text: for the problem type, its group or in general - null without one
@@ -402,7 +432,9 @@ class SpecField extends StatelessWidget {
   /// label of a field with commodities or modes - with a link to their list
   Widget _recordsLabel(String label) => Row(
     children: [
-      Expanded(child: FieldLabel(label, help: _help)),
+      Expanded(
+        child: FieldLabel(label, help: _help, reset: reset),
+      ),
       if (onEditRecords != null)
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
@@ -574,7 +606,7 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel(label, help: _help),
+            FieldLabel(label, help: _help, reset: reset),
             Row(
               children: [
                 for (final (i, key) in const [(0, 'ui.timeWindow.from'), (1, 'ui.timeWindow.to')]) ...[
@@ -616,6 +648,7 @@ class SpecField extends StatelessWidget {
                   ? s.number(spec.emptyValue!, decimals: 6, grouping: false)
                   : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
           help: _help,
+          reset: reset,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,
           check: (v) => spec.validate(v),

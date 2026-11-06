@@ -13,6 +13,7 @@ import 'solution_tab.dart' show PartChooser;
 import '../model/table_io.dart';
 import 'table_dialogs.dart';
 import 'theme.dart';
+import 'variants.dart';
 import 'widgets.dart';
 
 class NodesTab extends StatelessWidget {
@@ -440,6 +441,7 @@ class _NodeMask extends StatelessWidget {
               t('ui.node.fieldsFor', {'type': spec.label}),
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Ui.textMuted),
             ),
+            if (s.problem?.variant case final v?) VariantNote(state: s, variant: v),
             const SizedBox(height: 10),
             FieldGrid(
               children: [
@@ -465,6 +467,9 @@ class _NodeMask extends StatelessWidget {
                       spec: f,
                       value: n[f.key] ?? f.defaultValue,
                       strings: t,
+                      reset: n.differs(f.key)
+                          ? ValueReset(t('ui.variant.reset'), () => s.edit(() => n.reset(f.key)))
+                          : null,
                       onChanged: (v) => s.edit(() => n[f.key] = v),
                     ),
               ],

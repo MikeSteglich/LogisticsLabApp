@@ -5,13 +5,68 @@ library;
 
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:latlong2/latlong.dart';
 
 const nodeRoles = ['supplier', 'customer', 'candidate', 'depot', 'transit', 'pickup', 'delivery'];
 
+// the values of a data variant (as in the core): quantities, capacities and costs - not the identity, place and
+// roles of a node or the ends of an edge
+const variantNodeFields = {
+  'supply', 'minSupply', 'maxSupply', 'demand', 'minDemand', 'maxDemand', 'capacity', 'fixedCost', 'costFactor', //
+  'price', 'unitCost', 'timeWindow', 'serviceTime', 'serviceTimePerUnit', 'amount', 'minCap', 'maxCap',
+  'shortageCost', 'supplies', 'demands', 'capacityFactors',
+};
+const variantEdgeFields = {'capacity', 'minFlow', 'fixedCost', 'modes', 'commodities'};
+
+/// the values of a node or an edge in a data variant: the value of the variant if it has one, else the base value -
+/// a change of the variant is stored in json.variants of the variant only where it differs from the base
+class _Values {
+  final Map<String, dynamic> json;
+  final String? variant;
+  final Set<String> fields;
+  const _Values(this.json, this.variant, this.fields);
+
+  bool _inVariant(String key) => variant != null && fields.contains(key);
+  Map<String, dynamic>? get _own => ((json['variants'] as Map?)?[variant] as Map?)?.cast<String, dynamic>();
+
+  Object? get(String key) {
+    if (_inVariant(key) && (_own?.containsKey(key) ?? false)) return _own![key];
+    return json[key];
+  }
+
+  void set(String key, Object? v) {
+    if (!_inVariant(key)) {
+      v == null ? json.remove(key) : json[key] = v;
+      return;
+    }
+    final all = (json['variants'] ??= <String, dynamic>{}) as Map;
+    final own = (all[variant] ??= <String, dynamic>{}) as Map;
+    // the same as the base: no own value
+    if (const DeepCollectionEquality().equals(v, json[key])) {
+      own.remove(key);
+    } else {
+      own[key] = v;
+    }
+    if (own.isEmpty) all.remove(variant);
+    if (all.isEmpty) json.remove('variants');
+  }
+
+  /// the value differs from the base in the variant
+  bool differs(String key) => _inVariant(key) && (_own?.containsKey(key) ?? false);
+
+  /// back to the base value
+  void reset(String key) {
+    if (!differs(key)) return;
+    set(key, json[key]);
+  }
+}
+
 class Node {
   final Map<String, dynamic> json;
-  Node(this.json);
+  final String? variant; // data variant of the values - null: the base values
+  Node(this.json, {this.variant});
+  _Values get _values => _Values(json, variant, variantNodeFields);
 
   String get id => json['id'] as String;
   set id(String v) => json['id'] = v;
@@ -35,16 +90,22 @@ class Node {
   bool get active => json['active'] as bool? ?? true;
   set active(bool v) => v ? json.remove('active') : json['active'] = false;
 
-  /// attribute of a problem type, e.g. supply - null removes it from the file
-  Object? operator [](String key) => json[key];
-  void operator []=(String key, Object? v) => v == null ? json.remove(key) : json[key] = v;
+  /// attribute of a problem type, e.g. supply - in the data variant; null removes it (in a variant: empty)
+  Object? operator [](String key) => _values.get(key);
+  void operator []=(String key, Object? v) => _values.set(key, v);
+
+  /// the value differs from the base in the data variant - reset: the base value again
+  bool differs(String key) => _values.differs(key);
+  void reset(String key) => _values.reset(key);
 
   static double _round(double v) => (v * 1e6).roundToDouble() / 1e6;
 }
 
 class Edge {
   final Map<String, dynamic> json;
-  Edge(this.json);
+  final String? variant; // data variant of the values - null: the base values
+  Edge(this.json, {this.variant});
+  _Values get _values => _Values(json, variant, variantEdgeFields);
   String get from => json['from'] as String;
   set from(String v) => json['from'] = v;
   String get to => json['to'] as String;
@@ -56,19 +117,25 @@ class Edge {
   /// arrow of the edge: one way or both ways
   String arrowIn(Network net) => directedIn(net) ? '→' : '↔';
 
-  /// attribute of a problem type, e.g. capacity - null removes it from the file
-  Object? operator [](String key) => json[key];
-  void operator []=(String key, Object? v) => v == null ? json.remove(key) : json[key] = v;
+  /// attribute of a problem type, e.g. capacity - in the data variant; null removes it (in a variant: empty)
+  Object? operator [](String key) => _values.get(key);
+  void operator []=(String key, Object? v) => _values.set(key, v);
+
+  bool differs(String key) => _values.differs(key);
+  void reset(String key) => _values.reset(key);
 }
 
 class Network {
   final String name;
   final Map<String, dynamic> json;
-  Network(this.name, this.json);
+  final String? variant; // data variant of the values of the edges
+  Network(this.name, this.json, {this.variant});
 
   bool get directed => json['directed'] as bool? ?? false;
   set directed(bool v) => json['directed'] = v;
-  List<Edge> get edges => [for (final e in (json['edges'] as List? ?? const [])) Edge(e as Map<String, dynamic>)];
+  List<Edge> get edges => [
+    for (final e in (json['edges'] as List? ?? const [])) Edge(e as Map<String, dynamic>, variant: variant),
+  ];
   List<dynamic> get _edges => (json['edges'] ??= <dynamic>[]) as List<dynamic>;
 
   /// the connection from - to exists already (both directions for an undirected edge)
@@ -76,7 +143,7 @@ class Network {
       edges.any((e) => (e.from == from && e.to == to) || (!e.directedIn(this) && e.from == to && e.to == from));
 
   Edge addEdge(String from, String to) {
-    final e = Edge({'from': from, 'to': to});
+    final e = Edge({'from': from, 'to': to}, variant: variant);
     _edges.add(e.json);
     return e;
   }
@@ -94,6 +161,9 @@ class Problem {
   Map<String, dynamic> get parameters => (json['parameters'] ??= <String, dynamic>{}) as Map<String, dynamic>;
   String? get network => json['network'] as String?;
   set network(String? v) => v == null ? json.remove('network') : json['network'] = v;
+  // data variant of the values of the nodes and edges - null: the base values
+  String? get variant => json['variant'] as String?;
+  set variant(String? v) => v == null ? json.remove('variant') : json['variant'] = v;
 }
 
 class Scenario {
@@ -125,7 +195,11 @@ class Scenario {
   String get id => json['id'] as String? ?? 'scenario';
   String? get name => json['name'] as String?;
 
-  List<Node> get nodes => [for (final n in (json['nodes'] as List)) Node(n as Map<String, dynamic>)];
+  // data variant of the values of nodes and edges - that of the chosen problem, given by the app (not in the file)
+  String? Function()? variantOf;
+  String? get variant => variantOf?.call();
+
+  List<Node> get nodes => [for (final n in (json['nodes'] as List)) Node(n as Map<String, dynamic>, variant: variant)];
   Node? node(String id) => nodes.where((n) => n.id == id).firstOrNull;
 
   Node addNode(LatLng position, {List<String> roles = const ['customer']}) {
@@ -218,13 +292,65 @@ class Scenario {
 
   Map<String, Network> get networks => {
     for (final MapEntry(:key, :value) in ((json['networks'] as Map?) ?? const {}).entries)
-      key as String: Network(key, value as Map<String, dynamic>),
+      key as String: Network(key, value as Map<String, dynamic>, variant: variant),
   };
 
   Network addNetwork(String name, {bool directed = true}) {
     final nets = (json['networks'] ??= <String, dynamic>{}) as Map<String, dynamic>;
     nets[name] = <String, dynamic>{'directed': directed, 'edges': <dynamic>[]};
-    return Network(name, nets[name] as Map<String, dynamic>);
+    return Network(name, nets[name] as Map<String, dynamic>, variant: variant);
+  }
+
+  /// data variants - id and name; the values without a variant are the base
+  List<Map<String, dynamic>> get variants => [
+    for (final v in (json['variants'] as List?) ?? const []) (v as Map).cast<String, dynamic>(),
+  ];
+
+  /// a new data variant with the values of [from] (null: the base) - its id
+  String addVariant(String name, {String? from}) {
+    final ids = {for (final v in variants) v['id']};
+    var i = ids.length + 1;
+    while (ids.contains('V$i')) {
+      i++;
+    }
+    final id = 'V$i';
+    ((json['variants'] ??= <dynamic>[]) as List).add(<String, dynamic>{'id': id, 'name': name});
+    if (from != null) {
+      for (final item in _variantItems) {
+        final all = item['variants'] as Map?;
+        if (all?[from] case final Map values) all![id] = jsonDecode(jsonEncode(values));
+      }
+    }
+    return id;
+  }
+
+  /// deletes a data variant - its values at the nodes and edges, the problems with it use the base values
+  void removeVariant(String id) {
+    (json['variants'] as List?)?.removeWhere((v) => (v as Map)['id'] == id);
+    if ((json['variants'] as List?)?.isEmpty ?? false) json.remove('variants');
+    for (final item in _variantItems) {
+      final all = item['variants'] as Map?;
+      all?.remove(id);
+      if (all != null && all.isEmpty) item.remove('variants');
+    }
+    for (final p in problems.where((p) => p.variant == id)) {
+      p.variant = null;
+    }
+  }
+
+  /// name of a data variant - its id without name
+  String variantName(String id) => variants.where((v) => v['id'] == id).map(recordName).firstOrNull ?? id;
+
+  /// the nodes and edges (their json) that can have values of data variants
+  Iterable<Map<String, dynamic>> get _variantItems sync* {
+    for (final n in (json['nodes'] as List)) {
+      yield n as Map<String, dynamic>;
+    }
+    for (final net in ((json['networks'] as Map?) ?? const {}).values) {
+      for (final e in ((net as Map)['edges'] as List?) ?? const []) {
+        yield e as Map<String, dynamic>;
+      }
+    }
   }
 
   /// commodities (multicommodity) and modes of transport (multimodal) - records with id, name and values

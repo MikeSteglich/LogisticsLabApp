@@ -36,6 +36,8 @@ class LocalBackend implements Backend {
     try {
       _process = await Process.start(executable, arguments, workingDirectory: workingDirectory);
     } on ProcessException catch (e) {
+      // macOS: built for another processor (EBADARCH)
+      if (e.errorCode == 86) throw BackendException(500, 'wrongProcessor');
       throw BackendException(500, '$executable: ${e.message}');
     }
     // stderr: log output of the core, CMPL and HiGHS - stdout belongs to the protocol only
@@ -218,6 +220,47 @@ BackendSettings defaultBackendSettings() {
     );
   }
   return BackendSettings(executable: bundledStdio() ?? '');
+}
+
+/// the processor of the Mac: arm64 (Apple silicon, also if the app runs via Rosetta) or x86_64 (Intel) - null on
+/// other systems
+Future<String?> machineArch() async {
+  if (!Platform.isMacOS) return null;
+  try {
+    final r = await Process.run('sysctl', ['-n', 'hw.optional.arm64']);
+    return '${r.stdout}'.trim() == '1' ? 'arm64' : 'x86_64';
+  } catch (_) {
+    return null;
+  }
+}
+
+/// the processor the bundled solver is built for - from the header of the Mach-O file: arm64, x86_64, universal
+/// (both) or null (not known)
+String? solverArch(String path) {
+  try {
+    final f = File(path).openSync();
+    final b = f.readSync(8);
+    f.closeSync();
+    if (b.length < 8) return null;
+    if (b[0] == 0xCA && b[1] == 0xFE && b[2] == 0xBA && b[3] == 0xBE) return 'universal';
+    if (b[0] != 0xCF || b[1] != 0xFA || b[2] != 0xED || b[3] != 0xFE) return null; // 64 bit, little endian
+    final cpu = b[4] | b[5] << 8 | b[6] << 16 | b[7] << 24;
+    return switch (cpu) {
+      0x0100000C => 'arm64',
+      0x01000007 => 'x86_64',
+      _ => null,
+    };
+  } catch (_) {
+    return null;
+  }
+}
+
+Future<String?> bundledSolverMismatch(String executable) async {
+  final solver = bundledStdio();
+  if (!Platform.isMacOS || solver == null || executable != solver) return null;
+  final arch = solverArch(solver), machine = await machineArch();
+  if (machine == null || arch == null || arch == 'universal' || arch == machine) return null;
+  return arch == 'arm64' ? 'appleOnIntel' : 'intelOnApple';
 }
 
 /// program of the solver bundled with the app or null

@@ -126,7 +126,7 @@ String _yesNo(AppState s, bool v) => s.strings(v ? 'ui.export.yes' : 'ui.export.
 String _cellText(AppState s, TableKind kind, TableColumn c, Map<String, dynamic> json) {
   final t = s.strings;
   if (kind == TableKind.nodes) {
-    final n = Node(json);
+    final n = Node(json, variant: s.scenario.variant);
     switch (c.key) {
       case 'name':
         return n.name;
@@ -144,7 +144,7 @@ String _cellText(AppState s, TableKind kind, TableColumn c, Map<String, dynamic>
         return _yesNo(s, n.active);
     }
   } else {
-    final e = Edge(json);
+    final e = Edge(json, variant: s.scenario.variant);
     switch (c.key) {
       case 'from':
         return s.nameOf(e.from);
@@ -155,7 +155,10 @@ String _cellText(AppState s, TableKind kind, TableColumn c, Map<String, dynamic>
     }
   }
   final f = c.field!;
-  final v = json[f.key];
+  // the values of the data variant of the problem
+  final v = kind == TableKind.nodes
+      ? Node(json, variant: s.scenario.variant)[f.key]
+      : Edge(json, variant: s.scenario.variant)[f.key];
   if (v == null) return '';
   return switch (f.kind) {
     FieldKind.timeWindow when v is List =>

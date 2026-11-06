@@ -24,6 +24,12 @@
   "body": "Netzflüsse, der kürzeste Weg und das Briefträgerproblem brauchen ein Netz, beim Transportproblem und beim TSP ist es optional. Im Tab **Netz** wählst du das Netz des Problems oder legst ein neues an.\n\n- **Kante zeichnen:** auf der Karte erst den Startknoten, dann den Zielknoten anklicken.\n- **Alle Verbindungen anlegen:** bei Transportproblemen von den Anbietern (über die Umladeknoten) zu den Nachfragern, beim TSP, beim kürzesten Weg und beim Briefträgerproblem alle Knoten miteinander.\n- **Richtung:** Bei Transportproblemen führen die Kanten von den Anbietern zu den Nachfragern, falsch herum gezeichnete werden umgedreht. Beim TSP, beim kürzesten Weg und beim Briefträgerproblem ist jede Kante einzeln gerichtet oder ungerichtet.\n- Werte der Kanten wie Kapazität oder Fixkosten stehen in der Maske. Manche wirken erst, wenn der passende Parameter eingeschaltet ist."
  },
  {
+  "id": "variants",
+  "title": "Datenvarianten",
+  "keywords": "datenvariante variante basis mengen kapazität kosten hochsaison vergleich mehrgüter",
+  "body": "Eine Datei kann neben den Werten der Basis Datenvarianten enthalten: andere Mengen, Kapazitäten und Kosten an Knoten und Kanten, z. B. eine Hochsaison oder die Kapazitäten eines Mehrgüterproblems. Name, Lage und Rollen der Knoten und die Kanten selbst gelten für alle Varianten.\n\n- Im Parameter-Tab wählt jedes Problem seine Datenvariante. Mehrere Probleme können dieselbe nutzen.\n- „Neue Datenvariante …“ übernimmt die Werte der gewählten Variante – danach ändert man nur, was abweicht.\n- Die Knoten- und Kantenmaske zeigen die Werte der Variante des gewählten Problems. Abweichende Werte sind blau markiert, der Pfeil daneben setzt sie auf die Basis zurück.\n- Löscht man eine Variante, rechnen ihre Probleme wieder mit der Basis."
+ },
+ {
   "id": "tpp",
   "title": "Transportproblem (TPP)",
   "keywords": "transportproblem tpp zielfunktion kosten deckungsbeitrag menge engpass spannen kapazität fixkosten einzelbelieferung sperren kostensatz",

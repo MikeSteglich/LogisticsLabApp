@@ -45,6 +45,12 @@ void main() {
       ['a', 'b'],
       ['c', ''],
     ]);
+    // quotes in a name: a part of it - a quote that is not closed does not swallow the next rows
+    expect(parseTable('"Zur Linde" Gasthof\t52,1\n"Zur Post\t52,2\nMüller\'s Hof\t52,3\n'), [
+      ['"Zur Linde" Gasthof', '52,1'],
+      ['"Zur Post', '52,2'],
+      ['Müller\'s Hof', '52,3'],
+    ]);
     // and back: Excel takes the quoted cell as one
     expect(
       tableText([

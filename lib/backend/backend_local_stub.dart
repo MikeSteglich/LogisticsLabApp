@@ -2,6 +2,9 @@ import 'backend.dart';
 
 const supported = false;
 
+Future<String?> bundledSolverMismatch(String executable) async => null;
+Future<String?> machineArch() async => null;
+
 Backend createLocalBackend(BackendSettings s) => throw UnsupportedError('no local computing in the browser');
 
 /// the server of the browser app: LOGLAB_SERVER given at the build (flutter build web --dart-define=LOGLAB_SERVER=...),

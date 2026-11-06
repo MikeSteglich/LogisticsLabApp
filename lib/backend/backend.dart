@@ -172,3 +172,12 @@ Backend createBackend(BackendSettings s) => s.remote || !local.supported
     : local.createLocalBackend(s);
 
 BackendSettings defaultBackendSettings() => local.defaultBackendSettings();
+
+/// the solver bundled with the app does not fit the processor (macOS): 'appleOnIntel' - an Apple silicon version on an
+/// Intel Mac (does not start), 'intelOnApple' - an Intel version on Apple silicon (slower via Rosetta); null: fits or
+/// the settings use another program
+Future<String?> bundledSolverMismatch(BackendSettings s) =>
+    s.remote ? Future.value() : local.bundledSolverMismatch(s.executable);
+
+/// the name of the processor of the computer for the file names of the downloads: arm64 or x86_64 (macOS)
+Future<String?> machineArch() => local.machineArch();

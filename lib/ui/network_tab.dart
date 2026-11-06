@@ -9,6 +9,7 @@ import '../modules/modules.dart';
 import '../model/table_io.dart';
 import 'table_dialogs.dart';
 import 'theme.dart';
+import 'variants.dart';
 import 'widgets.dart';
 
 const _newNetwork = '\u0000new';
@@ -418,6 +419,7 @@ class _EdgeMask extends StatelessWidget {
           ],
           if (s.spec?.visibleEdgeFields(params) case final fields? when fields.isNotEmpty) ...[
             const SizedBox(height: 14),
+            if (s.problem?.variant case final v?) ...[VariantNote(state: s, variant: v), const SizedBox(height: 8)],
             FieldGrid(
               children: [
                 for (final f in fields)
@@ -428,6 +430,9 @@ class _EdgeMask extends StatelessWidget {
                     spec: f,
                     value: e[f.key],
                     strings: t,
+                    reset: e.differs(f.key)
+                        ? ValueReset(t('ui.variant.reset'), () => s.edit(() => e.reset(f.key)))
+                        : null,
                     onChanged: (v) => s.edit(() => e[f.key] = v),
                   ),
               ],

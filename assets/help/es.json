@@ -24,6 +24,12 @@
   "body": "Los flujos en redes, el camino más corto y el cartero chino necesitan una red; en el problema de transporte y en el TSP es opcional. En la pestaña **Red** eliges la red del problema o creas una nueva.\n\n- **Dibujar arista:** haz clic en el mapa primero en el nodo de inicio y luego en el de destino.\n- **Crear todas las conexiones:** en los problemas de transporte, de los proveedores (por los nodos de transbordo) a los demandantes; en el TSP, el camino más corto y el cartero chino, todos los nodos entre sí.\n- **Dirección:** en los problemas de transporte las aristas van de los proveedores a los demandantes; las dibujadas al revés se invierten. En el TSP, el camino más corto y el cartero chino cada arista es dirigida o no dirigida.\n- Los valores de las aristas, como la capacidad o los costes fijos, están en el formulario. Algunos solo actúan cuando el parámetro correspondiente está activado."
  },
  {
+  "id": "variants",
+  "title": "Variantes de datos",
+  "keywords": "variante de datos variante base cantidades capacidad costes temporada alta comparación multimercancía",
+  "body": "Además de los valores de la base, un archivo puede contener variantes de datos: otras cantidades, capacidades y costes en nodos y aristas, p. ej. una temporada alta o las capacidades de un problema multimercancía. El nombre, la posición y los roles de los nodos y las propias aristas son los mismos en todas las variantes.\n\n- En la pestaña de parámetros cada problema elige su variante de datos. Varios problemas pueden usar la misma.\n- «Nueva variante de datos …» toma los valores de la variante elegida – después solo se cambia lo que difiere.\n- Las máscaras de nodos y aristas muestran los valores de la variante del problema elegido. Los valores distintos están marcados en azul; la flecha junto a ellos los devuelve a la base.\n- Si se elimina una variante, sus problemas vuelven a usar la base."
+ },
+ {
   "id": "tpp",
   "title": "Problema de transporte (TPP)",
   "keywords": "problema de transporte tpp objetivo costes margen cantidad cuello de botella rangos capacidad costes fijos fuente única bloquear tasa de coste",

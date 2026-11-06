@@ -29,7 +29,7 @@ List<List<String>> parseTable(String text) {
       } else {
         cell.write(c);
       }
-    } else if (c == '"' && atStart) {
+    } else if (c == '"' && atStart && _quotedCell(t, i, sep)) {
       quoted = true;
       atStart = false;
     } else if (c == sep) {
@@ -117,4 +117,23 @@ String normalize(String s) {
     if (RegExp(r'[a-z0-9]').hasMatch(f)) b.write(f);
   }
   return b.toString();
+}
+
+/// the quote at [start] begins a quoted cell (as Excel writes it): it is closed, and after the closing quote only
+/// spaces up to the separator or the end of the line - else the quote is a part of the text, e.g. a name "Zur Linde"
+/// Gasthof or a quote that is not closed
+bool _quotedCell(String t, int start, String sep) {
+  for (var i = start + 1; i < t.length; i++) {
+    if (t[i] != '"') continue;
+    if (i + 1 < t.length && t[i + 1] == '"') {
+      i++; // a doubled quote in the cell
+      continue;
+    }
+    for (var j = i + 1; j < t.length; j++) {
+      if (t[j] == sep || t[j] == '\n') return true;
+      if (t[j] != ' ') return false;
+    }
+    return true;
+  }
+  return false;
 }

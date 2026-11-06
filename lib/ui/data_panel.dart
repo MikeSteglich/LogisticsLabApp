@@ -9,6 +9,7 @@ import 'network_tab.dart';
 import 'nodes_tab.dart';
 import 'solution_tab.dart';
 import 'theme.dart';
+import 'variants.dart';
 import 'widgets.dart';
 
 class DataPanel extends StatelessWidget {
@@ -188,6 +189,12 @@ class _ParametersTab extends StatelessWidget {
           const SizedBox(height: Ui.gap),
           for (final e in errors) Text(t.message(e), style: const TextStyle(color: Ui.error, fontSize: 13)),
         ],
+        // the quantities, capacities and costs of the nodes and edges the problem uses
+        const SizedBox(height: Ui.gap),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 420),
+          child: VariantChooser(state: s),
+        ),
         // commodities of a multi-commodity flow, modes of a multimodal flow - records of the scenario
         if (spec.usesCommodities) ...[
           const SizedBox(height: 20),

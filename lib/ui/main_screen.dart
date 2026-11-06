@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app_state.dart';
+import '../backend/backend.dart' show bundledSolverMismatch;
 import '../i18n/strings.dart';
 import '../modules/modules.dart';
 import 'data_panel.dart';
@@ -631,6 +632,23 @@ class _ExitGuardState extends State<_ExitGuard> {
   void initState() {
     super.initState();
     _listener = AppLifecycleListener(onExitRequested: _exitRequested);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkProcessor());
+  }
+
+  /// macOS: the bundled solver built for the processor of the Mac - else a hint before the first solving
+  Future<void> _checkProcessor() async {
+    final s = widget.state;
+    final mismatch = await bundledSolverMismatch(s.backendSettings);
+    if (mismatch == null || !mounted) return;
+    final t = s.strings;
+    await showDialog<void>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: Text(t('ui.cpu.title')),
+        content: SizedBox(width: 460, child: Text(t('ui.cpu.$mismatch', {'version': appVersion}))),
+        actions: [FilledButton(onPressed: () => Navigator.pop(c), child: Text(t('ui.ok')))],
+      ),
+    );
   }
 
   @override

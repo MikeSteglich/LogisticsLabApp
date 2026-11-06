@@ -24,6 +24,12 @@
   "body": "Les flots dans les réseaux, le plus court chemin et le postier chinois ont besoin d’un réseau ; pour le problème de transport et le TSP, il est facultatif. Dans l’onglet **Réseau**, vous choisissez le réseau du problème ou en créez un nouveau.\n\n- **Tracer un arc :** cliquez sur la carte d’abord sur le nœud de départ, puis sur le nœud d’arrivée.\n- **Créer toutes les liaisons :** pour les problèmes de transport, des fournisseurs (via les nœuds de transbordement) vers les demandeurs ; pour le TSP, le plus court chemin et le postier chinois, tous les nœuds entre eux.\n- **Sens :** dans les problèmes de transport, les arcs vont des fournisseurs vers les demandeurs ; ceux tracés à l’envers sont retournés. Pour le TSP, le plus court chemin et le postier chinois, chaque arc est orienté ou non orienté.\n- Les valeurs des arcs, comme la capacité ou les coûts fixes, se trouvent dans le formulaire. Certaines ne s’appliquent que lorsque le paramètre correspondant est activé."
  },
  {
+  "id": "variants",
+  "title": "Variantes de données",
+  "keywords": "variante de données variante base quantités capacité coûts haute saison comparaison multi-marchandises",
+  "body": "En plus des valeurs de la base, un fichier peut contenir des variantes de données : d’autres quantités, capacités et coûts aux nœuds et arcs, p. ex. une haute saison ou les capacités d’un problème multi-marchandises. Le nom, la position et les rôles des nœuds ainsi que les arcs eux-mêmes sont les mêmes dans toutes les variantes.\n\n- Dans l’onglet des paramètres, chaque problème choisit sa variante de données. Plusieurs problèmes peuvent utiliser la même.\n- « Nouvelle variante de données … » reprend les valeurs de la variante choisie – ensuite, on ne modifie que ce qui diffère.\n- Les masques des nœuds et des arcs montrent les valeurs de la variante du problème choisi. Les valeurs différentes sont marquées en bleu, la flèche à côté les remet à la base.\n- Si une variante est supprimée, ses problèmes reprennent la base."
+ },
+ {
   "id": "tpp",
   "title": "Problème de transport (TPP)",
   "keywords": "problème de transport tpp objectif coûts marge quantité goulet plages capacité coûts fixes source unique bloquer taux de coût",

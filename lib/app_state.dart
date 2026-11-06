@@ -18,11 +18,14 @@ import 'modules/modules.dart';
 
 enum DataTab { parameters, nodes, network, solution }
 
-/// Solution document (llsol) of a problem and the revision of the data it was computed with.
+/// Solution document (llsol) of a problem, the revision of the data it was computed with and their structure: the
+/// edges of the network and the active nodes - null: not known, fits any.
 class SolutionState {
   final Map<String, dynamic> document;
   final int revision;
-  SolutionState(this.document, this.revision);
+  final String? edges;
+  final Set<String>? nodes;
+  SolutionState(this.document, this.revision, [this.edges, this.nodes]);
 
   String get status => document['status'] as String? ?? 'error';
   Map<String, dynamic>? get results => document['results'] as Map<String, dynamic>?;
@@ -123,7 +126,11 @@ class AppState extends ChangeNotifier {
 
   //*********** scenario ************
 
-  Scenario scenario = Scenario.empty();
+  // the nodes and edges show and change the values of the data variant of the chosen problem
+  late Scenario _scenario = _withVariant(Scenario.empty());
+  Scenario get scenario => _scenario;
+  set scenario(Scenario s) => _scenario = _withVariant(s);
+  Scenario _withVariant(Scenario s) => s..variantOf = () => problem?.variant;
   int opened = 0; // counts the opened scenarios
   int geometry = 0; // changes with the nodes or their coordinates - the map then shows all nodes
   int clickedGeometry = -1; // geometry after a click into the map - in view already, the map keeps its section
@@ -140,9 +147,44 @@ class AppState extends ChangeNotifier {
   final solutions = <String, SolutionState>{};
 
   Problem? get problem => problemName == null ? null : scenario.problem(problemName!);
+
   ModuleSpec? get spec => modules[problem?.type];
   Node? get node => selectedNode == null ? null : scenario.node(selectedNode!);
-  SolutionState? get solution => problemName == null ? null : solutions[problemName];
+
+  /// the solution of the problem - none if the edges of the network have changed since or a node of it has been
+  /// deleted or switched off (the solution would not fit them); other changes leave it shown as stale
+  SolutionState? get solution {
+    final sol = problemName == null ? null : solutions[problemName];
+    if (sol == null) return null;
+    final (edges, nodes) = _structure();
+    if (sol.edges != null && sol.edges != edges) return null;
+    if (sol.nodes != null && !nodes.containsAll(sol.nodes!)) return null;
+    return sol;
+  }
+
+  /// a solution of the problem that is not shown - the edges or nodes have changed since
+  bool get solutionHidden => problemName != null && solutions[problemName] != null && solution == null;
+
+  /// the edges of the network of the problem and the active nodes - computed once per revision
+  (String, Set<String>) _structure() {
+    final key = '$revision|$problemName';
+    if (_structureKey == key) return _structureValue;
+    final net = network;
+    _structureKey = key;
+    return _structureValue = (
+      [
+        if (net != null)
+          for (final e in net.edges) '${e.from}>${e.to}:${e.directedIn(net)}',
+      ].join(';'),
+      {
+        for (final n in scenario.nodes)
+          if (n.active) n.id,
+      },
+    );
+  }
+
+  String? _structureKey;
+  (String, Set<String>) _structureValue = ('', const {});
 
   /// the parameters the solution has been solved with - the current ones if the document has none
   Map<String, dynamic> get solutionParameters =>
@@ -534,19 +576,26 @@ class AppState extends ChangeNotifier {
     }).remove(record);
     if (kind == 'vehicles') return;
     final edges = [for (final net in scenario.networks.values) ...net.edges];
+    // the values of the node or edge and those of its data variants
+    Iterable<Map> values(Map<String, dynamic> json) =>
+        [json, ...((json['variants'] as Map?)?.values ?? const [])].cast();
     if (kind == 'commodities') {
       for (final n in scenario.nodes) {
-        for (final key in const ['supplies', 'demands', 'capacityFactors']) {
-          if (n[key] case final Map m) {
-            m.remove(id);
-            if (m.isEmpty) n.json.remove(key);
+        for (final v in values(n.json)) {
+          for (final key in const ['supplies', 'demands', 'capacityFactors']) {
+            if (v[key] case final Map m) {
+              m.remove(id);
+              if (m.isEmpty) v.remove(key);
+            }
           }
         }
       }
       for (final e in edges) {
-        if (e.json['commodities'] case final Map m) {
-          m.remove(id);
-          if (m.isEmpty) e.json.remove('commodities');
+        for (final v in values(e.json)) {
+          if (v['commodities'] case final Map m) {
+            m.remove(id);
+            if (m.isEmpty) v.remove('commodities');
+          }
         }
       }
       for (final p in scenario.problems) {
@@ -555,7 +604,9 @@ class AppState extends ChangeNotifier {
     } else {
       // an edge keeps its other modes - without one it is closed, as before
       for (final e in edges) {
-        (e.json['modes'] as Map?)?.remove(id);
+        for (final v in values(e.json)) {
+          (v['modes'] as Map?)?.remove(id);
+        }
       }
     }
     if (solutionPart == id) solutionPart = null;
@@ -874,6 +925,15 @@ class AppState extends ChangeNotifier {
 
   int? selectedRoute; // a whole tour of the solution (vrp) - all its sections highlighted on the map
 
+  /// no highlight on the map: connection, tour, the connections of a node, edge - e.g. a tap on a table header
+  void clearHighlights() {
+    selectedFlow = null;
+    selectedRoute = null;
+    highlightedNode = null;
+    selectedEdge = null;
+    notifyListeners();
+  }
+
   /// a node of the solution (supplier, location) - all its connections highlighted, until one connection is chosen
   String? highlightedNode;
 
@@ -931,6 +991,22 @@ class AppState extends ChangeNotifier {
       tab = DataTab.network;
     });
   }
+
+  /// data variant of the problem - null: the base values
+  void chooseVariant(String? id) => edit(() => problem?.variant = id);
+
+  /// a new data variant with the values of the current one - chosen for the problem
+  void newVariant(String name) => edit(() {
+    problem?.variant = scenario.addVariant(name.trim(), from: problem?.variant);
+  });
+
+  void renameVariant(String id, String name) => edit(() {
+    for (final v in scenario.variants.where((v) => v['id'] == id)) {
+      v['name'] = name.trim();
+    }
+  });
+
+  void deleteVariant(String id) => edit(() => scenario.removeVariant(id));
 
   void chooseNetwork(String? name) => edit(() {
     problem?.network = name;
@@ -1378,6 +1454,7 @@ class AppState extends ChangeNotifier {
     if (p == null || solving) return;
     final name = p.name;
     final rev = revision;
+    final (edges, nodes) = _structure();
     final missing = _checks(p);
     if (missing.isNotEmpty) {
       message = missing.join('\n');
@@ -1416,7 +1493,7 @@ class AppState extends ChangeNotifier {
       lastResult = answer.status;
       if (answer.status == 'cancelled') return; // cancelled by the user - no error
       if (answer.solution != null) {
-        solutions[name] = SolutionState(answer.solution!, rev);
+        solutions[name] = SolutionState(answer.solution!, rev, edges, nodes);
         selectedFlow = null;
         selectedRoute = null;
         highlightedNode = null;
@@ -1434,6 +1511,9 @@ class AppState extends ChangeNotifier {
         // the server wants an API key (missing, wrong or expired) - the app asks for it (main_screen.dart)
         lastResult = 'apiKey';
         message = '${strings('ui.apiKey.refused')}: $e';
+      } else if (e.message == 'wrongProcessor') {
+        lastResult = 'error'; // the bundled solver is built for another processor
+        message = strings('ui.cpu.wrongProcessor');
       } else {
         lastResult = 'error'; // refused by the core, e.g. a node without a way in the network
         message = e.outdated ? strings('ui.error.outdated') : '${strings('ui.status.error')}: $e';

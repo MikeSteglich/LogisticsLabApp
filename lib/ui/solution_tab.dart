@@ -29,7 +29,10 @@ class SolutionTab extends StatelessWidget {
     if (sol == null) {
       return Padding(
         padding: const EdgeInsets.all(16),
-        child: Text(t('ui.sol.none'), style: const TextStyle(color: Ui.textSecondary)),
+        child: Text(
+          t(s.solutionHidden ? 'ui.sol.hidden' : 'ui.sol.none'),
+          style: TextStyle(color: s.solutionHidden ? Ui.warning : Ui.textSecondary),
+        ),
       );
     }
     final res = sol.results;
@@ -221,7 +224,7 @@ class SolutionTab extends StatelessWidget {
                 // numbers as wide as their header or values - the names take the rest
                 defaultColumnWidth: const IntrinsicColumnWidth(),
                 children: [
-                  _row(numericFrom: withSplit ? 3 : 2, header: true, [
+                  _row(numericFrom: withSplit ? 3 : 2, header: true, onTap: s.clearHighlights, [
                     t('ui.sol.from'),
                     t('ui.sol.to'),
                     if (withSplit) t(s.spec!.usesModes ? 'ui.modes' : 'ui.commodities'),
@@ -641,7 +644,7 @@ class _Route extends StatelessWidget {
         padding: EdgeInsets.zero,
         child: WideTable(
           rows: [
-            SolutionTab._row(numericFrom: 3, header: true, head),
+            SolutionTab._row(numericFrom: 3, header: true, onTap: s.clearHighlights, head),
             for (final (i, a) in part)
               if (a['value'] case final num v)
                 SolutionTab._row(
@@ -736,7 +739,7 @@ class _Rides extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: WideTable(
         rows: [
-          SolutionTab._row(numericFrom: 3, header: true, [
+          SolutionTab._row(numericFrom: 3, header: true, onTap: s.clearHighlights, [
             t('role.pickup'),
             t('role.delivery'),
             t('ui.sol.tourVehicle'),
@@ -811,7 +814,7 @@ class _Overview extends StatelessWidget {
       padding: EdgeInsets.zero,
       child: WideTable(
         rows: [
-          SolutionTab._row(numericFrom: 1, header: true, [
+          SolutionTab._row(numericFrom: 1, header: true, onTap: s.clearHighlights, [
             t('ui.sol.tourVehicle'),
             t('ui.sol.stops'),
             t('ui.sol.amount'),
@@ -827,7 +830,8 @@ class _Overview extends StatelessWidget {
               onTap: () => s.selectRoute(i),
               row(i < names.length ? names[i] : '', r),
             ),
-          if (routes.length > 1) SolutionTab._row(numericFrom: 1, header: true, row(t('ui.sol.total'), sum)),
+          if (routes.length > 1)
+            SolutionTab._row(numericFrom: 1, header: true, onTap: s.clearHighlights, row(t('ui.sol.total'), sum)),
         ],
       ),
     );
@@ -916,7 +920,7 @@ class _Locations extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: WideTable(
             rows: [
-              SolutionTab._row(numericFrom: 2, header: true, [
+              SolutionTab._row(numericFrom: 2, header: true, onTap: s.clearHighlights, [
                 t('ui.sol.location'),
                 t('ui.sol.status'),
                 t('ui.sol.customers'),
@@ -956,7 +960,7 @@ class _Locations extends StatelessWidget {
           padding: EdgeInsets.zero,
           child: WideTable(
             rows: [
-              SolutionTab._row(numericFrom: 2, header: true, [
+              SolutionTab._row(numericFrom: 2, header: true, onTap: s.clearHighlights, [
                 t('ui.sol.location'),
                 t('role.customer'),
                 t('ui.sol.amount'),
