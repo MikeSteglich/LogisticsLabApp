@@ -55,6 +55,7 @@ class _PasteDialog extends StatefulWidget {
 
 class _PasteDialogState extends State<_PasteDialog> {
   late final _text = TextEditingController(text: widget.text);
+  final _columns = ScrollController(); // the table of the columns and their meaning - wider than the dialog
   TableImport? _import;
   ImportCheck? _check;
   (int, int)? _progress; // addresses looked up: (done, total)
@@ -69,6 +70,7 @@ class _PasteDialogState extends State<_PasteDialog> {
   @override
   void dispose() {
     _text.dispose();
+    _columns.dispose();
     super.dispose();
   }
 
@@ -209,7 +211,7 @@ class _PasteDialogState extends State<_PasteDialog> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                _Preview(state: s, import: imp, onChanged: busy ? null : _recheck),
+                _Preview(scroll: _columns, state: s, import: imp, onChanged: busy ? null : _recheck),
                 // without a column of the address: the columns it is made of
                 if (nodes && !imp.mapping.contains('address')) ...[
                   const SizedBox(height: 8),
@@ -291,7 +293,8 @@ class _Preview extends StatelessWidget {
   final AppState state;
   final TableImport import;
   final VoidCallback? onChanged;
-  const _Preview({required this.state, required this.import, required this.onChanged});
+  final ScrollController scroll; // horizontal - the scrollbar always shown
+  const _Preview({required this.state, required this.import, required this.onChanged, required this.scroll});
 
   @override
   Widget build(BuildContext context) {
@@ -316,48 +319,55 @@ class _Preview extends StatelessWidget {
         border: Border.all(color: Ui.border),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Table(
-          defaultColumnWidth: const IntrinsicColumnWidth(),
-          children: [
-            TableRow(
-              decoration: const BoxDecoration(color: Ui.surfaceAlt),
-              children: [
-                for (var i = 0; i < imp.width; i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: DropdownButton<String?>(
-                      value: imp.mapping[i],
-                      isDense: true,
-                      underline: const SizedBox.shrink(),
-                      style: const TextStyle(fontSize: 12, color: Ui.accentDark, fontWeight: FontWeight.w600),
-                      items: [
-                        DropdownMenuItem(value: null, child: Text(t('ui.import.ignore'))),
-                        for (final c in imp.columns)
-                          // every meaning only once
-                          if (c.key == imp.mapping[i] || !imp.mapping.contains(c.key))
-                            DropdownMenuItem(value: c.key, child: Text(t(c.label))),
-                      ],
-                      onChanged: onChanged == null
-                          ? null
-                          : (v) {
-                              imp.mapping[i] = v;
-                              onChanged!();
-                            },
-                    ),
-                  ),
-              ],
-            ),
-            for (final (r, row) in shown.indexed)
+      // the scrollbar always shown - many columns do not fit into the dialog
+      child: Scrollbar(
+        controller: scroll,
+        thumbVisibility: true,
+        child: SingleChildScrollView(
+          controller: scroll,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Table(
+            defaultColumnWidth: const IntrinsicColumnWidth(),
+            children: [
               TableRow(
-                decoration: BoxDecoration(
-                  border: const Border(top: BorderSide(color: Color(0xFFEEF0F3))),
-                  color: r == 0 && imp.header ? Ui.surfaceAlt : null,
-                ),
-                children: [for (final c in row) cell(c, head: r == 0 && imp.header)],
+                decoration: const BoxDecoration(color: Ui.surfaceAlt),
+                children: [
+                  for (var i = 0; i < imp.width; i++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: DropdownButton<String?>(
+                        value: imp.mapping[i],
+                        isDense: true,
+                        underline: const SizedBox.shrink(),
+                        style: const TextStyle(fontSize: 12, color: Ui.accentDark, fontWeight: FontWeight.w600),
+                        items: [
+                          DropdownMenuItem(value: null, child: Text(t('ui.import.ignore'))),
+                          for (final c in imp.columns)
+                            // every meaning only once
+                            if (c.key == imp.mapping[i] || !imp.mapping.contains(c.key))
+                              DropdownMenuItem(value: c.key, child: Text(t(c.label))),
+                        ],
+                        onChanged: onChanged == null
+                            ? null
+                            : (v) {
+                                imp.mapping[i] = v;
+                                onChanged!();
+                              },
+                      ),
+                    ),
+                ],
               ),
-          ],
+              for (final (r, row) in shown.indexed)
+                TableRow(
+                  decoration: BoxDecoration(
+                    border: const Border(top: BorderSide(color: Color(0xFFEEF0F3))),
+                    color: r == 0 && imp.header ? Ui.surfaceAlt : null,
+                  ),
+                  children: [for (final c in row) cell(c, head: r == 0 && imp.header)],
+                ),
+            ],
+          ),
         ),
       ),
     );

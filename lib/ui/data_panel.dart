@@ -167,6 +167,8 @@ class _ParametersTab extends StatelessWidget {
               key: ValueKey('$k|name'),
               label: t('ui.problemName'),
               value: p.name,
+              // the name of a new problem (its type, maybe with a number): replaced by the first input
+              isDefault: p.name == t(spec.label) || RegExp('^${RegExp.escape(t(spec.label))} \\d+\$').hasMatch(p.name),
               error: p.name.trim().isEmpty ? t('error.required', {'label': 'ui.problemName'}) : null,
               onChanged: (v) {
                 final name = v.trim();

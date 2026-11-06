@@ -46,6 +46,7 @@ class NetworkTab extends StatelessWidget {
                 TextValueField(
                   label: t('ui.net.name'),
                   value: name,
+                  isDefault: true, // a suggested name - the first input replaces it
                   error: taken.contains(name.trim()) ? t('ui.net.exists') : null,
                   onChanged: (v) => setDialog(() => name = v),
                 ),

@@ -30,6 +30,7 @@ class VariantChooser extends StatelessWidget {
             child: TextValueField(
               label: t('ui.variant.name'),
               value: value,
+              isDefault: true, // a suggested name - the first input replaces it
               error: taken.contains(value.trim()) ? t('ui.variant.exists') : null,
               onChanged: (v) => setDialog(() => value = v),
             ),

@@ -164,6 +164,8 @@ class _GeneratorDialogState extends State<_GeneratorDialog> {
         key: ValueKey('$_type|${key ?? label}'),
         label: label,
         value: value,
+        // the values of the dialog are suggestions - the first input replaces them
+        isDefault: true,
         strings: t,
         hint: hint,
         decimals: decimals ?? 6,
@@ -311,6 +313,7 @@ class _GeneratorDialogState extends State<_GeneratorDialog> {
                       label: t('ui.generator.seed'),
                       help: t('ui.generator.seed.help'),
                       value: _seed,
+                      isDefault: true,
                       strings: t,
                       decimals: 0,
                       onChanged: (v) => _seed = v?.round() ?? _seed,

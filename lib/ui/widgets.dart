@@ -147,6 +147,34 @@ class ValueReset {
   const ValueReset(this.tooltip, this.onReset);
 }
 
+/// a value given in advance (a default) is replaced by the first input instead of being added to - typing 5 into a
+/// field showing 100 gives 5, a backspace empties it; moving the cursor keeps the default
+class ReplaceDefault extends TextInputFormatter {
+  bool active;
+  ReplaceDefault(this.active);
+
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue old, TextEditingValue next) {
+    if (!active || old.text == next.text) return next;
+    active = false;
+    // what has been typed: the text between the parts before and after it that are the same as before
+    final a = old.text, b = next.text;
+    var p = 0;
+    while (p < a.length && p < b.length && a[p] == b[p]) {
+      p++;
+    }
+    var s = 0;
+    while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] == b[b.length - 1 - s]) {
+      s++;
+    }
+    final typed = b.substring(p, b.length - s);
+    return TextEditingValue(
+      text: typed,
+      selection: TextSelection.collapsed(offset: typed.length),
+    );
+  }
+}
+
 /// Text field that keeps its own controller - the value is taken on every change (onChanged).
 class TextValueField extends StatefulWidget {
   final String label;
@@ -156,6 +184,7 @@ class TextValueField extends StatefulWidget {
   final String? error;
   final String? hint;
   final ValueChanged<String>? onCommit; // the text has been changed and the field left (enter, focus elsewhere)
+  final bool isDefault; // the value is given in advance - replaced by the first input
 
   const TextValueField({
     super.key,
@@ -166,6 +195,7 @@ class TextValueField extends StatefulWidget {
     this.error,
     this.hint,
     this.onCommit,
+    this.isDefault = false,
   });
 
   @override
@@ -174,6 +204,7 @@ class TextValueField extends StatefulWidget {
 
 class _TextValueFieldState extends State<TextValueField> {
   late final _c = TextEditingController(text: widget.value);
+  late final _replace = ReplaceDefault(widget.isDefault);
   final _focus = FocusNode();
   String? _atFocus; // the text when the field got the focus
 
@@ -194,7 +225,10 @@ class _TextValueFieldState extends State<TextValueField> {
   void didUpdateWidget(TextValueField old) {
     super.didUpdateWidget(old);
     // changed from outside, e.g. the position set on the map
-    if (widget.value != old.value && widget.value != _c.text) _c.text = widget.value;
+    if (widget.value != old.value && widget.value != _c.text) {
+      _c.text = widget.value;
+      _replace.active = widget.isDefault;
+    }
   }
 
   @override
@@ -213,6 +247,7 @@ class _TextValueFieldState extends State<TextValueField> {
         controller: _c,
         focusNode: _focus,
         readOnly: widget.readOnly,
+        inputFormatters: [_replace],
         onChanged: widget.onChanged,
         textInputAction: TextInputAction.next,
         onEditingComplete: () {}, // enter: the next field (onSubmitted) instead of the default
@@ -260,6 +295,7 @@ class NumberField extends StatefulWidget {
   final String? unit;
   final String? help; // shown as tooltip of an info symbol beside the label
   final ValueReset? reset; // a value of the data variant
+  final bool isDefault; // the value is given in advance (a default) - replaced by the first input
   final Message? Function(num?)? check;
   final String Function(num?)? format; // other text than a number, e.g. a time of the day
   final num? Function(String)? parse;
@@ -278,6 +314,7 @@ class NumberField extends StatefulWidget {
     this.unit,
     this.help,
     this.reset,
+    this.isDefault = false,
     this.check,
     this.format,
     this.parse,
@@ -292,6 +329,7 @@ class NumberField extends StatefulWidget {
 
 class _NumberFieldState extends State<NumberField> {
   late final _c = TextEditingController(text: _text(widget.value));
+  late final _replace = ReplaceDefault(widget.isDefault);
   String? _error;
 
   String _text(num? v) => widget.format != null
@@ -307,6 +345,7 @@ class _NumberFieldState extends State<NumberField> {
     if (widget.value != current && widget.value != old.value) {
       _c.text = _text(widget.value);
       _error = null;
+      _replace.active = widget.isDefault;
     }
   }
 
@@ -349,6 +388,7 @@ class _NumberFieldState extends State<NumberField> {
         // digits and the signs of a number - a time of the day also with its colon
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(widget.parse != null ? r'[0-9:.\s]' : r'[0-9.,\-\s]')),
+          _replace,
         ],
         style: const TextStyle(fontFeatures: Ui.tabular),
         decoration: InputDecoration(
@@ -649,6 +689,7 @@ class SpecField extends StatelessWidget {
                   : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
           help: _help,
           reset: reset,
+          isDefault: spec.defaultValue != null && value == spec.defaultValue,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,
           check: (v) => spec.validate(v),
