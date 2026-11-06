@@ -147,15 +147,12 @@ class ValueReset {
   const ValueReset(this.tooltip, this.onReset);
 }
 
-/// a value given in advance (a default) disappears when the field gets the focus - it is shown as hint, the first
-/// input replaces it; left without an input the default is back
+/// a value given in advance (a default) disappears when the field gets the focus - the first input replaces it, left
+/// without an input the default is back
 class DefaultOnFocus {
   bool active;
   String? _shown; // the default while the field is empty
   DefaultOnFocus(this.active);
-
-  /// the field shows the default as hint
-  String? get hint => _shown;
 
   /// focus gained: the field is emptied, focus lost without an input: the default is back - true if the text changed
   bool focus(TextEditingController c, bool has) {
@@ -225,9 +222,11 @@ class _TextValueFieldState extends State<TextValueField> {
     _focus.addListener(() {
       if (_focus.hasFocus) {
         _atFocus = _c.text;
-        if (_default.focus(_c, true)) setState(() {});
+        _default.focus(_c, true);
+        setState(() {}); // the hint only without the focus
       } else {
-        if (_default.focus(_c, false)) setState(() {});
+        _default.focus(_c, false);
+        setState(() {});
         if (_atFocus != null && _atFocus != _c.text) {
           _atFocus = null;
           widget.onCommit?.call(_c.text);
@@ -271,7 +270,7 @@ class _TextValueFieldState extends State<TextValueField> {
         onSubmitted: (_) => focusNextField(context),
         decoration: InputDecoration(
           errorText: widget.error,
-          hintText: _default.hint ?? widget.hint,
+          hintText: _focus.hasFocus ? null : widget.hint, // a hint disappears on the click
           fillColor: widget.readOnly ? Ui.surfaceAlt : null,
         ),
       ),
@@ -313,7 +312,6 @@ class NumberField extends StatefulWidget {
   final String? help; // shown as tooltip of an info symbol beside the label
   final ValueReset? reset; // a value of the data variant
   final bool isDefault; // the value is given in advance (a default) - replaced by the first input
-  final bool hintIsDefault; // the hint is the value taken for an empty field - hidden when the field has the focus
   final Message? Function(num?)? check;
   final String Function(num?)? format; // other text than a number, e.g. a time of the day
   final num? Function(String)? parse;
@@ -333,7 +331,6 @@ class NumberField extends StatefulWidget {
     this.help,
     this.reset,
     this.isDefault = false,
-    this.hintIsDefault = false,
     this.check,
     this.format,
     this.parse,
@@ -356,7 +353,8 @@ class _NumberFieldState extends State<NumberField> {
   void initState() {
     super.initState();
     _focus.addListener(() {
-      if (_default.focus(_c, _focus.hasFocus) || widget.hintIsDefault) setState(() {});
+      _default.focus(_c, _focus.hasFocus);
+      setState(() {}); // the hint only without the focus
     });
   }
 
@@ -423,7 +421,7 @@ class _NumberFieldState extends State<NumberField> {
         style: const TextStyle(fontFeatures: Ui.tabular),
         decoration: InputDecoration(
           errorText: _error,
-          hintText: _default.hint ?? (widget.hintIsDefault && _focus.hasFocus ? null : widget.hint),
+          hintText: _focus.hasFocus ? null : widget.hint, // a hint, e.g. unlimited, disappears on the click
           errorMaxLines: 2,
           suffixIcon: widget.suggestion == null || widget.suggestion == widget.value
               ? null
@@ -720,7 +718,6 @@ class SpecField extends StatelessWidget {
           help: _help,
           reset: reset,
           isDefault: spec.defaultValue != null && value == spec.defaultValue,
-          hintIsDefault: hintText == null && spec.hint == null && spec.emptyValue != null,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,
           check: (v) => spec.validate(v),

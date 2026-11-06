@@ -32,7 +32,7 @@ void main() {
     await tester.tap(fields.at(0));
     await tester.pump();
     expect(text(0), '');
-    expect(find.text('100'), findsNWidgets(2)); // the hint and field B
+    expect(find.text('100'), findsOneWidget); // only field B - no hint
     expect(a, isNull); // the model keeps the default
 
     // left without an input: the default is back
@@ -61,28 +61,33 @@ void main() {
     expect(name, 'Hoch');
   });
 
-  testWidgets('the value taken for an empty field: its hint is hidden while the field has the focus', (tester) async {
+  testWidgets('a hint (the value taken for an empty field, unlimited) is hidden while the field has the focus', (
+    tester,
+  ) async {
     final t = (await tester.runAsync(() => Strings.load('de')))!;
     await tester.pumpWidget(
       MaterialApp(
         home: Material(
           child: Column(
             children: [
-              NumberField(label: 'Zeit', value: null, hint: '60', hintIsDefault: true, strings: t, onChanged: (_) {}),
+              NumberField(label: 'Zeit', value: null, hint: '60', strings: t, onChanged: (_) {}),
               NumberField(label: 'B', value: null, hint: 'unbegrenzt', strings: t, onChanged: (_) {}),
+              TextValueField(label: 'N', value: '', hint: 'K1', onChanged: (_) {}),
             ],
           ),
         ),
       ),
     );
     final fields = find.byType(TextField);
-    expect(find.text('60'), findsOneWidget);
+    for (final (i, hint) in const [(0, '60'), (1, 'unbegrenzt'), (2, 'K1')]) {
+      expect(find.text(hint), findsOneWidget);
+      await tester.tap(fields.at(i));
+      await tester.pump();
+      expect(find.text(hint), findsNothing);
+    }
     await tester.tap(fields.at(0));
     await tester.pump();
-    expect(find.text('60'), findsNothing);
-    await tester.tap(fields.at(1));
-    await tester.pump();
-    expect(find.text('60'), findsOneWidget);
-    expect(find.text('unbegrenzt'), findsOneWidget); // an other hint stays
+    expect(find.text('unbegrenzt'), findsOneWidget); // back when the field is left
+    expect(find.text('K1'), findsOneWidget);
   });
 }
