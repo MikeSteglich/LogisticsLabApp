@@ -134,6 +134,8 @@ class _ParametersTab extends StatelessWidget {
     final k = '${p.name}|${t.language}';
     Widget field(FieldSpec f, Map<String, dynamic> target) => SpecField(
       scenario: s.scenario,
+      // the matrix of the scenario: the help texts of all problems
+      module: identical(target, s.scenario.matrix) ? null : spec,
       measure: values['matrixMode'] as String?,
       // continuous location: the smallest capacity per location as suggestion
       // coverings: the smallest radius that covers every customer
@@ -358,6 +360,7 @@ class _Records extends StatelessWidget {
                         else
                           SpecField(
                             key: ValueKey('${identityHashCode(r)}|${f.key}|${t.language}'),
+                            module: s.spec,
                             spec: f,
                             value: r[f.key],
                             strings: t,

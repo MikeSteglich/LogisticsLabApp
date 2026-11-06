@@ -65,6 +65,7 @@ Future<void> showAbout(BuildContext context, AppState state) {
               const SizedBox(height: 8),
               credit(t('ui.about.mapData'), '© ${t('ui.osm.contributors')}, ODbL – openstreetmap.org/copyright'),
               credit(t('ui.about.tiles'), 'OpenStreetMap Foundation – tile.openstreetmap.org'),
+              credit(t('ui.about.cities'), 'Basic World Cities Database (simplemaps.com), CC BY 4.0'),
               // the software with its licence
               credit(
                 t('ui.about.routing'),

@@ -747,6 +747,16 @@ class AppState extends ChangeNotifier {
 
   bool get solutionIsStale => solution != null && solution!.revision != revision;
 
+  /// the section the map shows - south-west and north-east corner (random problems in it)
+  (LatLng, LatLng)? mapSection;
+
+  /// a generated scenario - not saved yet
+  void openGenerated(Scenario s) {
+    openScenario(s);
+    dirty = true;
+    notifyListeners();
+  }
+
   void openScenario(Scenario s, {String? name, String? path}) {
     scenario = s;
     opened++;

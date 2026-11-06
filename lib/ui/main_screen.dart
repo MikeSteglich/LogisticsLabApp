@@ -182,6 +182,7 @@ class _Header extends StatelessWidget {
                     ),
                   MenuItemButton(onPressed: files.importOld, child: Text(t('ui.import'))),
                   MenuItemButton(onPressed: files.openExample, child: Text(t('ui.example'))),
+                  MenuItemButton(onPressed: files.generateProblem, child: Text(t('ui.generator.menu'))),
                   // a second instance of the app - e.g. two variants side by side
                   if (newWindowSupported)
                     MenuItemButton(

@@ -423,6 +423,7 @@ class _EdgeMask extends StatelessWidget {
                 for (final f in fields)
                   SpecField(
                     scenario: s.scenario,
+                    module: s.spec,
                     onEditRecords: () => s.setTab(DataTab.parameters),
                     spec: f,
                     value: e[f.key],

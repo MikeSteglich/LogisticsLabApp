@@ -97,16 +97,32 @@ class SplitView extends StatelessWidget {
 
 class FieldLabel extends StatelessWidget {
   final String text;
-  const FieldLabel(this.text, {super.key});
+  final String? help; // shown as tooltip of an info symbol beside the label
+  const FieldLabel(this.text, {super.key, this.help});
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: Text(
-      text,
-      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Ui.textMuted),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final label = Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Ui.textMuted),
+      ),
+    );
+    if (help == null) return label;
+    return Row(
+      children: [
+        Flexible(child: label),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 4),
+          child: Tooltip(
+            message: help!,
+            child: const Icon(Icons.info_outline, size: 14, color: Ui.textSecondary),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 /// Text field that keeps its own controller - the value is taken on every change (onChanged).
@@ -293,19 +309,7 @@ class _NumberFieldState extends State<NumberField> {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Row(
-        children: [
-          Flexible(child: FieldLabel(widget.unit == null ? widget.label : '${widget.label} (${widget.unit})')),
-          if (widget.help != null)
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 4),
-              child: Tooltip(
-                message: widget.help!,
-                child: const Icon(Icons.info_outline, size: 14, color: Ui.textSecondary),
-              ),
-            ),
-        ],
-      ),
+      FieldLabel(widget.unit == null ? widget.label : '${widget.label} (${widget.unit})', help: widget.help),
       TextField(
         controller: _c,
         onChanged: _changed,
@@ -352,6 +356,8 @@ class SpecField extends StatelessWidget {
   final String? hintText; // text of the empty field instead of the hint of the spec, e.g. a suggested value
   final num? suggestion; // number fields: a value a button in the field enters
   final String? suggestionTooltip;
+  // the problem type - a help text of the field for it or its group before the general one (field.<key>.help.<type>)
+  final ModuleSpec? module;
 
   const SpecField({
     super.key,
@@ -365,7 +371,19 @@ class SpecField extends StatelessWidget {
     this.hintText,
     this.suggestion,
     this.suggestionTooltip,
+    this.module,
   });
+
+  /// the help text: for the problem type, its group or in general - null without one
+  String? get _help {
+    for (final key in [
+      if (module != null) ...['${spec.help}.${module!.type}', '${spec.help}.${module!.group.name}'],
+      spec.help,
+    ]) {
+      if (strings.has(key)) return strings(key);
+    }
+    return null;
+  }
 
   /// unit of the field - @time and @distance: the units of the scenario
   String? _unit(String? unit) => switch (unit) {
@@ -384,7 +402,7 @@ class SpecField extends StatelessWidget {
   /// label of a field with commodities or modes - with a link to their list
   Widget _recordsLabel(String label) => Row(
     children: [
-      Expanded(child: FieldLabel(label)),
+      Expanded(child: FieldLabel(label, help: _help)),
       if (onEditRecords != null)
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
@@ -414,10 +432,10 @@ class SpecField extends StatelessWidget {
               children: [
                 Checkbox(value: value == true, onChanged: (v) => onChanged(v ?? false)),
                 Flexible(child: Text(label, style: const TextStyle(fontSize: 14))),
-                if (s.has(spec.help)) ...[
+                if (_help case final help?) ...[
                   const SizedBox(width: 6),
                   Tooltip(
-                    message: s(spec.help),
+                    message: help,
                     child: const Icon(Icons.info_outline, size: 16, color: Ui.textSecondary),
                   ),
                 ],
@@ -429,11 +447,10 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel(label),
+            FieldLabel(label, help: _help),
             DropdownButtonFormField<String?>(
               initialValue: spec.choices.contains(value) ? value as String : null,
               isExpanded: true,
-              hint: s.has(spec.help) ? Text(s(spec.help), overflow: TextOverflow.ellipsis) : null,
               items: [
                 if (!spec.required && spec.defaultValue == null)
                   DropdownMenuItem<String?>(
@@ -457,7 +474,7 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel(label),
+            FieldLabel(label, help: _help),
             DropdownButtonFormField<String?>(
               initialValue: nodes.any((n) => n.id == value) ? value as String : null,
               isExpanded: true,
@@ -557,7 +574,7 @@ class SpecField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            FieldLabel(label),
+            FieldLabel(label, help: _help),
             Row(
               children: [
                 for (final (i, key) in const [(0, 'ui.timeWindow.from'), (1, 'ui.timeWindow.to')]) ...[
@@ -598,7 +615,7 @@ class SpecField extends StatelessWidget {
                   : spec.emptyValue != null
                   ? s.number(spec.emptyValue!, decimals: 6, grouping: false)
                   : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
-          help: s.has(spec.help) ? s(spec.help) : null,
+          help: _help,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,
           check: (v) => spec.validate(v),

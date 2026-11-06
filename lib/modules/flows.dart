@@ -41,8 +41,8 @@ final minCostFlowSpec = ModuleSpec(
     ...flowSolverFields,
   ],
   edgeFields: const [
-    FieldSpec('capacity', FieldKind.unlimited, min: 0),
     FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
+    FieldSpec('capacity', FieldKind.unlimited, min: 0),
     FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, requires: 'useFixedCosts', emptyValue: 0),
   ],
   summary: _flowSummary,
@@ -79,8 +79,8 @@ final maxFlowSpec = ModuleSpec(
     const FieldSpec('maxSolvingTime', FieldKind.number, unit: 's', min: 1, emptyValue: 60),
   ],
   edgeFields: const [
-    FieldSpec('capacity', FieldKind.unlimited, min: 0),
     FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
+    FieldSpec('capacity', FieldKind.unlimited, min: 0),
   ],
   summary: const [ResultColumn('objVal', labelKey: 'result.maxFlow')],
   objective: _objVal,
@@ -107,8 +107,8 @@ final multiCommoditySpec = ModuleSpec(
     FieldSpec('mipGap', FieldKind.number, min: 0, emptyValue: 0.001),
   ],
   edgeFields: const [
-    FieldSpec('capacity', FieldKind.unlimited, min: 0),
     FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
+    FieldSpec('capacity', FieldKind.unlimited, min: 0),
   ],
   summary: const [
     ResultColumn('objVal', unit: '€', labelKey: 'result.objVal'),
@@ -153,8 +153,8 @@ final multiStageWlpSpec = ModuleSpec(
     ...flowSolverFields,
   ],
   edgeFields: const [
-    FieldSpec('capacity', FieldKind.unlimited, min: 0),
     FieldSpec('minFlow', FieldKind.number, min: 0, emptyValue: 0),
+    FieldSpec('capacity', FieldKind.unlimited, min: 0),
     FieldSpec('fixedCost', FieldKind.number, unit: '€', min: 0, emptyValue: 0),
   ],
   summary: const [

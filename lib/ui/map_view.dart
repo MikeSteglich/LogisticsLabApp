@@ -98,6 +98,8 @@ class _MapViewState extends State<MapView> {
           mapController: _map,
           options: MapOptions(
             initialCenter: const LatLng(52.4, 13.4),
+            onPositionChanged: (camera, _) =>
+                s.mapSection = (camera.visibleBounds.southWest, camera.visibleBounds.northEast),
             initialZoom: 8,
             onMapReady: () {
               _ready = true;

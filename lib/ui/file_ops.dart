@@ -15,6 +15,7 @@ import '../app_state.dart';
 import '../backend/backend.dart';
 import '../model/scenario.dart';
 import '../model/solution_export.dart';
+import 'generator_dialog.dart';
 import 'messages.dart';
 
 // macOS: the types of the app (Info.plist) - the save panel knows the extension and does not add it again
@@ -164,6 +165,14 @@ class FileOps {
       appLog('import ${file.name}: error $e');
       await _error(t('ui.error.import', {'file': file.name, 'msg': '$e'}));
     }
+  }
+
+  /// a random problem for exercises - shown at once, not saved yet
+  Future<void> generateProblem() async {
+    if (!await _discardChanges()) return;
+    if (!context.mounted) return;
+    final s = await showGeneratorDialog(context, state);
+    if (s != null) state.openGenerated(s);
   }
 
   Future<void> openExample() async {

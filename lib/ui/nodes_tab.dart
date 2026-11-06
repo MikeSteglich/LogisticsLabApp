@@ -460,6 +460,7 @@ class _NodeMask extends StatelessWidget {
                   else
                     SpecField(
                       scenario: s.scenario,
+                      module: s.spec,
                       onEditRecords: () => s.setTab(DataTab.parameters),
                       spec: f,
                       value: n[f.key] ?? f.defaultValue,
