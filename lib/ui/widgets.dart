@@ -147,31 +147,42 @@ class ValueReset {
   const ValueReset(this.tooltip, this.onReset);
 }
 
-/// a value given in advance (a default) is replaced by the first input instead of being added to - typing 5 into a
-/// field showing 100 gives 5, a backspace empties it; moving the cursor keeps the default
-class ReplaceDefault extends TextInputFormatter {
+/// a value given in advance (a default) disappears when the field gets the focus - it is shown as hint, the first
+/// input replaces it; left without an input the default is back
+class DefaultOnFocus {
   bool active;
-  ReplaceDefault(this.active);
+  String? _shown; // the default while the field is empty
+  DefaultOnFocus(this.active);
 
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue old, TextEditingValue next) {
-    if (!active || old.text == next.text) return next;
+  /// the field shows the default as hint
+  String? get hint => _shown;
+
+  /// focus gained: the field is emptied, focus lost without an input: the default is back - true if the text changed
+  bool focus(TextEditingController c, bool has) {
+    if (!active) return false;
+    if (has && _shown == null && c.text.isNotEmpty) {
+      _shown = c.text;
+      c.clear();
+      return true;
+    }
+    if (!has && _shown != null) {
+      if (c.text.isEmpty) c.text = _shown!;
+      _shown = null;
+      return true;
+    }
+    return false;
+  }
+
+  /// the user has typed - from now on a normal field
+  void typed() {
     active = false;
-    // what has been typed: the text between the parts before and after it that are the same as before
-    final a = old.text, b = next.text;
-    var p = 0;
-    while (p < a.length && p < b.length && a[p] == b[p]) {
-      p++;
-    }
-    var s = 0;
-    while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] == b[b.length - 1 - s]) {
-      s++;
-    }
-    final typed = b.substring(p, b.length - s);
-    return TextEditingValue(
-      text: typed,
-      selection: TextSelection.collapsed(offset: typed.length),
-    );
+    _shown = null;
+  }
+
+  /// a new value from outside
+  void reset(bool isDefault) {
+    active = isDefault;
+    _shown = null;
   }
 }
 
@@ -204,7 +215,7 @@ class TextValueField extends StatefulWidget {
 
 class _TextValueFieldState extends State<TextValueField> {
   late final _c = TextEditingController(text: widget.value);
-  late final _replace = ReplaceDefault(widget.isDefault);
+  late final _default = DefaultOnFocus(widget.isDefault && !widget.readOnly);
   final _focus = FocusNode();
   String? _atFocus; // the text when the field got the focus
 
@@ -214,9 +225,13 @@ class _TextValueFieldState extends State<TextValueField> {
     _focus.addListener(() {
       if (_focus.hasFocus) {
         _atFocus = _c.text;
-      } else if (_atFocus != null && _atFocus != _c.text) {
-        _atFocus = null;
-        widget.onCommit?.call(_c.text);
+        if (_default.focus(_c, true)) setState(() {});
+      } else {
+        if (_default.focus(_c, false)) setState(() {});
+        if (_atFocus != null && _atFocus != _c.text) {
+          _atFocus = null;
+          widget.onCommit?.call(_c.text);
+        }
       }
     });
   }
@@ -227,7 +242,7 @@ class _TextValueFieldState extends State<TextValueField> {
     // changed from outside, e.g. the position set on the map
     if (widget.value != old.value && widget.value != _c.text) {
       _c.text = widget.value;
-      _replace.active = widget.isDefault;
+      _default.reset(widget.isDefault && !widget.readOnly);
     }
   }
 
@@ -247,14 +262,16 @@ class _TextValueFieldState extends State<TextValueField> {
         controller: _c,
         focusNode: _focus,
         readOnly: widget.readOnly,
-        inputFormatters: [_replace],
-        onChanged: widget.onChanged,
+        onChanged: (v) {
+          _default.typed();
+          widget.onChanged(v);
+        },
         textInputAction: TextInputAction.next,
         onEditingComplete: () {}, // enter: the next field (onSubmitted) instead of the default
         onSubmitted: (_) => focusNextField(context),
         decoration: InputDecoration(
           errorText: widget.error,
-          hintText: widget.hint,
+          hintText: _default.hint ?? widget.hint,
           fillColor: widget.readOnly ? Ui.surfaceAlt : null,
         ),
       ),
@@ -329,8 +346,17 @@ class NumberField extends StatefulWidget {
 
 class _NumberFieldState extends State<NumberField> {
   late final _c = TextEditingController(text: _text(widget.value));
-  late final _replace = ReplaceDefault(widget.isDefault);
+  late final _default = DefaultOnFocus(widget.isDefault);
+  final _focus = FocusNode();
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (_default.focus(_c, _focus.hasFocus)) setState(() {});
+    });
+  }
 
   String _text(num? v) => widget.format != null
       ? widget.format!(v)
@@ -345,17 +371,19 @@ class _NumberFieldState extends State<NumberField> {
     if (widget.value != current && widget.value != old.value) {
       _c.text = _text(widget.value);
       _error = null;
-      _replace.active = widget.isDefault;
+      _default.reset(widget.isDefault);
     }
   }
 
   @override
   void dispose() {
+    _focus.dispose();
     _c.dispose();
     super.dispose();
   }
 
   void _changed(String t) {
+    _default.typed();
     final v = _parse(t);
     String? error;
     if (t.trim().isNotEmpty && v == null) {
@@ -379,6 +407,7 @@ class _NumberFieldState extends State<NumberField> {
       ),
       TextField(
         controller: _c,
+        focusNode: _focus,
         onChanged: _changed,
         textInputAction: TextInputAction.next,
         onEditingComplete: () {}, // enter: the next field (onSubmitted) instead of the default
@@ -388,12 +417,11 @@ class _NumberFieldState extends State<NumberField> {
         // digits and the signs of a number - a time of the day also with its colon
         inputFormatters: [
           FilteringTextInputFormatter.allow(RegExp(widget.parse != null ? r'[0-9:.\s]' : r'[0-9.,\-\s]')),
-          _replace,
         ],
         style: const TextStyle(fontFeatures: Ui.tabular),
         decoration: InputDecoration(
           errorText: _error,
-          hintText: widget.hint,
+          hintText: _default.hint ?? widget.hint,
           errorMaxLines: 2,
           suffixIcon: widget.suggestion == null || widget.suggestion == widget.value
               ? null
