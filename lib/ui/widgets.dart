@@ -313,6 +313,7 @@ class NumberField extends StatefulWidget {
   final String? help; // shown as tooltip of an info symbol beside the label
   final ValueReset? reset; // a value of the data variant
   final bool isDefault; // the value is given in advance (a default) - replaced by the first input
+  final bool hintIsDefault; // the hint is the value taken for an empty field - hidden when the field has the focus
   final Message? Function(num?)? check;
   final String Function(num?)? format; // other text than a number, e.g. a time of the day
   final num? Function(String)? parse;
@@ -332,6 +333,7 @@ class NumberField extends StatefulWidget {
     this.help,
     this.reset,
     this.isDefault = false,
+    this.hintIsDefault = false,
     this.check,
     this.format,
     this.parse,
@@ -354,7 +356,7 @@ class _NumberFieldState extends State<NumberField> {
   void initState() {
     super.initState();
     _focus.addListener(() {
-      if (_default.focus(_c, _focus.hasFocus)) setState(() {});
+      if (_default.focus(_c, _focus.hasFocus) || widget.hintIsDefault) setState(() {});
     });
   }
 
@@ -421,7 +423,7 @@ class _NumberFieldState extends State<NumberField> {
         style: const TextStyle(fontFeatures: Ui.tabular),
         decoration: InputDecoration(
           errorText: _error,
-          hintText: _default.hint ?? widget.hint,
+          hintText: _default.hint ?? (widget.hintIsDefault && _focus.hasFocus ? null : widget.hint),
           errorMaxLines: 2,
           suffixIcon: widget.suggestion == null || widget.suggestion == widget.value
               ? null
@@ -718,6 +720,7 @@ class SpecField extends StatelessWidget {
           help: _help,
           reset: reset,
           isDefault: spec.defaultValue != null && value == spec.defaultValue,
+          hintIsDefault: hintText == null && spec.hint == null && spec.emptyValue != null,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,
           check: (v) => spec.validate(v),

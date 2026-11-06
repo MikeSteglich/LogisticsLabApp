@@ -60,4 +60,29 @@ void main() {
     await tester.enterText(fields.at(2), 'Hoch');
     expect(name, 'Hoch');
   });
+
+  testWidgets('the value taken for an empty field: its hint is hidden while the field has the focus', (tester) async {
+    final t = (await tester.runAsync(() => Strings.load('de')))!;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: Column(
+            children: [
+              NumberField(label: 'Zeit', value: null, hint: '60', hintIsDefault: true, strings: t, onChanged: (_) {}),
+              NumberField(label: 'B', value: null, hint: 'unbegrenzt', strings: t, onChanged: (_) {}),
+            ],
+          ),
+        ),
+      ),
+    );
+    final fields = find.byType(TextField);
+    expect(find.text('60'), findsOneWidget);
+    await tester.tap(fields.at(0));
+    await tester.pump();
+    expect(find.text('60'), findsNothing);
+    await tester.tap(fields.at(1));
+    await tester.pump();
+    expect(find.text('60'), findsOneWidget);
+    expect(find.text('unbegrenzt'), findsOneWidget); // an other hint stays
+  });
 }
