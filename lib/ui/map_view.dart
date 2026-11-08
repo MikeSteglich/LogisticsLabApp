@@ -471,7 +471,7 @@ class _MapViewState extends State<MapView> {
             hitValue: f.index,
             points: points,
             // a stale solution pale blue, the network light grey - all solid, dashes merge where lines overlap
-            color: f.selected ? Ui.highlight : (stale ? f.color.withValues(alpha: 0.4) : f.color),
+            color: f.selected ? Ui.highlightMap : (stale ? f.color.withValues(alpha: 0.4) : f.color),
             strokeWidth: f.repeated ? 8 : (f.selected ? 6 : 3.5),
             strokeCap: StrokeCap.round,
             strokeJoin: StrokeJoin.round,
@@ -505,7 +505,7 @@ class _MapViewState extends State<MapView> {
       const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, fontFeatures: Ui.tabular),
       centered: true,
       color: f.selected ? Ui.highlight : (f.color == Ui.accent ? Ui.accentDark : f.color),
-      border: f.selected ? Ui.highlight : (s.solutionIsStale ? Ui.textSecondary : f.color),
+      border: f.selected ? Ui.highlightMap : (s.solutionIsStale ? Ui.textSecondary : f.color),
       borderWidth: f.selected ? 2 : 1,
     );
     _Label nodeLabel(Node n) => _Label(

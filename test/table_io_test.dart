@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:logisticslab_app/app_state.dart';
+import 'package:logisticslab_app/model/clock.dart';
 import 'package:logisticslab_app/backend/backend.dart';
 import 'package:logisticslab_app/main.dart';
 import 'package:logisticslab_app/model/scenario.dart';
@@ -133,6 +134,64 @@ void main() {
     expect(templin['timeWindow'], [480, 720]);
   });
 
+  testWidgets('a vrp from Excel: start and end of the time windows in two columns, service times as 00:05', (
+    tester,
+  ) async {
+    final state = await _state(tester, 'Touren ab Wildau');
+    state.problem!.parameters['useTimeWindows'] = false;
+    final paste = TableImport(
+      state,
+      TableKind.nodes,
+      'Ort\tBreite\tLänge\tBedarf\tStartzeit\tEndzeit\tServicezeit\n'
+      'Templin\t53,12\t13,5\t45\t09:00\t10:00\t00:05\n'
+      'Prenzlau\t53,32\t13,86\t50\t08:30\t\t1:30\n'
+      'Schwedt\t53,06\t14,28\t5\t11:00\t10:00\t5\n'
+      'Angermünde\t53,02\t14,0\t5\tacht\t\tfünf\n'
+      'Eberswalde\t52,83\t13,82\t5\t8 Uhr\t\t\n'
+      'Joachimsthal\t52,98\t13,74\t0\t08:00\t17:00\t\n',
+    );
+    expect(paste.mapping, [
+      'name',
+      'latitude',
+      'longitude',
+      'demand',
+      'timeWindow.from',
+      'timeWindow.to',
+      'serviceTime',
+    ]);
+    final check = paste.check();
+    expect(paste.role, TableImport.autoRole);
+    expect(check.added, 4);
+    expect(
+      [for (final e in check.errors) (e.row, e.key)],
+      [(4, 'ui.import.noTimeWindow'), (5, 'ui.import.noDuration'), (5, 'ui.import.noTime')],
+    );
+    final result = (await tester.runAsync(paste.apply))!;
+    final templin = state.scenario.nodes.firstWhere((n) => n.name == 'Templin');
+    expect(templin['timeWindow'], [540, 600]);
+    expect(templin['serviceTime'], 5);
+    final prenzlau = state.scenario.nodes.firstWhere((n) => n.name == 'Prenzlau');
+    expect(prenzlau['timeWindow'], [510, null]);
+    expect(prenzlau['serviceTime'], 90);
+    expect(state.scenario.nodes.firstWhere((n) => n.name == 'Eberswalde')['timeWindow'], [480, null]);
+    // a demand of 0: the depot
+    final depot = state.scenario.nodes.firstWhere((n) => n.name == 'Joachimsthal');
+    expect(depot.roles, ['depot']);
+    expect(depot['timeWindow'], [480, 1020]);
+    expect(templin.roles, ['customer']);
+    // the problem now uses the time windows
+    expect(result.timeWindowsOn, isTrue);
+    expect(state.problem!.parameters['useTimeWindows'], isTrue);
+
+    // updated: the end only - the start stays
+    final end = TableImport(state, TableKind.nodes, 'Ort\tEndzeit\nPrenzlau\t12:00\n');
+    expect(end.mode, ImportMode.update);
+    await tester.runAsync(end.apply);
+    expect(prenzlau['timeWindow'], [510, 720]);
+    expect(Clock('h').parseDuration('0:30'), 0.5);
+    expect(Clock('s').parseDuration('00:01:30'), 90);
+  });
+
   testWidgets('names and postal codes without an address: the address made of their columns', (tester) async {
     final state = await _state(tester, 'Touren ab Wildau');
     final paste = TableImport(state, TableKind.nodes, 'Name\tPost code\nBestensee\t15741\nMittenwalde\t15749\n');
@@ -151,6 +210,10 @@ void main() {
     expect(full.check().toLocate.single.$2, 'Hochschulring 1, 15745, Wildau');
     // without a header: the name and all other columns; with coordinates no address
     expect(TableImport(state, TableKind.nodes, 'Bestensee\t15741\nHalbe\t15757\n').addressParts, [0, 1]);
+    // the name in the column of the place (Ort): part of the address also with a street
+    final place = TableImport(state, TableKind.nodes, 'Ort\tPLZ\tStraße\nSchönwalde\t16348\tLindenstraße 33\n');
+    expect(place.mapping.first, 'name');
+    expect(place.composedAddress(place.data.first), 'Schönwalde, 16348, Lindenstraße 33');
     expect(TableImport(state, TableKind.nodes, 'Eberswalde\t52,83\t13,82\n').addressParts, isEmpty);
     // chosen in the dialog: only the name
     paste.addressParts = [0];

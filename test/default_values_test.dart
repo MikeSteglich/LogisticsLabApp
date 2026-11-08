@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:logisticslab_app/i18n/strings.dart';
+import 'package:logisticslab_app/model/clock.dart';
 import 'package:logisticslab_app/ui/widgets.dart';
 
 void main() {
@@ -89,5 +90,35 @@ void main() {
     await tester.pump();
     expect(find.text('unbegrenzt'), findsOneWidget); // back when the field is left
     expect(find.text('K1'), findsOneWidget);
+  });
+
+  testWidgets('a time also as duration: 00:05 is 5 minutes, a number stays a number', (tester) async {
+    final t = (await tester.runAsync(() => Strings.load('de')))!;
+    num? v;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Material(
+          child: NumberField(
+            label: 'Servicezeit',
+            value: null,
+            strings: t,
+            duration: const Clock('min').parseDuration,
+            invalid: 'error.duration',
+            onChanged: (x) => v = x,
+          ),
+        ),
+      ),
+    );
+    final field = find.byType(TextField);
+    await tester.enterText(field, '00:05');
+    expect(v, 5);
+    await tester.enterText(field, '1:30');
+    expect(v, 90);
+    await tester.enterText(field, '2,5');
+    expect(v, 2.5);
+    await tester.enterText(field, '0:75');
+    await tester.pump();
+    expect(v, 2.5);
+    expect(find.textContaining('00:05'), findsOneWidget); // the message
   });
 }

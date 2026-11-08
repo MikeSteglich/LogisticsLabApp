@@ -31,6 +31,16 @@ class Clock {
     return v == v.roundToDouble() ? v.round() : v;
   }
 
+  /// a duration "0:05", "00:05" or "1:30:00" (hours, minutes, seconds) in the time unit - null if it is none
+  num? parseDuration(String text) {
+    final m = RegExp(r'^\s*(\d+):(\d{2})(?::(\d{2}))?\s*$').firstMatch(text);
+    if (m == null) return null;
+    final h = int.parse(m.group(1)!), min = int.parse(m.group(2)!), sec = int.parse(m.group(3) ?? '0');
+    if (min > 59 || sec > 59) return null;
+    final v = (h * 60 + min + sec / 60) * _perMinute;
+    return (v - v.roundToDouble()).abs() < 1e-9 ? v.round() : v;
+  }
+
   /// a duration in hours and minutes, e.g. 7:56 h
   String duration(num v) {
     final minutes = (v / _perMinute).round();

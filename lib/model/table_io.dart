@@ -64,7 +64,14 @@ const _aliases = {
   'demand': ['bedarf', 'demand', 'menge', 'nachfrage'],
   'supply': ['supply', 'angebot', 'kapazitat'],
   'timeWindow': ['zeitfenster', 'timewindow'],
+  // start and end of the time window in two columns
+  _twFrom: ['startzeit', 'beginn', 'start', 'von', 'ab', 'fruhestens', 'earliest', 'from', 'starttime', 'begin'],
+  _twTo: ['endzeit', 'ende', 'end', 'bis', 'spatestens', 'latest', 'to', 'endtime'],
+  'serviceTime': ['servicezeit', 'bedienzeit', 'standzeit', 'stoppzeit', 'servicetime', 'service'],
 };
+
+// the time window in two columns - only for a paste, a copy has it in one column
+const _twFrom = 'timeWindow.from', _twTo = 'timeWindow.to';
 
 /// the columns of the problem - the base columns and the fields of its roles (nodes) or edges
 List<TableColumn> tableColumns(AppState s, TableKind kind) {
@@ -85,12 +92,18 @@ List<TableColumn> tableColumns(AppState s, TableKind kind) {
         if (usable(f)) TableColumn(f.key, f.label, f),
     ];
   }
+  // a field of several roles under the general label - the time window of the depot (operating time) and of the
+  // customers
+  String label(FieldSpec f) =>
+      spec!.activeRoles(params).where((r) => r.nodeFields.any((o) => o.key == f.key)).length > 1
+      ? 'field.${f.key}'
+      : f.label;
   return [
     ..._nodeBase,
     if (spec != null)
       for (final r in spec.activeRoles(params))
         for (final f in r.nodeFields)
-          if (usable(f)) TableColumn(f.key, f.label, f),
+          if (usable(f)) TableColumn(f.key, label(f), f),
     for (final f in spec?.nodeFields ?? const <FieldSpec>[])
       if (usable(f)) TableColumn(f.key, f.label, f),
   ];
@@ -221,6 +234,8 @@ class ImportCheck {
   final List<ImportError> errors = [];
   final List<(int, String)> toLocate = []; // (row, address) of the nodes whose coordinates are looked up
   final List<void Function(Scenario, Network?, Map<int, LatLng>)> _changes = [];
+  bool timeWindows = false; // time windows of nodes other than the depot pasted
+  bool timeWindowsOn = false; // they switched on the time windows of the problem
   bool get isEmpty => added + updated == 0;
 }
 
@@ -237,7 +252,7 @@ class TableImport {
 
   TableImport(this.state, this.kind, String text)
     : rows = parseTable(text),
-      columns = tableColumns(state, kind),
+      columns = _importColumns(state, kind),
       header = false {
     mapping = List.filled(width, null);
     // a header if the first row names known columns
@@ -264,6 +279,19 @@ class TableImport {
     }
   }
 
+  /// the columns of the table - with a time window also its start and end in columns of their own
+  static List<TableColumn> _importColumns(AppState s, TableKind kind) {
+    final columns = tableColumns(s, kind);
+    final tw = columns.where((c) => c.field?.kind == FieldKind.timeWindow).firstOrNull;
+    return [
+      ...columns,
+      if (tw != null) ...[
+        TableColumn(_twFrom, 'ui.import.twFrom', tw.field),
+        TableColumn(_twTo, 'ui.import.twTo', tw.field),
+      ],
+    ];
+  }
+
   /// the role of a new node: from the values of its row (autoRole) or this role
   static const autoRole = '@auto';
 
@@ -274,25 +302,31 @@ class TableImport {
     final params = state.problem?.parameters ?? const <String, dynamic>{};
     return [
       for (final r in spec.activeRoles(params))
-        if (r.mainField case final f? when mapping.contains(f.key)) (spec.nodeRole(r, params), mapping.indexOf(f.key)),
+        // a quantity - not the operating time of a depot
+        if (r.mainField case final f? when f.kind != FieldKind.timeWindow && mapping.contains(f.key))
+          (spec.nodeRole(r, params), mapping.indexOf(f.key)),
     ];
   }
 
   /// the role of a row can be taken from its values
   bool get canDetectRoles => kind == TableKind.nodes && _roleColumns.isNotEmpty;
 
-  /// autoRole: the first role whose main value in the row is not 0 - else a transshipment node (network flow) or the
-  /// last role of the problem
+  /// autoRole: the first role whose main value in the row is not 0 - else a transshipment node (network flow), the
+  /// depot (a demand of 0 in a tour planning) or the last role of the problem
   String rowRole(List<String> row) {
     if (role != autoRole) return role ?? 'customer';
+    var zero = false;
     for (final (r, i) in _roleColumns) {
       final text = row[i].trim();
       if (text.isEmpty) continue;
       final v = _num(text);
       if (v == null || v != 0) return r; // a value - also of several commodities
+      zero = true;
     }
     final roles = state.assignableRoles;
-    return roles.contains('transit') ? 'transit' : (roles.isEmpty ? 'customer' : roles.last);
+    if (roles.contains('transit')) return 'transit';
+    if (zero && roles.contains('depot')) return 'depot';
+    return roles.isEmpty ? 'customer' : roles.last;
   }
 
   /// nodes without columns of the coordinates and of the address: the address of the name and the other columns -
@@ -312,7 +346,9 @@ class TableImport {
       if (_streetParts.contains(h) || _placeParts.contains(h)) street = true;
       if (_streetParts.contains(h) || _placeParts.contains(h) || _otherParts.contains(h)) parts.add(i);
     }
-    addressParts = [if (name >= 0 && !street) name, ...parts]..sort();
+    // the name is a part of the address without a street or place - or if its column is the place (Ort)
+    final namePlace = header && name >= 0 && _placeParts.contains(_header(rows.first[name]));
+    addressParts = [if (name >= 0 && (!street || namePlace)) name, ...parts]..sort();
   }
 
   /// the header of a column of the table - or Spalte n
@@ -450,7 +486,7 @@ class TableImport {
       final values = <String, Object?>{}; // field key -> value (null: removed)
       for (final MapEntry(:key, :value) in col.entries) {
         final c = fields[key];
-        if (c?.field == null) continue;
+        if (c?.field == null || key == _twFrom || key == _twTo) continue;
         final (v, error) = _value(c!.field!, row[value], nodeId);
         if (error != null) {
           errors.add(ImportError(line, error, {'column': state.strings(c.label), 'value': row[value]}));
@@ -476,6 +512,34 @@ class TableImport {
         }
         final idText = cell('id');
         final existing = mode == ImportMode.update ? (byId[idText] ?? byName[normalize(name)]) : null;
+        // the time window from the columns of its start and end - the other end of an existing node is kept
+        if (col.containsKey(_twFrom) || col.containsKey(_twTo)) {
+          final old = existing == null ? null : scenario.node(existing)!['timeWindow'];
+          final before = old is List ? old : const [null, null];
+          num? at(String key, int i) {
+            if (!col.containsKey(key)) return before.length > i ? before[i] as num? : null;
+            final text = cell(key).trim();
+            if (text.isEmpty) return null;
+            final v = state.clock.parse(text.replaceFirst(RegExp(r'\s*(uhr|h)$', caseSensitive: false), ''));
+            if (v == null) {
+              errors.add(
+                ImportError(line, 'ui.import.noTime', {'column': state.strings(fields[key]!.label), 'value': text}),
+              );
+            }
+            return v;
+          }
+
+          final a = at(_twFrom, 0), b = at(_twTo, 1);
+          if (a != null && b != null && a > b) {
+            errors.add(
+              ImportError(line, 'ui.import.noTimeWindow', {
+                'column': state.strings('field.timeWindow'),
+                'value': '${cell(_twFrom)}–${cell(_twTo)}',
+              }),
+            );
+          }
+          values['timeWindow'] = a == null && b == null ? null : [a, b];
+        }
         if (mode == ImportMode.update && existing == null) {
           errors.add(ImportError(line, 'ui.import.notFound', {'name': name.isEmpty ? idText : name}));
         }
@@ -533,6 +597,7 @@ class TableImport {
             return f != null && f.notForRoles.isNotEmpty && !spec.isForRoles(f, rowRoles, s.problem!.parameters);
           });
         }
+        if (values['timeWindow'] != null && !(roles ?? [rowRole(row)]).contains('depot')) result.timeWindows = true;
         if (errors.isNotEmpty) {
           result.errors.addAll(errors);
           continue;
@@ -617,8 +682,9 @@ class TableImport {
             RegExp(r'^(m|∞|unbegrenzt|unlimited|inf)$', caseSensitive: false).hasMatch(text)) {
           return ('M', null);
         }
-        final v = _num(text);
-        if (v == null) return (null, 'ui.import.noNumber');
+        // a time as duration, e.g. 00:05 (5 minutes) - as Excel copies it
+        final v = f.unit == '@time' && text.contains(':') ? state.clock.parseDuration(text) : _num(text);
+        if (v == null) return (null, f.unit == '@time' ? 'ui.import.noDuration' : 'ui.import.noNumber');
         // the throughput of a node 0 in a list (as in old files): no limit - 0 would close the node
         if (f.key == 'maxCap' && v == 0) return (null, null);
         if (f.kind == FieldKind.integer && v != v.roundToDouble()) return (null, 'ui.import.noInteger');
@@ -675,6 +741,15 @@ class TableImport {
     state.edit(() {
       for (final change in result._changes) {
         change(state.scenario, state.network, located);
+      }
+      // time windows of the customers pasted: the problem uses them
+      final params = state.problem?.parameters;
+      if (params != null &&
+          params['useTimeWindows'] != true &&
+          state.spec?.parameters.any((f) => f.key == 'useTimeWindows') == true &&
+          result.timeWindows) {
+        params['useTimeWindows'] = true;
+        result.timeWindowsOn = true;
       }
     });
     result.errors.sort((a, b) => a.row.compareTo(b.row));

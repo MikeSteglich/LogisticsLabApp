@@ -315,6 +315,7 @@ class NumberField extends StatefulWidget {
   final Message? Function(num?)? check;
   final String Function(num?)? format; // other text than a number, e.g. a time of the day
   final num? Function(String)? parse;
+  final num? Function(String)? duration; // a time also as duration with a colon, e.g. 00:05 - beside a number
   final String? invalid; // message key of a text parse cannot read - default error.number
   final num? suggestion; // a value a button in the field enters, e.g. the smallest radius of a covering
   final String? suggestionTooltip;
@@ -334,6 +335,7 @@ class NumberField extends StatefulWidget {
     this.check,
     this.format,
     this.parse,
+    this.duration,
     this.invalid,
     this.suggestion,
     this.suggestionTooltip,
@@ -362,7 +364,9 @@ class _NumberFieldState extends State<NumberField> {
       ? widget.format!(v)
       : (v == null ? '' : widget.strings.number(v, decimals: widget.decimals, grouping: false));
 
-  num? _parse(String t) => widget.parse != null ? widget.parse!(t) : widget.strings.parse(t);
+  num? _parse(String t) => widget.parse != null
+      ? widget.parse!(t)
+      : (widget.duration != null && t.contains(':') ? widget.duration!(t) : widget.strings.parse(t));
 
   @override
   void didUpdateWidget(NumberField old) {
@@ -416,7 +420,9 @@ class _NumberFieldState extends State<NumberField> {
         keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
         // digits and the signs of a number - a time of the day also with its colon
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(widget.parse != null ? r'[0-9:.\s]' : r'[0-9.,\-\s]')),
+          FilteringTextInputFormatter.allow(
+            RegExp(widget.parse != null ? r'[0-9:.\s]' : (widget.duration != null ? r'[0-9.,:\-\s]' : r'[0-9.,\-\s]')),
+          ),
         ],
         style: const TextStyle(fontFeatures: Ui.tabular),
         decoration: InputDecoration(
@@ -717,6 +723,9 @@ class SpecField extends StatelessWidget {
                   : (spec.kind == FieldKind.unlimited ? s('hint.unlimited') : null)),
           help: _help,
           reset: reset,
+          // a time (service time, longest tour): also as duration 00:05
+          duration: spec.unit == '@time' ? Clock(scenario?.units['time'] as String? ?? 'min').parseDuration : null,
+          invalid: spec.unit == '@time' ? 'error.duration' : null,
           isDefault: spec.defaultValue != null && value == spec.defaultValue,
           suggestion: suggestion,
           suggestionTooltip: suggestionTooltip,

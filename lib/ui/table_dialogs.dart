@@ -39,6 +39,7 @@ Future<void> showPasteDialog(BuildContext context, AppState s, TableKind kind) a
     [
       t('ui.import.done', {'added': result.added, 'updated': result.updated}),
       if (result.errors.isNotEmpty) t('ui.import.skipped', {'n': result.errors.length}),
+      if (result.timeWindowsOn) t('ui.import.timeWindowsOn'),
     ].join(' · '),
   );
 }

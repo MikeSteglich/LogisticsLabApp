@@ -59,6 +59,7 @@ abstract final class Ui {
     _ => (textMuted, text),
   };
   static const highlight = Color(0xFFC25A0E); // connection of the solution selected in the table
+  static const highlightMap = Color(0xFFEF6C00); // the same as line on the map - brighter, to stand out of the tours
   static const highlightLight = Color(0xFFFBEEE4);
 
   static const minTarget = 44.0; // touch targets (tablet)
