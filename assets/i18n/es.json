@@ -605,6 +605,7 @@
   "core.warning.maxWithoutPrices": "Maximización sin ingresos (clientes) ni costes por unidad (proveedores): el margen consiste solo en los costes de transporte negativos",
   "core.warning.maxWithoutCostRates": "Maximización sin costes por km ni por hora: sin costes de transporte",
   "core.warning.capacitiesIgnored": "Las capacidades no se tienen en cuenta porque «Respetar capacidades» está desactivado",
+  "core.warning.unlimitedCapacity": "Sin capacidad, por tanto ilimitada: {nodes}",
   "core.warning.greatCircle": "Los problemas de localización continua usan distancias en línea recta (círculo máximo), no la red de carreteras",
   "core.warning.deliveriesWithoutPickup": "Puntos de entrega sin recogida: {nodes}",
   "core.warning.networkIgnored": "La planificación de rutas usa la matriz completa de los servidores OSM: la red no se tiene en cuenta",

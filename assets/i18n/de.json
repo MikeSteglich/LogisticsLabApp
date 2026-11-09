@@ -605,6 +605,7 @@
   "core.warning.maxWithoutPrices": "Maximierung ohne Erlöse (Kunden) und Kosten je Einheit (Lieferanten) – der Deckungsbeitrag besteht nur aus den negativen Transportkosten",
   "core.warning.maxWithoutCostRates": "Maximierung ohne Kosten je km und je Stunde – keine Transportkosten",
   "core.warning.capacitiesIgnored": "Die Kapazitäten werden nicht berücksichtigt, weil „Kapazitäten beachten“ aus ist",
+  "core.warning.unlimitedCapacity": "Ohne Kapazität, daher unbegrenzt: {nodes}",
   "core.warning.greatCircle": "Kontinuierliche Standortprobleme rechnen mit Luftlinien-Entfernungen (Großkreis), nicht mit dem Straßennetz",
   "core.warning.deliveriesWithoutPickup": "Zustellorte ohne Abholung: {nodes}",
   "core.warning.networkIgnored": "Die Tourenplanung nutzt die vollständige Matrix der OSM-Server – das Netz wird nicht berücksichtigt",
