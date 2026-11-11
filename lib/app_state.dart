@@ -1578,6 +1578,14 @@ class AppState extends ChangeNotifier {
 
   //*********** geocoding ************
 
+  /// the postcode at a position (reverse geocoding) - null without one; of several (12345;12347) the first
+  Future<String?> postcodeAt(LatLng position) async {
+    if (!reverseGeocoding) return null;
+    final hit = await (await _getBackend()).reverse(position).timeout(const Duration(seconds: 15));
+    final code = (hit?.json['postcode'] as String?)?.split(RegExp(r'[;,]')).first.trim();
+    return code == null || code.isEmpty ? null : code;
+  }
+
   /// places of the address - hits near the other nodes first
   Future<List<GeoHit>> geocode(String address, {String? exceptNode}) async {
     final others = [

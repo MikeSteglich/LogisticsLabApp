@@ -764,6 +764,7 @@
   "ui.generator.seed.help": "Mit demselben Startwert und denselben Einstellungen entsteht wieder genau dieses Problem – z. B. eine Aufgabe je Startwert.",
   "ui.generator.newSeed": "Neuer Startwert",
   "ui.generator.create": "Erzeugen",
+  "ui.generator.postcodes": "Postleitzahlen werden gesucht …",
   "ui.generator.scenarioName": "Zufall {type} {seed}",
   "ui.generator.network": "Netz",
   "ui.generator.vehicle": "LKW",

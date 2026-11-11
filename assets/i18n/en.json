@@ -764,6 +764,7 @@
   "ui.generator.seed.help": "The same start value and settings give exactly this problem again – e.g. one exercise per start value.",
   "ui.generator.newSeed": "New start value",
   "ui.generator.create": "Generate",
+  "ui.generator.postcodes": "Looking up the postcodes …",
   "ui.generator.scenarioName": "Random {type} {seed}",
   "ui.generator.network": "Network",
   "ui.generator.vehicle": "Truck",

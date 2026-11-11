@@ -764,6 +764,7 @@
   "ui.generator.seed.help": "Avec la même valeur de départ et les mêmes réglages, on obtient exactement le même problème – p. ex. un exercice par valeur de départ.",
   "ui.generator.newSeed": "Nouvelle valeur de départ",
   "ui.generator.create": "Générer",
+  "ui.generator.postcodes": "Recherche des codes postaux …",
   "ui.generator.scenarioName": "Aléatoire {type} {seed}",
   "ui.generator.network": "Réseau",
   "ui.generator.vehicle": "Camion",

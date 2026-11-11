@@ -187,6 +187,7 @@ Scenario generate(
   required String networkName,
   String vehicleName = 'V1',
   (String, String) modeNames = ('M1', 'M2'),
+  String Function(String code)? countryName,
 }) {
   final spec = modules[g.type]!;
   final plan = GeneratorPlan.of(spec);
@@ -235,6 +236,9 @@ Scenario generate(
       final c = picked[next++];
       final n = s.addNode(c.position, roles: group.nodeRole == null ? const [] : [group.nodeRole!]);
       n.name = names[c.name]! > 1 ? '${c.name} (${c.country})' : c.name;
+      // the address for the students - the postcode comes later (withPostcodes)
+      n.address = '${c.name}, ${countryName?.call(c.country) ?? c.country}';
+      n.json['addressDetails'] = {'city': c.name, 'country': c.country};
       for (final f in group.fields) {
         final mean = g.means['${group.key}.${f.key}'];
         if (mean == null) continue;
@@ -378,5 +382,45 @@ void _parameters(Problem problem, ModuleSpec spec, Scenario s, Map<String, List<
         final mean = g.means['sources.fixedCost'];
         p['maxSrcCost'] = f.kind == FieldKind.integer || mean == null ? locations : mean * locations;
     }
+  }
+}
+
+/// the address of a node with the postcode of its place - "15745 Wildau, Deutschland"; null if the node has no
+/// address of the generator (city and country) or the postcode is empty
+String? addressWithPostcode(Node n, String postcode, String Function(String code)? countryName) {
+  final d = n.json['addressDetails'];
+  if (d is! Map || d['city'] is! String || d['country'] is! String || postcode.trim().isEmpty) return null;
+  final country = d['country'] as String;
+  return '${postcode.trim()} ${d['city']}, ${countryName?.call(country) ?? country}';
+}
+
+/// the postcodes of the places of a generated scenario - [postcodeOf] gives the postcode at a position (reverse
+/// geocoding), null or an error leave the address without it; a few requests at a time - none of them answered
+/// (offline): the others are not asked
+Future<void> withPostcodes(
+  Scenario s,
+  Future<String?> Function(LatLng position) postcodeOf, {
+  String Function(String code)? countryName,
+  int parallel = 6,
+}) async {
+  final nodes = [...s.nodes];
+  for (var i = 0; i < nodes.length; i += parallel) {
+    var failed = 0;
+    final batch = nodes.skip(i).take(parallel).length;
+    await Future.wait([
+      for (final n in nodes.skip(i).take(parallel))
+        () async {
+          try {
+            final postcode = await postcodeOf(n.position);
+            final address = postcode == null ? null : addressWithPostcode(n, postcode, countryName);
+            if (address == null) return;
+            n.address = address;
+            (n.json['addressDetails'] as Map)['postcode'] = postcode!.trim();
+          } catch (_) {
+            failed++;
+          }
+        }(),
+    ]);
+    if (failed == batch) return;
   }
 }

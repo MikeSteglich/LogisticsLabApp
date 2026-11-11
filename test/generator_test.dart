@@ -124,6 +124,7 @@ void main() {
   });
 
   testWidgets('the dialog: the problem generated with the settings, shown at once and not saved yet', (tester) async {
+    AppState.reverseGeocoding = false; // no postcodes from a core in this test
     SharedPreferences.setMockInitialValues({'language': 'de'});
     final state = (await tester.runAsync(AppState.create))!;
     await tester.runAsync(loadCities);
@@ -151,5 +152,40 @@ void main() {
     state.openGenerated(result!);
     expect(state.dirty, isTrue);
     expect(state.problem!.type, 'tpp');
+  });
+
+  test('addresses: city and country at once, the postcode of the place later', () async {
+    final s = generate(
+      settings('tpp'),
+      cities,
+      name: 'x',
+      problemName: 'p',
+      networkName: 'n',
+      countryName: (c) => c == 'DE' ? 'Deutschland' : c,
+    );
+    for (final n in s.nodes) {
+      final d = n.json['addressDetails'] as Map;
+      expect(n.address, '${d['city']}, Deutschland');
+      expect(d['country'], 'DE');
+    }
+    var asked = 0;
+    await withPostcodes(s, (p) async => ++asked == 2 ? null : '1574$asked', countryName: (c) => 'Deutschland');
+    expect(asked, s.nodes.length);
+    final withCode = s.nodes.where((n) => (n.json['addressDetails'] as Map)['postcode'] != null).toList();
+    expect(withCode, hasLength(s.nodes.length - 1));
+    final d = withCode.first.json['addressDetails'] as Map;
+    expect(withCode.first.address, '${d['postcode']} ${d['city']}, Deutschland');
+  });
+
+  test('postcodes offline: the addresses stay, the others are not asked', () async {
+    final s = generate(settings('tsp'), cities, name: 'x', problemName: 'p', networkName: 'n');
+    final before = [for (final n in s.nodes) n.address];
+    var asked = 0;
+    await withPostcodes(s, (p) async {
+      asked++;
+      throw Exception('offline');
+    }, parallel: 3);
+    expect(asked, 3);
+    expect([for (final n in s.nodes) n.address], before);
   });
 }

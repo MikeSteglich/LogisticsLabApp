@@ -56,6 +56,7 @@ class _GeneratorDialog extends StatefulWidget {
 class _GeneratorDialogState extends State<_GeneratorDialog> {
   int _seed = _newSeed();
   String? _error;
+  bool _busy = false; // the postcodes of the places are fetched
 
   static int _newSeed() => math.Random().nextInt(9000) + 1000;
 
@@ -81,7 +82,7 @@ class _GeneratorDialogState extends State<_GeneratorDialog> {
 
   int get _available => citiesIn(widget.cities, _countries, _section).length;
 
-  void _generate() {
+  Future<void> _generate() async {
     final plan = _plan;
     try {
       final s = generate(
@@ -105,8 +106,12 @@ class _GeneratorDialogState extends State<_GeneratorDialog> {
         networkName: t('ui.generator.network'),
         vehicleName: t('ui.generator.vehicle'),
         modeNames: (t('ui.generator.road'), t('ui.generator.rail')),
+        countryName: _country,
       );
-      Navigator.pop(context, s);
+      // the postcodes of the places - offline the addresses stay city and country
+      setState(() => _busy = true);
+      await withPostcodes(s, widget.state.postcodeAt, countryName: _country);
+      if (mounted) Navigator.pop(context, s);
     } on GeneratorException catch (e) {
       setState(() => _error = t(e.key, e.args));
     }
@@ -335,8 +340,12 @@ class _GeneratorDialogState extends State<_GeneratorDialog> {
         ),
       ),
       actions: [
+        if (_busy) ...[
+          const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+          Text(t('ui.generator.postcodes'), style: const TextStyle(fontSize: 13)),
+        ],
         TextButton(onPressed: () => Navigator.pop(context), child: Text(t('ui.cancel'))),
-        FilledButton(onPressed: _generate, child: Text(t('ui.generator.create'))),
+        FilledButton(onPressed: _busy ? null : _generate, child: Text(t('ui.generator.create'))),
       ],
     );
   }
