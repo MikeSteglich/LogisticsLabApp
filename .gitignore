@@ -48,3 +48,6 @@ app.*.map.json
 /dist/build/
 /dist/out/
 __pycache__/
+
+# GitHub tokens - never commit
+deploy/github_pat_*
