@@ -56,7 +56,7 @@ class _GeneratorDialog extends StatefulWidget {
 class _GeneratorDialogState extends State<_GeneratorDialog> {
   int _seed = _newSeed();
   String? _error;
-  bool _busy = false; // the postcodes of the places are fetched
+  bool _busy = false; // the places are geocoded
 
   static int _newSeed() => math.Random().nextInt(9000) + 1000;
 
@@ -108,9 +108,10 @@ class _GeneratorDialogState extends State<_GeneratorDialog> {
         modeNames: (t('ui.generator.road'), t('ui.generator.rail')),
         countryName: _country,
       );
-      // the postcodes of the places - offline the addresses stay city and country
+      // the positions and postcodes of the places from their addresses - offline the positions of the table and
+      // the addresses city and country
       setState(() => _busy = true);
-      await withPostcodes(s, widget.state.postcodeAt, countryName: _country);
+      await withGeocodedPlaces(s, widget.state.placeOf, countryName: _country);
       if (mounted) Navigator.pop(context, s);
     } on GeneratorException catch (e) {
       setState(() => _error = t(e.key, e.args));

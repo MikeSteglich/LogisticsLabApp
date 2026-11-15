@@ -12,6 +12,7 @@ import 'backend/backend.dart';
 import 'i18n/strings.dart';
 import 'model/clock.dart';
 import 'model/core_texts.dart';
+import 'model/generator.dart' show GeocodedPlace;
 import 'model/scenario.dart';
 import 'model/solution_analysis.dart';
 import 'modules/modules.dart';
@@ -191,6 +192,10 @@ class AppState extends ChangeNotifier {
       ((solution?.document['problem'] as Map?)?['parameters'] as Map?)?.cast<String, dynamic>() ??
       problem?.parameters ??
       const {};
+
+  /// a node may have several roles of the problem - a location problem: a place both candidate and customer (the
+  /// distance to itself 0); else one role per problem
+  bool get combinedRoles => spec?.group == ModuleGroup.location;
 
   /// roles of the nodes used by the problem - all roles without a problem (type)
   List<String> get problemRoles => spec?.problemRoles(problem?.parameters ?? const {}) ?? nodeRoles;
@@ -764,8 +769,8 @@ class AppState extends ChangeNotifier {
         out.add(strings('ui.check.noNodes', {'role': strings('role.$role.plural')}));
         continue;
       }
-      // one role per problem - a node with two of them (e.g. from an old file)
-      if (r == s.activeRoles(p.parameters).first) {
+      // one role per problem - a node with two of them (e.g. from an old file); a location problem allows both
+      if (r == s.activeRoles(p.parameters).first && !combinedRoles) {
         final roles = problemRoles;
         final multiple = [
           for (final n in scenario.nodes)
@@ -1584,6 +1589,28 @@ class AppState extends ChangeNotifier {
     final hit = await (await _getBackend()).reverse(position).timeout(const Duration(seconds: 15));
     final code = (hit?.json['postcode'] as String?)?.split(RegExp(r'[;,]')).first.trim();
     return code == null || code.isEmpty ? null : code;
+  }
+
+  /// the place of the address of a generated node (geocoding) - hits near [near] first; the postcode of the hit,
+  /// without one that at its position (reverse geocoding); null without a hit
+  Future<GeocodedPlace?> placeOf(String address, LatLng near) async {
+    if (!reverseGeocoding) return null;
+    final backend = await _getBackend();
+    final hits = await backend.geocode(address, near: near).timeout(const Duration(seconds: 15));
+    if (hits.isEmpty) return null;
+    final hit = hits.first;
+    String? first(String? codes) {
+      final code = codes?.split(RegExp(r'[;,]')).first.trim();
+      return code == null || code.isEmpty ? null : code;
+    }
+
+    var postcode = first(hit.json['postcode'] as String?);
+    if (postcode == null) {
+      try {
+        postcode = await postcodeAt(hit.position);
+      } catch (_) {}
+    }
+    return (position: hit.position, postcode: postcode);
   }
 
   /// places of the address - hits near the other nodes first

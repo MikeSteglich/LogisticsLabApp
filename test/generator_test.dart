@@ -72,6 +72,43 @@ void main() {
     }
   });
 
+  test('location problems: capacities of the candidates if a mean is given - they cover the demand', () {
+    for (final type in ['wlp', 'pmedian', 'pcentre']) {
+      final plan = GeneratorPlan.of(modules[type]!);
+      final candidates = plan.groups.firstWhere((g) => g.key == 'sources');
+      expect(candidates.fields.map((f) => f.key), contains('capacity'), reason: type);
+      expect(plan.defaultMean(candidates.fields.firstWhere((f) => f.key == 'capacity')), isNull);
+      // without a mean: no capacities
+      final plain = generate(settings(type), cities, name: 'S', problemName: 'P', networkName: 'N');
+      expect(plain.problems.single.parameters['isCapacitated'], isNot(true), reason: type);
+      expect(plain.nodes.where((n) => n['capacity'] != null), isEmpty, reason: type);
+      // with a mean: the problem respects them, together a quarter more than the demands
+      final base = settings(type);
+      final s = generate(
+        GeneratorSettings(
+          type: type,
+          countries: base.countries,
+          counts: base.counts,
+          means: {...base.means, 'sources.capacity': 10, 'destinations.demand': 30},
+          costPerKm: 1,
+          seed: 1,
+        ),
+        cities,
+        name: 'S',
+        problemName: 'P',
+        networkName: 'N',
+      );
+      expect(s.problems.single.parameters['isCapacitated'], isTrue, reason: type);
+      num total(String role, String key) =>
+          s.nodes.where((n) => n.roles.contains(role)).fold<num>(0, (t, n) => t + ((n[key] as num?) ?? 0));
+      // p-median and p-centre: the p largest
+      final caps = [for (final n in s.nodes.where((n) => n.roles.contains('candidate'))) n['capacity'] as num]
+        ..sort((a, b) => b.compareTo(a));
+      final p = s.problems.single.parameters['p'] as int? ?? caps.length;
+      expect(caps.take(p).fold<num>(0, (a, b) => a + b), greaterThanOrEqualTo(1.25 * total('customer', 'demand')));
+    }
+  });
+
   test('a section of the map: only the cities in it', () {
     final g = settings('tsp');
     final s = generate(
@@ -103,6 +140,59 @@ void main() {
       throwsA(isA<GeneratorException>()),
     );
   });
+
+  test(
+    'flows: a directed network, every node reached from every other - with capacities the customers along a flow',
+    () {
+      for (final type in ['mincostflow', 'maxflow', 'multicommodity', 'multimodal', 'multistagewlp']) {
+        for (final seed in [1, 2, 3]) {
+          final s = generate(
+            settings(type, seed: seed),
+            cities,
+            name: 'S',
+            problemName: 'P',
+            networkName: 'N',
+          );
+          final net = s.networks.values.single;
+          expect(net.directed, isTrue, reason: type);
+          Set<String> from(String start, bool forward) {
+            final reached = {start};
+            var grown = true;
+            while (grown) {
+              grown = false;
+              for (final e in net.edges) {
+                final (a, b) = forward ? (e.from, e.to) : (e.to, e.from);
+                if (reached.contains(a) && reached.add(b)) grown = true;
+              }
+            }
+            return reached;
+          }
+
+          final all = {for (final n in s.nodes) n.id};
+          if (net.edges.any((e) => e.json['capacity'] != null)) {
+            // with capacities along a flow: every customer reached from the suppliers
+            final reached = {
+              for (final n in s.nodes)
+                if (n.roles.contains('supplier')) ...from(n.id, true),
+            };
+            for (final n in s.nodes) {
+              if (n.roles.contains('customer')) expect(reached, contains(n.id), reason: '$type $seed');
+            }
+          } else {
+            expect(from(s.nodes.first.id, true), all, reason: '$type $seed');
+            expect(from(s.nodes.first.id, false), all, reason: '$type $seed');
+          }
+          // no edge twice in the same direction
+          final pairs = [for (final e in net.edges) '${e.from}>${e.to}'];
+          expect(pairs.toSet(), hasLength(pairs.length), reason: '$type $seed');
+        }
+      }
+      for (final type in ['shortestpath', 'cpp']) {
+        final s = generate(settings(type), cities, name: 'S', problemName: 'P', networkName: 'N');
+        expect(s.networks.values.single.directed, isFalse, reason: type);
+      }
+    },
+  );
 
   testWidgets('every problem type: nothing missing before solving', (tester) async {
     SharedPreferences.setMockInitialValues({'language': 'de'});
@@ -154,7 +244,7 @@ void main() {
     expect(state.problem!.type, 'tpp');
   });
 
-  test('addresses: city and country at once, the postcode of the place later', () async {
+  test('addresses: city and country at once, position and postcode later from geocoding the address', () async {
     final s = generate(
       settings('tpp'),
       cities,
@@ -168,24 +258,39 @@ void main() {
       expect(n.address, '${d['city']}, Deutschland');
       expect(d['country'], 'DE');
     }
+    final table = [for (final n in s.nodes) n.position];
     var asked = 0;
-    await withPostcodes(s, (p) async => ++asked == 2 ? null : '1574$asked', countryName: (c) => 'Deutschland');
+    final addresses = <String>[];
+    await withGeocodedPlaces(s, (address, near) async {
+      addresses.add(address);
+      return switch (++asked) {
+        2 => null, // no hit
+        3 => (position: LatLng(near.latitude + 2, near.longitude), postcode: '99999'), // a place far away
+        _ => (position: LatLng(near.latitude + 0.01, near.longitude), postcode: '1574$asked'),
+      };
+    }, countryName: (c) => 'Deutschland');
     expect(asked, s.nodes.length);
+    expect(addresses.every((a) => a.endsWith(', Deutschland')), isTrue);
+    final moved = [
+      for (final (k, n) in s.nodes.indexed)
+        if (n.position != table[k]) n.id,
+    ];
+    expect(moved, hasLength(s.nodes.length - 2));
     final withCode = s.nodes.where((n) => (n.json['addressDetails'] as Map)['postcode'] != null).toList();
-    expect(withCode, hasLength(s.nodes.length - 1));
+    expect([for (final n in withCode) n.id], moved);
     final d = withCode.first.json['addressDetails'] as Map;
     expect(withCode.first.address, '${d['postcode']} ${d['city']}, Deutschland');
   });
 
-  test('postcodes offline: the addresses stay, the others are not asked', () async {
+  test('geocoding offline: positions and addresses stay, the others are not asked', () async {
     final s = generate(settings('tsp'), cities, name: 'x', problemName: 'p', networkName: 'n');
-    final before = [for (final n in s.nodes) n.address];
+    final before = [for (final n in s.nodes) (n.address, n.position)];
     var asked = 0;
-    await withPostcodes(s, (p) async {
+    await withGeocodedPlaces(s, (address, near) async {
       asked++;
       throw Exception('offline');
     }, parallel: 3);
     expect(asked, 3);
-    expect([for (final n in s.nodes) n.address], before);
+    expect([for (final n in s.nodes) (n.address, n.position)], before);
   });
 }
