@@ -163,15 +163,33 @@ class _Header extends StatelessWidget {
                     SubmenuButton(
                       menuChildren: [
                         for (final path in s.recentFiles)
-                          MenuItemButton(
-                            onPressed: () => files.openPath(path),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(path.split(RegExp(r'[/\\]')).last),
-                                Text(_folder(path), style: Ui.small),
-                              ],
+                          // narrow, the folder shortened at the front - a wide submenu does not fit next to the menu
+                          // and covers it; the whole path as tooltip
+                          Tooltip(
+                            message: path,
+                            waitDuration: const Duration(milliseconds: 600),
+                            child: MenuItemButton(
+                              onPressed: () => files.openPath(path),
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: _recentWidth),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      path.split(RegExp(r'[/\\]')).last,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    Text(
+                                      shortenFront(_folder(path), _recentFolderChars),
+                                      style: Ui.small,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                         if (s.recentFiles.isNotEmpty) ...[
@@ -306,6 +324,13 @@ class _ApiKeyDialogState extends State<_ApiKeyDialog> {
 
 /// another instance of the app - an error (e.g. the program moved) as message
 /// the folder of a file - the home folder as ~
+/// width of an entry of the recent files, characters of its folder
+const _recentWidth = 280.0;
+const _recentFolderChars = 40;
+
+/// the end of a text, at most [max] characters - "…/Projekte/LogisticsLab-Daten" for a long folder
+String shortenFront(String text, int max) => text.length <= max ? text : '…${text.substring(text.length - max + 1)}';
+
 String _folder(String path) {
   final i = path.lastIndexOf(RegExp(r'[/\\]'));
   final folder = i <= 0 ? path : path.substring(0, i);

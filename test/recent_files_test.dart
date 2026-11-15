@@ -78,6 +78,47 @@ void main() {
     expect(state.fileName, 'brandenburg-kopie.llab');
   });
 
+  testWidgets('long paths: the list next to the menu - its other entries stay free', (tester) async {
+    MapView.showTiles = false;
+    final paths = [
+      for (var k = 1; k <= AppState.maxRecentFiles; k++)
+        '/Users/someone/Documents/Lehre/Logistik/Wintersemester-2026/Uebungen/Gruppe-$k/Projektordner'
+            '/eine-recht-lange-datei-mit-vielen-woertern-$k.llab',
+    ];
+    for (final size in [const Size(1440, 900), const Size(1100, 700), const Size(900, 650)]) {
+      SharedPreferences.setMockInitialValues({'language': 'de', 'recentFiles': paths});
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      final state = (await tester.runAsync(AppState.create))!;
+      state.scenario.matrix['matrixSource'] = 'beeline';
+      await tester.pumpWidget(LogisticsLabApp(state: state));
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.more_horiz));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Zuletzt verwendet'));
+      await tester.pumpAndSettle();
+      final entries = [
+        for (final p in paths)
+          tester.getRect(find.ancestor(of: find.text(p.split('/').last), matching: find.byType(MenuItemButton))),
+      ];
+      for (final other in [
+        'Speichern unter …',
+        'Beispiel öffnen',
+        'Zufallsproblem erzeugen …',
+        'Alte LogisticsLab-Datei importieren …',
+      ]) {
+        final r = tester.getRect(find.ancestor(of: find.text(other), matching: find.byType(MenuItemButton)));
+        for (final e in entries) {
+          expect(e.overlaps(r), isFalse, reason: '$size $other $e $r');
+        }
+      }
+      await tester.tapAt(const Offset(5, 500));
+      await tester.pumpAndSettle();
+    }
+    await tester.pump(const Duration(seconds: 2)); // the timers of the tooltips
+    tester.view.reset();
+  });
+
   testWidgets('a file passed at the start: opened once the window is shown', (tester) async {
     MapView.showTiles = false;
     final dir = Directory.systemTemp.createTempSync('start');
