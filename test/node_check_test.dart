@@ -70,5 +70,14 @@ void main() {
     // two roles of the problem, e.g. from an old file: checked before solving
     state.edit(() => d1.roles = [...d1.roles, 'supplier']);
     expect(state.nodeProblems, contains(startsWith('Mehr als eine Rolle im Problem bei: Lager Wildau')));
+
+    // a location problem: a place both candidate and customer - no message, the chips add the other role
+    state.chooseProblem('Lagerstandorte (WLP)');
+    state.edit(() => d1.roles = ['candidate']);
+    await tester.pump();
+    await tester.tap(find.descendant(of: mask, matching: find.text('Nachfrager')).last);
+    await tester.pump();
+    expect(d1.roles, unorderedEquals(['candidate', 'customer']));
+    expect(state.nodeProblems.where((m) => m.startsWith('Mehr als eine Rolle')), isEmpty);
   });
 }

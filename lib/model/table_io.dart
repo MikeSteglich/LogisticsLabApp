@@ -329,6 +329,37 @@ class TableImport {
     return roles.isEmpty ? 'customer' : roles.last;
   }
 
+  /// the roles of a new node - a location problem: every role with a value in the row (candidate and customer)
+  List<String> _newRoles(List<String> row) {
+    if (role != autoRole || !state.combinedRoles) return [rowRole(row)];
+    final given = _givenRoles(row);
+    return given.isEmpty ? [rowRole(row)] : given.toList();
+  }
+
+  /// the roles whose main value in the row is not 0
+  Set<String> _givenRoles(List<String> row) => {
+    for (final (r, i) in _roleColumns)
+      if (row[i].trim() case final text when text.isNotEmpty && (_num(text) ?? 1) != 0) r,
+  };
+
+  /// the roles of an existing node after the row - the roles with a column of their main value: those with a value
+  /// not 0 in the row, the other roles of the node unchanged; null: no main value in the row (roles kept)
+  List<String>? _updatedRoles(Node node, List<String> row) {
+    final withColumn = {for (final (r, _) in _roleColumns) r};
+    final given = _givenRoles(row);
+    if (given.isEmpty) return null;
+    // one role per problem: the first with a value - a location problem: all
+    if (!state.combinedRoles) given.removeWhere((r) => r != given.first);
+    final old = node.roles;
+    final roles = [
+      for (final r in old)
+        if (!withColumn.contains(r) || given.contains(r)) r,
+      for (final r in given)
+        if (!old.contains(r)) r,
+    ];
+    return roles.length == old.length && roles.every(old.contains) ? null : roles;
+  }
+
   /// nodes without columns of the coordinates and of the address: the address of the name and the other columns -
   /// with a header those named as parts of an address (the name only without a street or a place), else all others
   void _proposeAddress() {
@@ -562,9 +593,10 @@ class TableImport {
         }
 
         final lat = coordinate('latitude', 90), lon = coordinate('longitude', 180);
-        final address = col.containsKey('address')
-            ? cell('address')
-            : (addressParts.isNotEmpty ? composedAddress(row) : null);
+        // the address of the columns of its parts - of an existing node not of the name alone: a table with the values
+        // to update would else look up every node again by its name (and move it)
+        final composed = addressParts.isNotEmpty && (existing == null || addressParts.any((i) => mapping[i] == null));
+        final address = col.containsKey('address') ? cell('address') : (composed ? composedAddress(row) : null);
         // without coordinates: those of the address - for an existing node only if its address has changed
         final locate =
             (lat == null || lon == null) &&
@@ -588,10 +620,13 @@ class TableImport {
           }
         }
         final active = flag('active');
+        // an existing node: its roles of the problem from the main values of the row - an offer makes a customer a
+        // candidate (wlp), an empty demand takes the customer away; its other roles are kept
+        if (roles == null && existing != null && role == autoRole) roles = _updatedRoles(scenario.node(existing)!, row);
         // a field of every node not for the roles of this one (throughput of a supplier): left out
         final spec = s.spec;
         if (spec != null) {
-          final rowRoles = roles ?? (existing != null ? scenario.node(existing)!.roles : [rowRole(row)]);
+          final rowRoles = roles ?? (existing != null ? scenario.node(existing)!.roles : _newRoles(row));
           values.removeWhere((k, _) {
             final f = fields[k]?.field;
             return f != null && f.notForRoles.isNotEmpty && !spec.isForRoles(f, rowRoles, s.problem!.parameters);
@@ -617,7 +652,7 @@ class TableImport {
           });
         } else {
           final id = idText.isNotEmpty ? idText : newId();
-          final newRole = rowRole(row);
+          final newRoles = _newRoles(row);
           byId[id] = id;
           byName[normalize(name)] = id;
           result.added++;
@@ -625,7 +660,7 @@ class TableImport {
             final position =
                 located[line] ?? (lat != null && lon != null ? LatLng(lat.toDouble(), lon.toDouble()) : null);
             if (position == null) return; // the address has not been found
-            final n = sc.addNode(position, roles: roles ?? [newRole]);
+            final n = sc.addNode(position, roles: roles ?? newRoles);
             n.id = id;
             n.name = name;
             if (address != null && address.isNotEmpty) n.address = address;
@@ -773,7 +808,8 @@ Future<Map<K, LatLng>> locate<K>(
     }
     progress?.call(i, addresses.length);
     try {
-      final hits = await s.geocode(address);
+      // a server without an answer does not hold up the paste
+      final hits = await s.geocode(address).timeout(const Duration(seconds: 15));
       if (hits.isNotEmpty) located[key] = hits.first.position;
     } catch (_) {
       // offline or no answer: as not found

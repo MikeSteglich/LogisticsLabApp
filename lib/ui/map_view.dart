@@ -552,16 +552,17 @@ class _MapViewState extends State<MapView> {
     final (fill, line) = relevant ? Ui.roleColors(role) : (Ui.pale, Ui.pale);
     // location problems: candidate open or closed in the solution
     final open = _showSolution ? s.openNodes[n.id] : null;
-    // a candidate at the place of another node: larger - a frame around its symbol
+    // a candidate at the place of another node or a customer itself: larger - a frame around its symbol
     final shared =
         kind == _Mark.location &&
-        s.scenario.nodes.any(
-          (o) =>
-              o.id != n.id &&
-              !o.roles.contains('candidate') &&
-              (o.position.latitude - n.position.latitude).abs() < 1e-5 &&
-              (o.position.longitude - n.position.longitude).abs() < 1e-5,
-        );
+        (roles.contains('customer') ||
+            s.scenario.nodes.any(
+              (o) =>
+                  o.id != n.id &&
+                  !o.roles.contains('candidate') &&
+                  (o.position.latitude - n.position.latitude).abs() < 1e-5 &&
+                  (o.position.longitude - n.position.longitude).abs() < 1e-5,
+            ));
     // network flows: the flow through a transshipment node and its utilization
     // a transshipment node of a network flow: a diamond filled up to its utilization - the other nodes of a network
     // (shortest path, postman) small dots in the petrol of the edges
@@ -1432,14 +1433,15 @@ class _DiamondPainter extends CustomPainter {
 enum _Mark { source, pickup, sink, location, transit }
 
 /// the kind of symbol of the roles of a node in the problem
+// a candidate that is a customer too (location problems): the location - open or closed in the solution
 _Mark _markOf(List<String> roles) => roles.contains('supplier') || roles.contains('depot')
     ? _Mark.source
     : roles.contains('pickup')
     ? _Mark.pickup
-    : roles.contains('customer') || roles.contains('delivery')
-    ? _Mark.sink
     : roles.contains('candidate')
     ? _Mark.location
+    : roles.contains('customer') || roles.contains('delivery')
+    ? _Mark.sink
     : _Mark.transit;
 
 /// the symbol of a node: square (source, start, pickup), ring (destination, demand), diamond (location), small dot

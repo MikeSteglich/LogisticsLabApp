@@ -698,13 +698,14 @@ class _RoleChipsState extends State<_RoleChips> {
           fontWeight: on ? FontWeight.w600 : FontWeight.w400,
         ),
         side: BorderSide(color: on ? Ui.accent : Ui.inputBorder),
-        // one role per problem: a role of the problem replaces its other roles - roles of other problems stay
+        // one role per problem: a role of the problem replaces its other roles - roles of other problems stay; a
+        // location problem: candidate and customer together
         onSelected: (v) => s.edit(
           () => n.roles = !v
               ? (n.roles..remove(r))
               : [
                   for (final x in n.roles)
-                    if (!(problemRoles.contains(r) && problemRoles.contains(x))) x,
+                    if (s.combinedRoles || !(problemRoles.contains(r) && problemRoles.contains(x))) x,
                   r,
                 ],
         ),

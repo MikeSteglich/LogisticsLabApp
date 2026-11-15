@@ -97,6 +97,69 @@ void main() {
     expect(parseTable(copyTable(state, TableKind.nodes))[berlin][demand], '55,5');
   });
 
+  testWidgets('wlp: offers and demands pasted to existing nodes - their roles from the values', (tester) async {
+    final state = await _state(tester, 'Lagerstandorte (WLP)');
+    // the nodes all customers without values - as after a paste of the addresses
+    for (final n in state.scenario.nodes) {
+      n.roles = n.id == 'W' ? ['supplier', 'customer'] : ['customer'];
+      n['capacity'] = null;
+      n['demand'] = null;
+    }
+    const text =
+        'Name\tAngebot\tNachfrage\nLager Wildau\t80\t\nLager Brandenburg\t60\t5\nBerlin\t\t40\n'
+        'Potsdam\t\t\nWerk Ludwigsfelde\t100\t\n';
+    final paste = TableImport(state, TableKind.nodes, text);
+    expect((paste.mode, paste.role), (ImportMode.update, TableImport.autoRole));
+    final check = paste.check();
+    expect(check.errors, isEmpty);
+    expect(check.updated, 5);
+    await tester.runAsync(paste.apply);
+    final node = state.scenario.node;
+    expect(node('D1')!.roles, ['candidate']);
+    expect(node('D1')!['capacity'], 80);
+    expect(node('D2')!.roles, ['customer', 'candidate']);
+    expect(node('B')!.roles, ['customer']);
+    expect(node('B')!['demand'], 40);
+    // no value: the roles kept - other roles than those of the problem too
+    expect(node('P')!.roles, ['customer']);
+    expect(node('W')!.roles, ['supplier', 'candidate']);
+  });
+
+  testWidgets('one role per problem: supply and demand in a row - the first role (not a location problem)', (
+    tester,
+  ) async {
+    final state = await _state(tester, 'Transport direkt vom Werk');
+    // a location problem: both roles
+    final location = await _state(tester, 'Lagerstandorte (WLP)');
+    final both = TableImport(location, TableKind.nodes, 'Name\tAngebot\tNachfrage\nBerlin\t30\t40\n');
+    both.check();
+    await tester.runAsync(both.apply);
+    expect(
+      location.scenario.node('B')!.roles.where(location.problemRoles.contains),
+      unorderedEquals(['customer', 'candidate']),
+    );
+    final one = TableImport(state, TableKind.nodes, 'Name\tAngebot\tNachfrage\nBerlin\t30\t40\n');
+    one.check();
+    await tester.runAsync(one.apply);
+    expect(state.scenario.node('B')!.roles.where(state.problemRoles.contains), ['supplier']);
+  });
+
+  testWidgets('update of values only: the name is not taken as address - no node looked up again', (tester) async {
+    final state = await _state(tester, 'Lagerstandorte (WLP)');
+    final before = state.scenario.node('D1')!;
+    final (position, address) = (before.position, before.address);
+    final paste = TableImport(state, TableKind.nodes, 'Name\tBetriebskosten\nLager Wildau\t7777\n');
+    final check = paste.check();
+    expect(check.errors, isEmpty);
+    expect(check.toLocate, isEmpty);
+    await tester.runAsync(paste.apply);
+    final n = state.scenario.node('D1')!;
+    expect(n['fixedCost'], 7777);
+    expect((n.position, n.address), (position, address));
+    // new nodes: their name is still the address
+    expect(TableImport(state, TableKind.nodes, 'Name\tBetriebskosten\nTeltow\t10\n').check().toLocate, [(2, 'Teltow')]);
+  });
+
   testWidgets('new nodes without a header and with errors in some rows', (tester) async {
     final state = await _state(tester, 'Touren ab Wildau');
     final before = state.scenario.nodes.length;
