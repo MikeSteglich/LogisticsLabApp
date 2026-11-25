@@ -164,7 +164,9 @@ class _ParametersTab extends StatelessWidget {
         FieldGrid(
           children: [
             TextValueField(
-              key: ValueKey('$k|name'),
+              // the data of the problem, not its name: a key with the name would recreate the field after every
+              // letter typed - the field would lose the focus (Problem is a new wrapper of p.json on every access)
+              key: ValueKey('${identityHashCode(p.json)}|${t.language}|name'),
               label: t('ui.problemName'),
               value: p.name,
               // the name of a new problem (its type, maybe with a number): replaced by the first input
