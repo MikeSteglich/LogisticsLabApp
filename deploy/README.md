@@ -24,7 +24,7 @@ sudo ./setupServer.sh \
 
 | Option | Bedeutung |
 |---|---|
-| `--domain NAME` | Name des Servers, auch für das Zertifikat – ohne ihn nur http über die IP-Adresse |
+| `--domain NAME` | Name des Servers, auch für das Zertifikat – ohne ihn nur http über die IP-Adresse. Mehrfach angebbar, siehe *Mehrere Namen* |
 | `--email ADRESSE` | für Let's Encrypt – ohne sie nur http |
 | `--web DIR` | eine anderswo gebaute Web-App – ohne die Option baut das Skript sie selbst |
 | `--flutter-version V` | Flutter-Version für den Bau auf dem Server (Default wie in `.github/workflows/desktop.yml`) |
@@ -47,6 +47,19 @@ Das Skript
 9. prüft am Ende eine Anfrage über nginx: ohne Key 401 (der Server verlangt einen), mit `--internal-net`/`--open` 200.
 
 **Aktualisieren:** dasselbe Kommando noch einmal – es holt die neuen Stände der Repositories und baut alles neu. Konfiguration und Keys bleiben erhalten. Nur `logPath`, `matrixCacheFile`, `maxProblems` und `debugging` in `logisticsLabServer.yml` setzt das Skript jedes Mal.
+
+## Mehrere Namen
+
+Ein Server kann unter mehreren Namen erreichbar sein – `--domain` mehrfach angeben:
+
+```bash
+sudo ./setupServer.sh --domain logisticslab.example.org --domain llab.example.org --email admin@example.org
+```
+
+- Alle Namen müssen per DNS auf den Server zeigen. Sie kommen in `server_name` der nginx-Seite und in **ein** gemeinsames Zertifikat, benannt nach dem ersten Namen.
+- Der erste Name ist der Hauptname: Mit ihm prüft das Skript am Ende den Server, und er wird als Adresse ausgegeben.
+- Einen Namen später hinzufügen: dasselbe Kommando mit allen Namen – das Zertifikat wird erweitert. Beim Aktualisieren immer alle Namen angeben, sonst fehlen die übrigen in der nginx-Seite.
+- Die Web-App spricht den Server unter dem Namen an, unter dem sie geöffnet wurde. Gespeicherte Einstellungen und der API-Key im Browser gelten aber je Name.
 
 ## Ohne eigene Domain
 
@@ -98,11 +111,18 @@ Der Server liest die Keys ohne Neustart neu. Die Desktop-App erreicht den Server
 
 | | |
 |---|---|
-| Dienst | `systemctl status logisticslab`, `journalctl -u logisticslab -f` |
-| Konfiguration | `/etc/logisticsLab/` (`logisticsLab.yml`, `logisticsLabServer.yml`, `apiKeys.yml`) |
+| Dienst | `systemctl status logisticslab`, `journalctl -u logisticslab -f` – Benutzer `loglab`, uvicorn auf `127.0.0.1:8000`, von außen nur über nginx (`/v1/`) |
+| systemd-Unit | `/etc/systemd/system/logisticslab.service` |
+| Quellen (Git) | `/opt/logisticslab/src/` mit `LogisticsLabApp/`, `pyLogisticsLab/`, `Cmpl2/` (bzw. das Verzeichnis von `--src`) |
+| Server-Code | `/opt/logisticslab/src/pyLogisticsLab/logisticsLabServer/` (`main.py`, `manageKeys.py`) |
+| Python-Umgebung | `/opt/logisticslab/venv/` |
+| CMPL mit HiGHS | `/opt/logisticslab/cmpl/` |
+| Konfiguration | `/etc/logisticsLab/` (`logisticsLab.yml`, `logisticsLabServer.yml`, `apiKeys.yml`, `admin.key`, mit `--internal-net`/`--open` auch `webapp.key`) |
 | Logs | `/var/log/logisticsLab/` |
-| Matrix-Cache | `/var/lib/logisticsLab/matrixCache.sqlite` |
-| nginx | `/etc/nginx/sites-available/logisticslab` |
+| Matrix-Cache | `/var/lib/logisticsLab/matrixCache.sqlite` (auch das Arbeitsverzeichnis des Dienstes) |
+| Web-App | `/var/www/logisticslab/` |
+| Flutter | `/opt/flutter/` (nur für den Bau der Web-App) |
+| nginx | `/etc/nginx/sites-available/logisticslab`, Zugang zu `/v1/` in `/etc/nginx/conf.d/logisticslab-access.conf` |
 
 Nach Änderungen an der Konfiguration: `systemctl restart logisticslab`. API-Keys liest der Server ohne Neustart neu.
 

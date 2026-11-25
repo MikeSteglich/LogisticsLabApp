@@ -11,7 +11,8 @@
 #   sudo ./setupServer.sh --domain logisticslab.example.org --email admin@example.org
 #
 #   --domain NAME      the name of the server (DNS) - also for the certificate; without it: only http, reached by
-#                      the IP address (a name without an own domain: e.g. 194-95-44-20.nip.io)
+#                      the IP address (a name without an own domain: e.g. 194-95-44-20.nip.io). Several times for
+#                      several names of the server - one certificate for all, the first is the main name (test, output)
 #   --email ADDRESS    for Let's Encrypt (certbot); without it or with --no-tls only http
 #   --web DIR          the built web app (flutter build web --release in LogisticsLabApp, copied to the server) -
 #                      without it the web app is built here, Flutter installed to /opt/flutter if necessary
@@ -51,7 +52,7 @@ FLUTTER_DIR=/opt/flutter
 FLUTTER_VERSION=3.44.4
 REPOS=(LogisticsLabApp pyLogisticsLab Cmpl2)
 
-DOMAIN="" EMAIL="" WEB="" SRC="$BASE/src" MAX_PROBLEMS="" TLS=1 OPEN=0
+DOMAINS=() EMAIL="" WEB="" SRC="$BASE/src" MAX_PROBLEMS="" TLS=1 OPEN=0
 INTERNAL_NETS=()
 
 log()  { printf '\n==> %s\n' "$*"; }
@@ -59,7 +60,7 @@ fail() { printf '\nFEHLER: %s\n' "$*" >&2; exit 1; }
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --domain)       DOMAIN="$2"; shift 2 ;;
+    --domain)       DOMAINS+=("$2"); shift 2 ;;
     --email)        EMAIL="$2"; shift 2 ;;
     --web)          WEB="$2"; shift 2 ;;
     --flutter-version) FLUTTER_VERSION="$2"; shift 2 ;;
@@ -74,8 +75,9 @@ while [ $# -gt 0 ]; do
 done
 
 [ "$(id -u)" = 0 ] || fail "bitte als root starten (sudo)"
-# without a name: every address (server_name _), only http
-SERVER_NAME="${DOMAIN:-_}"
+# without a name: every address (server_name _), only http - with several names the first is the main name
+DOMAIN="${DOMAINS[0]:-}"
+SERVER_NAME="${DOMAINS[*]:-_}"
 [ -n "$DOMAIN" ] || TLS=0
 command -v apt-get >/dev/null || fail "nur fuer Debian/Ubuntu (apt)"
 [ -n "$EMAIL" ] || TLS=0
@@ -316,8 +318,11 @@ nginx -t
 systemctl reload nginx
 
 if [ "$TLS" = 1 ]; then
-  log "Zertifikat (Let's Encrypt) fuer $DOMAIN"
-  certbot --nginx -d "$DOMAIN" -m "$EMAIL" --agree-tos --non-interactive --redirect --keep-until-expiring
+  log "Zertifikat (Let's Encrypt) fuer ${DOMAINS[*]}"
+  # one certificate for all names, named after the main name - a name added later expands it
+  certargs=(); for d in "${DOMAINS[@]}"; do certargs+=(-d "$d"); done
+  certbot --nginx --cert-name "$DOMAIN" "${certargs[@]}" -m "$EMAIL" --agree-tos --non-interactive --redirect \
+          --keep-until-expiring --expand
 fi
 
 # ------------------------------------------------------------------ test
@@ -347,3 +352,4 @@ if [ -s "$ADMINKEY" ]; then
   echo "    $(cat "$ADMINKEY")"
 fi
 log "Fertig: $scheme://${DOMAIN:-$(hostname -I | awk '{print $1}')}"
+[ ${#DOMAINS[@]} -le 1 ] || for d in "${DOMAINS[@]:1}"; do echo "    auch $scheme://$d"; done
