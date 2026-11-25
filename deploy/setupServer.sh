@@ -23,6 +23,10 @@
 #   --no-tls           no certificate (e.g. behind another proxy, or for a test in the local network)
 #   --internal-net CIDR  a network whose users need no API key (e.g. 194.95.44.0/22 or the VPN) - several times
 #   --open             nobody needs an API key (e.g. a server only reachable in the internal network)
+#   --site DIR         also the static website (e.g. logisticsLab.org) in its own nginx site - DIR holds its files,
+#                      copied to /var/www/logisticslab-site; download/ and v5/ there are kept if DIR lacks them
+#   --site-domain NAME the name of the website - several times, the first is the main name, the others redirect
+#                      to it (e.g. www.); its own certificate. Needed with --site
 #
 # Access: by default everybody enters an API key in the app (Settings -> Computing, or the app asks for it) and
 # nginx passes it on. For --internal-net and --open nginx adds the key of the web app itself - it never reaches
@@ -46,6 +50,7 @@ CONF=/etc/logisticsLab
 LOGS=/var/log/logisticsLab
 DATA=/var/lib/logisticsLab
 WWW=/var/www/logisticslab
+SITE_WWW=/var/www/logisticslab-site
 USER_NAME=loglab
 PORT=8000
 FLUTTER_DIR=/opt/flutter
@@ -54,6 +59,7 @@ REPOS=(LogisticsLabApp pyLogisticsLab Cmpl2)
 
 DOMAINS=() EMAIL="" WEB="" SRC="$BASE/src" MAX_PROBLEMS="" TLS=1 OPEN=0
 INTERNAL_NETS=()
+SITE_DIR="" SITE_DOMAINS=()
 
 log()  { printf '\n==> %s\n' "$*"; }
 fail() { printf '\nFEHLER: %s\n' "$*" >&2; exit 1; }
@@ -69,7 +75,9 @@ while [ $# -gt 0 ]; do
     --no-tls)       TLS=0; shift ;;
     --internal-net) INTERNAL_NETS+=("$2"); shift 2 ;;
     --open)         OPEN=1; shift ;;
-    -h|--help)      sed -n '2,40p' "$0"; exit 0 ;;
+    --site)         SITE_DIR="$2"; shift 2 ;;
+    --site-domain)  SITE_DOMAINS+=("$2"); shift 2 ;;
+    -h|--help)      sed -n '2,44p' "$0"; exit 0 ;;
     *)              fail "unbekannte Option $1 (--help)" ;;
   esac
 done
@@ -82,6 +90,12 @@ SERVER_NAME="${DOMAINS[*]:-_}"
 command -v apt-get >/dev/null || fail "nur fuer Debian/Ubuntu (apt)"
 [ -n "$EMAIL" ] || TLS=0
 [ -z "$WEB" ] || [ -f "$WEB/index.html" ] || fail "$WEB/index.html fehlt - das Verzeichnis von flutter build web angeben"
+if [ -n "$SITE_DIR" ]; then
+  [ -f "$SITE_DIR/index.html" ] || fail "$SITE_DIR/index.html fehlt - das Verzeichnis der Website angeben"
+  [ ${#SITE_DOMAINS[@]} -gt 0 ] || fail "--site braucht --site-domain (die Website hat einen eigenen Namen)"
+  SITE_DIR="$(cd "$SITE_DIR" && pwd)"
+fi
+SITE_DOMAIN="${SITE_DOMAINS[0]:-}"
 if [ -z "$MAX_PROBLEMS" ]; then
   MAX_PROBLEMS=$(( $(nproc) - 1 )); [ "$MAX_PROBLEMS" -ge 2 ] || MAX_PROBLEMS=2
 fi
@@ -314,6 +328,59 @@ server {
 EOF
 ln -sf "$SITE" /etc/nginx/sites-enabled/logisticslab
 rm -f /etc/nginx/sites-enabled/default
+
+# ------------------------------------------------------------------ website (optional)
+# the static website in its own nginx site with its own names - without --site an earlier one stays as it is
+if [ -n "$SITE_DIR" ]; then
+  log "Website ${SITE_DOMAINS[*]}"
+  mkdir -p "$SITE_WWW"
+  # download/ (packages of the desktop app) and v5/ (old website of LogisticsLab 5) may be put on the server
+  # directly - kept if the website directory does not hold them
+  rsync -a --delete --filter='P /download/***' --filter='P /v5/***' "$SITE_DIR/" "$SITE_WWW/"
+  chown -R root:root "$SITE_WWW"; chmod -R a+rX "$SITE_WWW"
+  cat > /etc/nginx/sites-available/logisticslab-site <<EOF
+# website of LogisticsLab - written by setupServer.sh (certbot adds the certificate)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${SITE_DOMAINS[*]};
+
+    # the other names (e.g. www.) -> the main name
+    if (\$host != $SITE_DOMAIN) { return 301 \$scheme://$SITE_DOMAIN\$request_uri; }
+
+    root $SITE_WWW;
+    index index.html;
+
+    gzip on;
+    gzip_types text/css application/javascript image/svg+xml;
+
+    # LogisticsLab 5: its former addresses (printed in the textbook) lead to /v5/
+    location ~ ^/(installation|tpp|nwf|tsp|vrp|dlp|clp|License|contact|changelog)\.html\$ { return 301 /v5/\$1.html; }
+    location ~ ^/(v5/)?legal\.html\$ { return 301 /impressum.html; }
+    location ~ ^/download/(LogisticsLab-.*|LogisticsLab\.pdf)\$ { return 301 /v5/download/\$1; }
+    location ~ ^/(License|pic)/(.*)\$ { return 301 /v5/\$1/\$2; }
+
+    # packages are saved, not opened
+    location ~* \.(dmg|zip|7z|tar\.gz)\$ {
+        add_header Content-Disposition attachment;
+        try_files \$uri =404;
+    }
+    location ~* \.(jpg|jpeg|png|svg|ico)\$ {
+        expires 30d;
+        try_files \$uri =404;
+    }
+    location ~* \.(css|js)\$ {
+        expires 1d;
+        try_files \$uri =404;
+    }
+    location / {
+        try_files \$uri \$uri/ =404;
+    }
+}
+EOF
+  ln -sf /etc/nginx/sites-available/logisticslab-site /etc/nginx/sites-enabled/logisticslab-site
+fi
+
 nginx -t
 systemctl reload nginx
 
@@ -322,6 +389,12 @@ if [ "$TLS" = 1 ]; then
   # one certificate for all names, named after the main name - a name added later expands it
   certargs=(); for d in "${DOMAINS[@]}"; do certargs+=(-d "$d"); done
   certbot --nginx --cert-name "$DOMAIN" "${certargs[@]}" -m "$EMAIL" --agree-tos --non-interactive --redirect \
+          --keep-until-expiring --expand
+fi
+if [ -n "$SITE_DIR" ] && [ -n "$EMAIL" ] && [ "$TLS" = 1 ]; then
+  log "Zertifikat (Let's Encrypt) fuer die Website ${SITE_DOMAINS[*]}"
+  certargs=(); for d in "${SITE_DOMAINS[@]}"; do certargs+=(-d "$d"); done
+  certbot --nginx --cert-name "$SITE_DOMAIN" "${certargs[@]}" -m "$EMAIL" --agree-tos --non-interactive --redirect \
           --keep-until-expiring --expand
 fi
 
@@ -346,6 +419,15 @@ for i in 1 2 3 4 5 6 7 8 9 10; do
   sleep 3
 done
 
+if [ -n "$SITE_DIR" ]; then
+  log "Test: Website"
+  sscheme=http; [ "$TLS" = 1 ] && [ -n "$EMAIL" ] && sscheme=https
+  code=$(curl -s -o /dev/null -w '%{http_code}' --resolve "$SITE_DOMAIN:443:127.0.0.1" \
+         --resolve "$SITE_DOMAIN:80:127.0.0.1" "$sscheme://$SITE_DOMAIN/" || true)
+  [ "$code" = 200 ] || fail "Website: erwartet 200, Antwort $code - nginx -t, /var/log/nginx/error.log"
+  echo "    ok ($code)"
+fi
+
 scheme=http; [ "$TLS" = 0 ] || scheme=https
 if [ -s "$ADMINKEY" ]; then
   log "API-Key admin (auch in $ADMINKEY, nur fuer root lesbar)"
@@ -353,3 +435,4 @@ if [ -s "$ADMINKEY" ]; then
 fi
 log "Fertig: $scheme://${DOMAIN:-$(hostname -I | awk '{print $1}')}"
 [ ${#DOMAINS[@]} -le 1 ] || for d in "${DOMAINS[@]:1}"; do echo "    auch $scheme://$d"; done
+[ -z "$SITE_DIR" ] || echo "    Website: $sscheme://$SITE_DOMAIN"

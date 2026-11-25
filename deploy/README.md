@@ -33,6 +33,8 @@ sudo ./setupServer.sh \
 | `--no-tls` | kein Zertifikat, z. B. hinter einem anderen Proxy oder zum Test im lokalen Netz |
 | `--internal-net CIDR` | ein Netz, dessen Nutzer keinen API-Key brauchen, z. B. `194.95.44.0/22` oder das VPN – mehrfach angebbar |
 | `--open` | niemand braucht einen API-Key (z. B. ein Server nur im internen Netz) |
+| `--site DIR` | zusätzlich die statische Website (logisticslab.org) unter eigenem Namen, siehe *Website auf demselben Server* |
+| `--site-domain NAME` | Name der Website – mehrfach angebbar, der erste ist der Hauptname, die übrigen leiten auf ihn um |
 
 Das Skript
 
@@ -60,6 +62,29 @@ sudo ./setupServer.sh --domain logisticslab.example.org --domain llab.example.or
 - Der erste Name ist der Hauptname: Mit ihm prüft das Skript am Ende den Server, und er wird als Adresse ausgegeben.
 - Einen Namen später hinzufügen: dasselbe Kommando mit allen Namen – das Zertifikat wird erweitert. Beim Aktualisieren immer alle Namen angeben, sonst fehlen die übrigen in der nginx-Seite.
 - Die Web-App spricht den Server unter dem Namen an, unter dem sie geöffnet wurde. Gespeicherte Einstellungen und der API-Key im Browser gelten aber je Name.
+
+## Website auf demselben Server
+
+Die Website logisticslab.org kann neben der Web-App auf demselben Server laufen – in einer eigenen nginx-Seite mit eigenen Namen und eigenem Zertifikat. Die Web-App behält ihre Namen:
+
+```
+logisticslabstudio.de, logisticslab.th-wildau.de  → /var/www/logisticslab        Web-App, /v1/ → Server
+logisticslab.org (www.logisticslab.org → dorthin)  → /var/www/logisticslab-site   Website, /download/, /v5/
+```
+
+```bash
+sudo ./setupServer.sh \
+     --domain logisticslabstudio.de --domain logisticslab.th-wildau.de \
+     --site /opt/logisticslab/site --site-domain logisticslab.org --site-domain www.logisticslab.org \
+     --email admin@example.org
+```
+
+- `--site` ist das Verzeichnis der Website (Inhalt des Ordners `logisticsLab.org`), vorher auf den Server kopiert. Das Skript kopiert es nach `/var/www/logisticslab-site`. Liegt die Website in einem Git-Repository, genügt ein `git pull` und derselbe Aufruf.
+- `download/` (Pakete der Desktop-App) und `v5/` (die alte Website von LogisticsLab 5) dürfen auch direkt in `/var/www/logisticslab-site` liegen: Fehlen sie im Verzeichnis von `--site`, bleiben sie beim Aktualisieren erhalten.
+- Die früheren Adressen von LogisticsLab 5 (`installation.html`, `tpp.html`, `download/LogisticsLab-5-4-3.zip`, `License/…`, `pic/…`) leitet nginx dauerhaft (301) nach `/v5/` um, `legal.html` auf das neue Impressum.
+- Alle Namen müssen per DNS auf den Server zeigen, bevor das Skript läuft – sonst scheitert das Zertifikat.
+- Beim Aktualisieren `--site` und alle `--site-domain` wieder angeben. Ohne `--site` bleibt die Website, wie sie ist.
+- nginx: `/etc/nginx/sites-available/logisticslab-site`. Am Ende prüft das Skript, dass die Startseite der Website antwortet.
 
 ## Ohne eigene Domain
 
@@ -123,6 +148,7 @@ Der Server liest die Keys ohne Neustart neu. Die Desktop-App erreicht den Server
 | Web-App | `/var/www/logisticslab/` |
 | Flutter | `/opt/flutter/` (nur für den Bau der Web-App) |
 | nginx | `/etc/nginx/sites-available/logisticslab`, Zugang zu `/v1/` in `/etc/nginx/conf.d/logisticslab-access.conf` |
+| Website (mit `--site`) | `/var/www/logisticslab-site/`, nginx `/etc/nginx/sites-available/logisticslab-site` |
 
 Nach Änderungen an der Konfiguration: `systemctl restart logisticslab`. API-Keys liest der Server ohne Neustart neu.
 
