@@ -38,7 +38,6 @@ p, li { color: var(--text); }
 .address { margin: 0.5rem 0 1rem; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
-.back { margin: 0 0 1rem; font-size: 0.95rem; }
 .footer { color: var(--muted); font-size: 0.9rem; }
 .note { color: var(--muted); font-size: 0.95rem; }
 ul { padding-left: 1.3rem; }
