@@ -73,6 +73,17 @@ Der Server verlangt bei jeder Anfrage einen API-Key. Wer ihn braucht, legt das S
 - *ein Key je Kurs*, mit Ablaufdatum zum Semesterende und einer Grenze offener Rechnungen für den ganzen Kurs, z. B. über Moodle verteilt. Einfach, schützt aber nur, solange er nicht weitergegeben wird.
 - *ein Key je Person*: Die Grenze offener Rechnungen gilt dann je Person, dafür mehr Verwaltung.
 
+Einen Key anlegen (auf dem Server, als root bzw. mit sudo):
+
+```bash
+sudo -u loglab LOGLAB_CONF_DIR=/etc/logisticsLab /opt/logisticslab/venv/bin/python \
+     /opt/logisticslab/src/pyLogisticsLab/logisticsLabServer/manageKeys.py add kurs-ws26 --expires 2027-03-31 --maxOpenProblems 60
+```
+
+Der Key wird nur dieses eine Mal angezeigt – gleich notieren. In `apiKeys.yml` steht nur sein Hash.
+
+Für mehrere Aufrufe kürzer mit einer Variablen:
+
 ```bash
 K="sudo -u loglab LOGLAB_CONF_DIR=/etc/logisticsLab /opt/logisticslab/venv/bin/python /opt/logisticslab/src/pyLogisticsLab/logisticsLabServer/manageKeys.py"
 $K add kurs-ws26 --expires 2027-03-31 --maxOpenProblems 60     # zeigt den Key einmal an
