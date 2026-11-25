@@ -1,4 +1,5 @@
-/// Solution tab: the value of the objective function is highlighted, values in the unit of the solution.
+/// Solution tab: the value of the objective function is highlighted, values in the unit of the solution - travel
+/// times as durations.
 library;
 
 import 'dart:io';
@@ -66,6 +67,19 @@ void main() {
     addTearDown(tester.view.reset);
     await show(tester, valueUnit: 'km');
     expect(find.text('1.234,5 km'), findsOneWidget);
+    expect(find.textContaining('€'), findsNothing);
+  });
+
+  testWidgets('times: the values as durations', (tester) async {
+    addTearDown(tester.view.reset);
+    await show(tester, objSense: 'minimax', valueUnit: 'min');
+    // the largest cost rate (objective), the smallest, the rate and the costs of the connection: 42, 10, 1, 40 min
+    expect(find.text('0:42 h'), findsOneWidget);
+    expect(find.text('0:10 h'), findsOneWidget);
+    expect(find.text('0:01 h'), findsOneWidget);
+    expect(find.text('0:40 h'), findsOneWidget);
+    expect(find.text('20:35 h'), findsWidgets); // the total costs: 1234.5 min
+    expect(find.textContaining(' min'), findsNothing);
     expect(find.textContaining('€'), findsNothing);
   });
 }

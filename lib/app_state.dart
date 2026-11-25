@@ -217,6 +217,8 @@ class AppState extends ChangeNotifier {
   /// a value of the solution in its unit - costs with two decimals and €, else with the unit (km, min)
   String valueText(num v, {String? unit}) {
     unit ??= solution?.document['valueUnit'] as String?;
+    // travel times: as a duration in hours and minutes, e.g. 14:03 h
+    if (isTimeUnit(unit)) return Clock(unit!).duration(v);
     return unit == null || unit == 'costs' ? '${strings.fixed(v, 2)} €' : '${strings.number(v)} $unit';
   }
 
@@ -284,13 +286,19 @@ class AppState extends ChangeNotifier {
   }
 
   /// the cost rates of a connection per commodity or mode (multicommodity, multimodal), e.g. "Produkt 1 0,20 · Produkt 2 0,25"
+  /// the values of the solution are travel times (matrixMode times)
+  bool get valuesAreTimes => isTimeUnit(solution?.document['valueUnit'] as String?);
+
+  /// a rate or the costs of a connection: with travel times as a duration, else as a number
+  String rateText(num v) => valuesAreTimes ? valueText(v) : strings.fixed(v, 2);
+
   String rates(Map<String, dynamic> connection) {
     final values = (connection['rates'] as Map?)?.cast<String, dynamic>() ?? const {};
     final records = [...scenario.commodities, ...scenario.modes];
     return [
       for (final MapEntry(:key, :value) in values.entries)
         '${Scenario.recordName(records.firstWhere((r) => r['id'] == key, orElse: () => {'id': key}))} '
-            '${strings.fixed(value as num, 2)}',
+            '${rateText(value as num)}',
     ].join(' · ');
   }
 

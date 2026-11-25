@@ -49,8 +49,8 @@ class SolutionTab extends StatelessWidget {
     String name(Object? id) => s.scenario.node('$id')?.name ?? '$id';
     // unit of the objective and the costs: costs (€) or the unit of distances / times (matrixMode)
     final valueUnit = sol.document['valueUnit'] as String?;
-    String money(num v) =>
-        valueUnit == null || valueUnit == 'costs' ? '${t.fixed(v, 2)} €' : '${t.number(v)} $valueUnit';
+    // travel times as a duration (14:03 h)
+    String money(num v) => s.valueText(v, unit: valueUnit);
     final objectiveKey = spec.objective?.call(s.problem?.parameters ?? const {});
     final weighted = s.objectiveWeighted;
     final ok = sol.status == 'solution';
@@ -177,6 +177,8 @@ class SolutionTab extends StatelessWidget {
                             ? money(v)
                             : col.unit == '@time'
                             ? s.clock.duration(v)
+                            : col.unit == '@rate'
+                            ? (s.valuesAreTimes ? money(v) : t.number(v))
                             : col.unit == 'EUR'
                             ? '${t.fixed(v, 2)} €'
                             : col.unit == '×'
@@ -243,11 +245,11 @@ class SolutionTab extends StatelessWidget {
                         if (withSplit) s.split(a),
                         t.number(a['flow'] as num),
                         if (withRates) ...[
-                          a['rate'] is num ? t.fixed(a['rate'] as num, 2) : s.rates(a),
+                          a['rate'] is num ? s.rateText(a['rate'] as num) : s.rates(a),
                           a['costs'] is num
-                              ? t.fixed(a['costs'] as num, 2)
+                              ? s.rateText(a['costs'] as num)
                               : a['rate'] is num
-                              ? t.fixed((a['flow'] as num) * (a['rate'] as num), 2)
+                              ? s.rateText((a['flow'] as num) * (a['rate'] as num))
                               : '',
                         ],
                         if (withUtilization) percent(a['utilization']),

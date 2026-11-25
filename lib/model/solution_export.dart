@@ -94,6 +94,8 @@ XlsxSheet _overview(AppState s, ModuleSpec spec) {
               '€' => (v, _valueUnit(s)),
               'EUR' => (v, '€'),
               '@time' => (v, _timeUnit(s)),
+              // rates of a tpp: with travel times in the unit of the times, else costs per unit without a unit
+              '@rate' => (v, s.valuesAreTimes ? _valueUnit(s) : ''),
               '%' => (v * 100, '%'),
               final u => (v, u ?? ''),
             };

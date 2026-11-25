@@ -1,6 +1,9 @@
 /// Times of the day: a value in the time unit of the scenario (min, h, s) counted from 0:00 - shown as 08:30.
 library;
 
+/// a unit of times (matrixMode times) - its values are shown as durations
+bool isTimeUnit(String? unit) => const ['min', 'h', 's'].contains(unit);
+
 class Clock {
   final String unit; // time unit of the scenario
   const Clock(this.unit);

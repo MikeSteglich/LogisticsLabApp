@@ -76,8 +76,9 @@ final tppSpec = ModuleSpec(
     ResultColumn('totalVarCosts', unit: '€'),
     ResultColumn('totalFixedCosts', unit: '€'),
     ResultColumn('totalFlow'),
-    ResultColumn('minCostRate'),
-    ResultColumn('maxCostRate'),
+    // with travel times: durations
+    ResultColumn('minCostRate', unit: '@rate'),
+    ResultColumn('maxCostRate', unit: '@rate'),
     ResultColumn('minContributionRate'),
     ResultColumn('maxContributionRate'),
   ],
