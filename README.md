@@ -53,6 +53,14 @@ LOGLAB_STDIO=python LOGLAB_STDIO_ARGS="-m logisticsLabCore.stdio" LOGLAB_STDIO_D
 python3 dist/buildDist.py --build-stdio --stdio-python /opt/anaconda3/envs/nuitka/bin/python --dmg
 ```
 
+## Web server
+
+`deploy/setupServer.sh` sets up a Linux server (Ubuntu 22.04/24.04, Debian 12) with the web app and the LogisticsLab server of pyLogisticsLab, both behind nginx: it clones the repositories, builds CMPL with HiGHS and the web app, and sets up the systemd service, the certificate and the API keys. See [deploy/README.md](deploy/README.md) (in German).
+
+```sh
+sudo ./setupServer.sh --domain logisticslab.example.org --email admin@example.org
+```
+
 ## Tests
 
 `test/screenshot_test.dart` opens the example, solves the TPP with the local core and writes pictures of the app (without map tiles):
